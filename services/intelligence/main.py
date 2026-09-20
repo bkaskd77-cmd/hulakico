@@ -10,6 +10,8 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from doc_qc import run_document_qc
+from eta_risk import assess_eta_risk
 from ranker import rank_quote_options
 
 load_dotenv()
@@ -37,6 +39,24 @@ class RankRequest(BaseModel):
     wantsCod: bool = False
 
 
+class EtaRiskRequest(BaseModel):
+    lane: str
+    destinationCity: str
+    serviceClass: str
+
+
+class DocQcRequest(BaseModel):
+    lane: str
+    packageType: str
+    contents: str
+    declaredValue: float | None = None
+    currency: str
+    originAddress: str
+    destinationAddress: str
+    originCountry: str
+    destinationCountry: str
+
+
 def _require_service_token(authorization: str | None) -> None:
     expected = os.getenv("INTELLIGENCE_SERVICE_TOKEN", "")
     if not expected:
@@ -47,22 +67,18 @@ def _require_service_token(authorization: str | None) -> None:
 
 @app.get("/health")
 def health() -> JSONResponse:
-    """Readiness probe for the intelligence service."""
     try:
-        payload = {
-            "status": "ok",
-            "service": "hulakico-intelligence",
-            "version": "0.1.0",
-            "time": datetime.now(timezone.utc).isoformat(),
-            "env": os.getenv("HULAKICO_ENV", "development"),
-        }
-        return JSONResponse(content=payload, status_code=200)
+        return JSONResponse(
+            content={
+                "status": "ok",
+                "service": "hulakico-intelligence",
+                "version": "0.1.0",
+                "time": datetime.now(timezone.utc).isoformat(),
+            }
+        )
     except Exception as exc:
         print(f"[main.py:health] {type(exc).__name__}: {exc}")
-        return JSONResponse(
-            content={"status": "error", "message": "Health check failed."},
-            status_code=500,
-        )
+        return JSONResponse(content={"status": "error"}, status_code=500)
 
 
 @app.post("/v1/rank-quotes")
@@ -70,19 +86,45 @@ def rank_quotes(
     body: RankRequest,
     authorization: str | None = Header(default=None),
 ) -> JSONResponse:
-    """Rank quote options with a multi-objective score."""
     try:
         _require_service_token(authorization)
         ranked = rank_quote_options(
             [option.model_dump() for option in body.options],
             wants_cod=body.wantsCod,
         )
-        return JSONResponse(content={"options": ranked}, status_code=200)
+        return JSONResponse(content={"options": ranked})
     except HTTPException:
         raise
     except Exception as exc:
         print(f"[main.py:rank_quotes] {type(exc).__name__}: {exc}")
-        return JSONResponse(
-            content={"error": "Ranking failed.", "message": str(exc)},
-            status_code=500,
-        )
+        return JSONResponse(content={"error": "Ranking failed."}, status_code=500)
+
+
+@app.post("/v1/eta-risk")
+def eta_risk(
+    body: EtaRiskRequest,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        _require_service_token(authorization)
+        return JSONResponse(content=assess_eta_risk(body.model_dump()))
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print(f"[main.py:eta_risk] {type(exc).__name__}: {exc}")
+        return JSONResponse(content={"error": "ETA risk failed."}, status_code=500)
+
+
+@app.post("/v1/document-qc")
+def document_qc(
+    body: DocQcRequest,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        _require_service_token(authorization)
+        return JSONResponse(content=run_document_qc(body.model_dump()))
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print(f"[main.py:document_qc] {type(exc).__name__}: {exc}")
+        return JSONResponse(content={"error": "Document QC failed."}, status_code=500)

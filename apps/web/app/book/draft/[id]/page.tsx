@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { DraftInsights } from "@/app/book/DraftInsights";
 import { RequestQuotesButton } from "@/app/book/RequestQuotesButton";
 import { SelectQuoteButton } from "@/app/book/SelectQuoteButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
-import { rankQuoteOptions } from "@/lib/data/intelligence-client";
+import {
+  assessEtaRisk,
+  rankQuoteOptions,
+  runDocumentQc,
+} from "@/lib/data/intelligence-client";
 import { getLatestQuoteOptions } from "@/lib/data/quote-query";
 import { getDraftShipmentForUser } from "@/lib/data/shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
@@ -35,6 +40,9 @@ export default async function DraftSavedPage({
     rankReason: "Sorted by price (ranker unavailable)",
   }));
   let rankError: string | null = null;
+  let etaRisk: Awaited<ReturnType<typeof assessEtaRisk>> | null = null;
+  let docQc: Awaited<ReturnType<typeof runDocumentQc>> | null = null;
+  let insightError: string | null = null;
 
   if (baseQuotes.length > 0) {
     try {
@@ -43,29 +51,55 @@ export default async function DraftSavedPage({
         wantsCod: shipment.wants_cod === 1,
       });
     } catch (error) {
-      console.error(
-        "[draft/[id]/page.tsx]",
-        error instanceof Error ? error.message : error,
-      );
+      console.error("[draft/page rank]", error instanceof Error ? error.message : error);
       rankError = "Python ranker offline — showing price order.";
     }
   }
 
+  try {
+    etaRisk = await assessEtaRisk({
+      lane: shipment.lane,
+      destinationCity: shipment.destination_city,
+      serviceClass: shipment.service_class,
+    });
+    docQc = await runDocumentQc({
+      lane: shipment.lane,
+      packageType: shipment.package_type,
+      contents: shipment.contents,
+      declaredValue: shipment.declared_value,
+      currency: shipment.currency,
+      originAddress: shipment.origin_address,
+      destinationAddress: shipment.destination_address,
+      originCountry: shipment.origin_country,
+      destinationCountry: shipment.destination_country,
+    });
+  } catch (error) {
+    console.error("[draft/page insights]", error instanceof Error ? error.message : error);
+    insightError = "ETA/document intelligence offline.";
+  }
+
   const canBook =
-    shipment.status === "QUOTED" || shipment.status === "DRAFT";
+    (shipment.status === "QUOTED" || shipment.status === "DRAFT") &&
+    docQc?.severity !== "BLOCKER";
 
   return (
     <div className="shell-sky flex min-h-dvh items-center justify-center px-6 py-16">
       <div className="w-full max-w-lg rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">
-          {shipment.status === "QUOTED" ? "AI-ranked quotes" : "Draft saved"}
+          Intelligence checks
         </p>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
-          Ranked carrier options
+          Quotes & risk
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           {shipment.origin_city} → {shipment.destination_city} ({shipment.lane})
         </p>
+
+        <DraftInsights
+          etaRisk={etaRisk}
+          docQc={docQc}
+          insightError={insightError}
+        />
 
         {rankError ? (
           <p className="mt-4 text-sm text-[var(--gold)]">{rankError}</p>
@@ -87,8 +121,7 @@ export default async function DraftSavedPage({
                   </p>
                 </div>
                 <p className="text-[var(--muted)]">
-                  {option.serviceName} · ETA {option.etaDaysMin}-
-                  {option.etaDaysMax}d
+                  {option.serviceName} · ETA {option.etaDaysMin}-{option.etaDaysMax}d
                 </p>
                 <p className="mt-1 text-[var(--gold)]">
                   {option.currency} {option.amount.toFixed(2)}
@@ -104,7 +137,7 @@ export default async function DraftSavedPage({
           </ul>
         ) : (
           <p className="mt-6 text-sm text-[var(--muted)]">
-            No quotes yet. Generate rates first.
+            Generate quotes to rank carriers.
           </p>
         )}
 
