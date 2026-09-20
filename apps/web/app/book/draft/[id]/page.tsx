@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
+import { getLatestQuoteOptions } from "@/lib/data/quote-query";
 import { getDraftShipmentForUser } from "@/lib/data/shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { RequestQuotesButton } from "@/app/book/RequestQuotesButton";
 
 export const runtime = "nodejs";
 
@@ -23,23 +25,23 @@ export default async function DraftSavedPage({
     notFound();
   }
 
+  const quotes = getLatestQuoteOptions(user.id, id);
+
   return (
     <div className="shell-sky flex min-h-dvh items-center justify-center px-6 py-16">
       <div className="w-full max-w-lg rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">
-          Draft saved
+          {shipment.status === "QUOTED" ? "Quoted" : "Draft saved"}
         </p>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
-          Shipment ready for quotes
+          {shipment.status === "QUOTED"
+            ? "Carrier quotes"
+            : "Shipment ready for quotes"}
         </h1>
         <dl className="mt-6 space-y-3 text-sm text-[var(--muted)]">
           <div>
             <dt className="text-xs uppercase tracking-wide">ID</dt>
             <dd className="text-[var(--off-white)]">{shipment.id}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Status</dt>
-            <dd className="text-[var(--off-white)]">{shipment.status}</dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Route</dt>
@@ -48,18 +50,39 @@ export default async function DraftSavedPage({
               {shipment.lane})
             </dd>
           </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Package</dt>
-            <dd className="text-[var(--off-white)]">{shipment.package_type}</dd>
-          </div>
         </dl>
-        <p className="mt-6 text-sm text-[var(--muted)]">
-          Quotes and carrier ranking arrive in Step 6–7.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+
+        {quotes.length > 0 ? (
+          <ul className="mt-6 space-y-3">
+            {quotes.map((option) => (
+              <li
+                key={option.id}
+                className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-4 py-3 text-sm"
+              >
+                <p className="font-semibold text-[var(--off-white)]">
+                  {option.carrierName}
+                </p>
+                <p className="text-[var(--muted)]">
+                  {option.serviceName} · {option.zoneLabel} · ETA{" "}
+                  {option.etaDaysMin}-{option.etaDaysMax}d
+                </p>
+                <p className="mt-1 text-[var(--gold)]">
+                  {option.currency} {option.amount.toFixed(2)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-6 text-sm text-[var(--muted)]">
+            No quotes yet. Generate deterministic rates from partner rate cards.
+          </p>
+        )}
+
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <RequestQuotesButton shipmentId={shipment.id} />
           <Link
             href="/book"
-            className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
+            className="text-sm text-[var(--teal)] underline"
           >
             New draft
           </Link>

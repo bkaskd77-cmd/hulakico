@@ -100,5 +100,27 @@ export function ensureSchema(database: DatabaseSync): void {
       updated_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS quotes (
+      id TEXT PRIMARY KEY,
+      shipment_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS quote_options (
+      id TEXT PRIMARY KEY,
+      quote_id TEXT NOT NULL,
+      carrier_id TEXT NOT NULL,
+      carrier_service_id TEXT NOT NULL,
+      carrier_name TEXT NOT NULL,
+      service_name TEXT NOT NULL,
+      currency TEXT NOT NULL,
+      amount REAL NOT NULL,
+      eta_days_min INTEGER NOT NULL,
+      eta_days_max INTEGER NOT NULL,
+      zone_label TEXT NOT NULL,
+      FOREIGN KEY (quote_id) REFERENCES quotes(id)
+    );
   `);
 }
