@@ -10,6 +10,7 @@ venv/
 # Next.js
 apps/web/.next/
 apps/web/out/
+apps/web/data/
 
 # Python
 __pycache__/
