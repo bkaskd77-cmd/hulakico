@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { markCodCollected } from "@/lib/data/cod";
+import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
@@ -10,10 +10,12 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const token = await readSessionToken();
-    const user = token ? getUserBySessionToken(token) : null;
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    const access = resolveOpsAccess(await readSessionToken());
+    if (!access.ok) {
+      return NextResponse.json(
+        { error: access.error },
+        { status: access.status },
+      );
     }
 
     const { id } = await context.params;

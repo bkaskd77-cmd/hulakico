@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
-import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { openException } from "@/lib/data/exceptions";
+import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const token = await readSessionToken();
-    const user = token ? getUserBySessionToken(token) : null;
-    if (!user) {
-      return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+    const access = resolveOpsAccess(await readSessionToken());
+    if (!access.ok) {
+      return NextResponse.json(
+        { error: access.error },
+        { status: access.status },
+      );
     }
 
     const body = (await request.json()) as {
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = openException(user.id, body.shipmentId, body.reason);
+    const result = openException(access.user.id, body.shipmentId, body.reason);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error(

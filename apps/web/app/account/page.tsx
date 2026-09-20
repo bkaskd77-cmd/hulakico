@@ -26,7 +26,11 @@ async function signOutAction() {
   redirect("/signin");
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ops?: string }>;
+}) {
   const token = await readSessionToken();
   if (!token) {
     redirect("/signin");
@@ -36,12 +40,22 @@ export default async function AccountPage() {
     redirect("/signin");
   }
 
+  const params = await searchParams;
+  const opsDenied = params.ops === "denied";
+
   return (
     <div className="shell-sky min-h-dvh px-6 py-16 sm:px-10">
       <div className="mx-auto max-w-lg rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
         <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
           Welcome, {user.name}
         </p>
+        {opsDenied ? (
+          <p className="mt-3 text-sm text-[var(--danger)]">
+            Ops tower is limited to Hulakico OPS/ADMIN accounts. Set
+            OPS_BOOTSTRAP_EMAIL to your email in .env.local, restart the app,
+            then sign in again.
+          </p>
+        ) : null}
         <dl className="mt-6 space-y-3 text-sm text-[var(--muted)]">
           <div>
             <dt className="text-xs uppercase tracking-wide">Email</dt>

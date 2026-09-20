@@ -8,6 +8,9 @@ export function ensureSchema(database: DatabaseSync): void {
       password_hash TEXT NOT NULL,
       name TEXT NOT NULL,
       account_type TEXT NOT NULL CHECK (account_type IN ('INDIVIDUAL', 'BUSINESS')),
+      platform_role TEXT NOT NULL DEFAULT 'CUSTOMER' CHECK (
+        platform_role IN ('CUSTOMER', 'OPS', 'ADMIN')
+      ),
       created_at TEXT NOT NULL
     );
 
@@ -169,6 +172,38 @@ export function ensureSchema(database: DatabaseSync): void {
   `);
 
   migrateShipmentColumns(database);
+  migrateUserPlatformRole(database);
+  bootstrapOpsRole(database);
+}
+
+function migrateUserPlatformRole(database: DatabaseSync): void {
+  const columns = database
+    .prepare("PRAGMA table_info(users)")
+    .all() as Array<{ name: string }>;
+  const names = new Set(columns.map((column) => column.name));
+  if (!names.has("platform_role")) {
+    database.exec(
+      `ALTER TABLE users ADD COLUMN platform_role TEXT NOT NULL DEFAULT 'CUSTOMER'`,
+    );
+  }
+}
+
+function bootstrapOpsRole(database: DatabaseSync): void {
+  try {
+    const email = process.env.OPS_BOOTSTRAP_EMAIL?.trim().toLowerCase();
+    if (!email) return;
+    database
+      .prepare(
+        `UPDATE users SET platform_role = 'OPS'
+         WHERE email = ? AND platform_role = 'CUSTOMER'`,
+      )
+      .run(email);
+  } catch (error) {
+    console.error(
+      "[db-schema.ts:bootstrapOpsRole]",
+      error instanceof Error ? error.message : error,
+    );
+  }
 }
 
 function migrateShipmentColumns(database: DatabaseSync): void {
