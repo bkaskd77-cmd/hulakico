@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Step 4 complete (awaiting approval). Next: Step 5.
+**Status:** Step 5 complete (awaiting approval). Next: Step 6.
 
 **Local note:** Step 3 uses Node built-in SQLite (`DATABASE_PATH`) because Prisma engines are unavailable on Windows ARM64. Production target remains PostgreSQL; migrate when deploying to Linux/x64.
 
@@ -114,8 +114,8 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 | 1 | Next.js scaffold + design tokens + `.env.example` | **DONE** |
 | 2 | Python FastAPI skeleton + `/health` | **DONE** |
 | 3 | User/Org + session auth | **DONE** |
-| 4 | Carrier/rate models + adapter interface + seeds | **DONE** (awaiting approval) |
-| 5 | Booking draft wizard saves `DRAFT` | Pending |
+| 4 | Carrier/rate models + adapter interface + seeds | **DONE** |
+| 5 | Booking draft wizard saves `DRAFT` | **DONE** (awaiting approval) |
 | 6 | Deterministic quotes from rate cards | Pending |
 | 7 | Python ranker + Next.js integration | Pending |
 | 8 | Book + AWB + tracking skeleton | Pending |
@@ -139,6 +139,13 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 - Next.js ↔ Python ranking contract is live.
 - `OWN_FLEET` representable in schema without driver apps yet.
 - Every step was approved before the next began.
+
+---
+
+## After Step 5
+
+Human: sign in → `/book` → save a Kathmandu→Pokhara draft → approve → optionally commit.  
+Next request when ready: **execute Step 6**.
 
 ---
 

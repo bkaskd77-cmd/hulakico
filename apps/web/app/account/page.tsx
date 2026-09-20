@@ -62,6 +62,12 @@ export default async function AccountPage() {
         </dl>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
+            href="/book"
+            className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
+          >
+            Book a shipment
+          </Link>
+          <Link
             href="/ops/carriers"
             className="rounded-md bg-[var(--teal)] px-4 py-2 text-sm font-semibold text-[var(--off-white)]"
           >
@@ -70,7 +76,7 @@ export default async function AccountPage() {
           <form action={signOutAction}>
             <button
               type="submit"
-              className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
+              className="rounded-md border border-[var(--muted)] px-4 py-2 text-sm text-[var(--off-white)]"
             >
               Sign out
             </button>

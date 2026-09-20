@@ -69,5 +69,36 @@ export function ensureSchema(database: DatabaseSync): void {
       zone_label TEXT NOT NULL,
       FOREIGN KEY (carrier_service_id) REFERENCES carrier_services(id)
     );
+
+    CREATE TABLE IF NOT EXISTS shipments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      organization_id TEXT,
+      status TEXT NOT NULL CHECK (status IN (
+        'DRAFT', 'QUOTED', 'BOOKED', 'HANDOVER_PENDING', 'IN_TRANSIT',
+        'OUT_FOR_DELIVERY', 'DELIVERED', 'RTO', 'EXCEPTION', 'CANCELLED'
+      )),
+      transport_mode TEXT NOT NULL CHECK (transport_mode IN ('THIRD_PARTY', 'OWN_FLEET')),
+      lane TEXT NOT NULL CHECK (lane IN ('DOMESTIC', 'INTERNATIONAL')),
+      package_type TEXT NOT NULL CHECK (package_type IN ('DOCUMENT', 'PARCEL', 'FREIGHT_LITE')),
+      service_class TEXT NOT NULL CHECK (service_class IN ('EXPRESS', 'ECONOMY', 'FREIGHT_ASSIST')),
+      origin_country TEXT NOT NULL,
+      origin_city TEXT NOT NULL,
+      origin_address TEXT NOT NULL,
+      destination_country TEXT NOT NULL,
+      destination_city TEXT NOT NULL,
+      destination_address TEXT NOT NULL,
+      weight_kg REAL NOT NULL,
+      length_cm REAL,
+      width_cm REAL,
+      height_cm REAL,
+      declared_value REAL,
+      currency TEXT NOT NULL,
+      contents TEXT NOT NULL,
+      wants_cod INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
   `);
 }

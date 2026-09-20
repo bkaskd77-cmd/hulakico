@@ -64,10 +64,10 @@ export default async function Home() {
         </p>
         <div className="shell-rise-delay mt-10 flex flex-wrap items-center gap-4">
           <Link
-            href={user ? "/account" : "/signup"}
+            href={user ? "/book" : "/signup"}
             className="inline-flex items-center justify-center rounded-md bg-[var(--gold)] px-6 py-3 font-[family-name:var(--font-body)] text-sm font-semibold text-[var(--navy)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--teal)]"
           >
-            {user ? "Go to account" : "Book a shipment"}
+            Book a shipment
           </Link>
         </div>
       </main>
