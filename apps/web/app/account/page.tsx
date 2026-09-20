@@ -60,14 +60,22 @@ export default async function AccountPage() {
             </div>
           ) : null}
         </dl>
-        <form action={signOutAction} className="mt-8">
-          <button
-            type="submit"
-            className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/ops/carriers"
+            className="rounded-md bg-[var(--teal)] px-4 py-2 text-sm font-semibold text-[var(--off-white)]"
           >
-            Sign out
-          </button>
-        </form>
+            Ops: carriers
+          </Link>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
         <Link
           href="/"
           className="mt-4 inline-block text-sm text-[var(--teal)] underline"
