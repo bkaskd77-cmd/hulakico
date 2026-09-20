@@ -138,6 +138,19 @@ export function ensureSchema(database: DatabaseSync): void {
       occurred_at TEXT NOT NULL,
       FOREIGN KEY (shipment_id) REFERENCES shipments(id)
     );
+
+    CREATE TABLE IF NOT EXISTS exception_cases (
+      id TEXT PRIMARY KEY,
+      shipment_id TEXT NOT NULL,
+      opened_by_user_id TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('OPEN', 'RESOLVED')),
+      reason TEXT NOT NULL,
+      previous_status TEXT NOT NULL,
+      resolution_note TEXT,
+      created_at TEXT NOT NULL,
+      resolved_at TEXT,
+      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+    );
   `);
 
   migrateShipmentColumns(database);

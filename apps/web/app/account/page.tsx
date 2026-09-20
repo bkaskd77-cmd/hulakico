@@ -68,10 +68,16 @@ export default async function AccountPage() {
             Book a shipment
           </Link>
           <Link
-            href="/ops/carriers"
+            href="/ops"
             className="rounded-md bg-[var(--teal)] px-4 py-2 text-sm font-semibold text-[var(--off-white)]"
           >
-            Ops: carriers
+            Ops tower
+          </Link>
+          <Link
+            href="/ops/carriers"
+            className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm font-semibold text-[var(--teal)]"
+          >
+            Carriers
           </Link>
           <form action={signOutAction}>
             <button

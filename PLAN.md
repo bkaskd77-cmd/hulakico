@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Step 8 complete (awaiting approval). Next: Step 9.
+**Status:** Step 9 complete (awaiting approval). Next: Step 10.
 
 **Local note:** Step 3 uses Node built-in SQLite (`DATABASE_PATH`) because Prisma engines are unavailable on Windows ARM64. Production target remains PostgreSQL; migrate when deploying to Linux/x64.
 
@@ -95,6 +95,13 @@ Auth (Individual + Business), advanced booking (domestic + intl), rate-card quot
 ### Out (future steps only)
 Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade finance, native mobile, deep trained ML until enough real history (start rules/algorithms → graduate to ML).
 
+### Planned later: exception collaboration (ops ↔ customer)
+- **Ops opens** an exception (role-gated admin/ops only — not customer accounts).
+- **Customer sees** the exception on tracking (and optionally account inbox).
+- If ops marks **info required from customer**, the customer can **submit a reply / documents / missing details** on the track or account view.
+- Ops reviews that reply, then **resolves** (or requests more info again).
+- Customer never opens or resolves exceptions themselves; they only respond when asked.
+
 ---
 
 ## UI direction
@@ -118,8 +125,8 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 | 5 | Booking draft wizard saves `DRAFT` | **DONE** |
 | 6 | Deterministic quotes from rate cards | **DONE** |
 | 7 | Python ranker + Next.js integration | **DONE** |
-| 8 | Book + AWB + tracking skeleton | **DONE** (awaiting approval) |
-| 9 | Ops list + exceptions | Pending |
+| 8 | Book + AWB + tracking skeleton | **DONE** |
+| 9 | Ops list + exceptions | **DONE** (awaiting approval) |
 | 10 | Python ETA risk + document QC wired | Pending |
 | 11 | COD basics + landing polish + harden | Pending |
 
@@ -139,6 +146,13 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 - Next.js ↔ Python ranking contract is live.
 - `OWN_FLEET` representable in schema without driver apps yet.
 - Every step was approved before the next began.
+
+---
+
+## After Step 9
+
+Human: open `/ops` → flag an exception → resolve on `/ops/exceptions` → approve → optionally commit.  
+Next request when ready: **execute Step 10**.
 
 ---
 
