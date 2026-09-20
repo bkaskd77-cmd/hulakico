@@ -151,6 +151,21 @@ export function ensureSchema(database: DatabaseSync): void {
       resolved_at TEXT,
       FOREIGN KEY (shipment_id) REFERENCES shipments(id)
     );
+
+    CREATE TABLE IF NOT EXISTS cod_collections (
+      id TEXT PRIMARY KEY,
+      shipment_id TEXT NOT NULL UNIQUE,
+      amount REAL NOT NULL,
+      currency TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN (
+        'PENDING_COLLECTION', 'COLLECTED', 'SETTLED', 'FAILED'
+      )),
+      collected_at TEXT,
+      settled_at TEXT,
+      note TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+    );
   `);
 
   migrateShipmentColumns(database);

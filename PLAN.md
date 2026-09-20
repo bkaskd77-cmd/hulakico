@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Step 10 complete (awaiting approval). Next: Step 11.
+**Status:** Step 11 complete (awaiting approval). Phase 1 checklist finished.
 
 **Local note:** Step 3 uses Node built-in SQLite (`DATABASE_PATH`) because Prisma engines are unavailable on Windows ARM64. Production target remains PostgreSQL; migrate when deploying to Linux/x64.
 
@@ -127,8 +127,8 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 | 7 | Python ranker + Next.js integration | **DONE** |
 | 8 | Book + AWB + tracking skeleton | **DONE** |
 | 9 | Ops list + exceptions | **DONE** |
-| 10 | Python ETA risk + document QC wired | **DONE** (awaiting approval) |
-| 11 | COD basics + landing polish + harden | Pending |
+| 10 | Python ETA risk + document QC wired | **DONE** |
+| 11 | COD basics + landing polish + harden | **DONE** (awaiting approval) |
 
 ### Protocol
 1. One step per approval cycle.
@@ -146,6 +146,13 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 - Next.js ↔ Python ranking contract is live.
 - `OWN_FLEET` representable in schema without driver apps yet.
 - Every step was approved before the next began.
+
+---
+
+## After Step 11
+
+Human: book a domestic COD shipment → confirm ledger row on `/ops/cod` → mark collected → check polished `/` landing → approve → optionally commit.  
+Phase 1 complete. Next: Phase 2 (advanced booking UX, ops role gates, customer exception replies) when ready.
 
 ---
 

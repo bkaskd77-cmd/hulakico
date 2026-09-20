@@ -10,9 +10,34 @@ export default async function Home() {
 
   return (
     <div className="shell-sky relative overflow-hidden">
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] w-full text-[color-mix(in_srgb,var(--navy)_70%,#061018)] opacity-90"
+        viewBox="0 0 1200 320"
+        preserveAspectRatio="none"
+      >
+        <path
+          fill="currentColor"
+          d="M0 320V180L140 95l110 70 160-120 130 95 180-110 150 85 170-75 160 90V320z"
+        />
+        <path
+          className="shell-rise"
+          fill="color-mix(in srgb, var(--teal) 18%, transparent)"
+          d="M0 320V220l180 20 140-90 200 70 220-100 180 60 280-40V320z"
+        />
+      </svg>
+
       <div
         aria-hidden
-        className="shell-route pointer-events-none absolute inset-x-0 top-[28%] h-px bg-gradient-to-r from-transparent via-[var(--teal)] to-transparent"
+        className="shell-route pointer-events-none absolute inset-x-[8%] top-[36%] h-px bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent sm:inset-x-[18%]"
+      />
+      <div
+        aria-hidden
+        className="shell-rise-delay pointer-events-none absolute left-[22%] top-[34%] h-2.5 w-2.5 rounded-full bg-[var(--gold)] shadow-[0_0_18px_var(--gold)]"
+      />
+      <div
+        aria-hidden
+        className="shell-rise-delay pointer-events-none absolute right-[24%] top-[34%] h-2.5 w-2.5 rounded-full bg-[var(--teal)] shadow-[0_0_18px_var(--teal)]"
       />
 
       <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
@@ -49,18 +74,16 @@ export default async function Home() {
         </nav>
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] max-w-3xl flex-col justify-center px-6 pb-24 sm:px-10">
+      <main className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] max-w-3xl flex-col justify-center px-6 pb-28 sm:px-10">
         <p className="shell-rise font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.05] tracking-tight text-[var(--off-white)] sm:text-7xl">
           Hulakico
         </p>
-        <h1 className="shell-rise-delay mt-6 max-w-xl font-[family-name:var(--font-display)] text-xl font-bold leading-snug text-[var(--off-white)] sm:text-2xl">
-          One booking brain for Nepal and the world — every carrier, one
-          timeline.
+        <h1 className="shell-rise-delay mt-5 max-w-xl font-[family-name:var(--font-display)] text-xl font-bold leading-snug text-[var(--off-white)] sm:text-2xl">
+          One booking brain. Every carrier. Domestic + world.
         </h1>
-        <p className="shell-rise-delay mt-4 max-w-lg font-[family-name:var(--font-body)] text-sm leading-relaxed text-[var(--muted)]">
-          Book domestic and international shipments through Hulakico. We
-          orchestrate trusted third-party agents today, ready for our own fleet
-          tomorrow.
+        <p className="shell-rise-delay mt-4 max-w-md font-[family-name:var(--font-body)] text-sm leading-relaxed text-[var(--muted)]">
+          Nepal&apos;s logistics middleman — book once, we orchestrate partners
+          and keep one timeline from Kathmandu to the world.
         </p>
         <div className="shell-rise-delay mt-10 flex flex-wrap items-center gap-4">
           <Link
@@ -69,6 +92,14 @@ export default async function Home() {
           >
             Book a shipment
           </Link>
+          {user ? (
+            <Link
+              href="/ops"
+              className="text-sm text-[var(--teal)] underline-offset-4 hover:underline"
+            >
+              Ops tower
+            </Link>
+          ) : null}
         </div>
       </main>
     </div>

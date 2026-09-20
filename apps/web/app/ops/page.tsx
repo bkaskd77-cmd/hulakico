@@ -38,6 +38,9 @@ export default async function OpsShipmentsPage() {
             <Link href="/ops/exceptions" className="text-[var(--gold)] underline">
               Exceptions
             </Link>
+            <Link href="/ops/cod" className="text-[var(--gold)] underline">
+              COD
+            </Link>
             <Link href="/ops/carriers" className="text-[var(--teal)] underline">
               Carriers
             </Link>

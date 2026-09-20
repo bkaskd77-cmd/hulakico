@@ -1,0 +1,33 @@
+import { NextResponse } from "next/server";
+import { getUserBySessionToken } from "@/lib/data/auth-store";
+import { markCodCollected } from "@/lib/data/cod";
+import { readSessionToken } from "@/lib/http/session-cookie";
+
+export const runtime = "nodejs";
+
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const token = await readSessionToken();
+    const user = token ? getUserBySessionToken(token) : null;
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const body = (await request.json()) as { note?: string };
+    const result = markCodCollected(id, body.note ?? "");
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error(
+      "[api/ops/cod/[id]/collect/route.ts:POST]",
+      error instanceof Error ? error.message : error,
+    );
+    return NextResponse.json({ error: "Collect failed." }, { status: 500 });
+  }
+}
