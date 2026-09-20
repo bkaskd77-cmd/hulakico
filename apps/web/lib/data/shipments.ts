@@ -81,7 +81,8 @@ export function getDraftShipmentForUser(userId: string, shipmentId: string) {
     return (
       (db
         .prepare(
-          `SELECT id, status, lane, transport_mode, origin_city, destination_city, package_type
+          `SELECT id, status, lane, transport_mode, origin_city, destination_city,
+                  package_type, wants_cod
            FROM shipments WHERE id = ? AND user_id = ?`,
         )
         .get(shipmentId, userId) as
@@ -93,6 +94,7 @@ export function getDraftShipmentForUser(userId: string, shipmentId: string) {
             origin_city: string;
             destination_city: string;
             package_type: string;
+            wants_cod: number;
           }
         | undefined) ?? null
     );

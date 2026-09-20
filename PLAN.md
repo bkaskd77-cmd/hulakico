@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Step 6 complete (awaiting approval). Next: Step 7.
+**Status:** Step 7 complete (awaiting approval). Next: Step 8.
 
 **Local note:** Step 3 uses Node built-in SQLite (`DATABASE_PATH`) because Prisma engines are unavailable on Windows ARM64. Production target remains PostgreSQL; migrate when deploying to Linux/x64.
 
@@ -116,8 +116,8 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 | 3 | User/Org + session auth | **DONE** |
 | 4 | Carrier/rate models + adapter interface + seeds | **DONE** |
 | 5 | Booking draft wizard saves `DRAFT` | **DONE** |
-| 6 | Deterministic quotes from rate cards | **DONE** (awaiting approval) |
-| 7 | Python ranker + Next.js integration | Pending |
+| 6 | Deterministic quotes from rate cards | **DONE** |
+| 7 | Python ranker + Next.js integration | **DONE** (awaiting approval) |
 | 8 | Book + AWB + tracking skeleton | Pending |
 | 9 | Ops list + exceptions | Pending |
 | 10 | Python ETA risk + document QC wired | Pending |
@@ -139,6 +139,14 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 - Next.js ↔ Python ranking contract is live.
 - `OWN_FLEET` representable in schema without driver apps yet.
 - Every step was approved before the next began.
+
+---
+
+## After Step 7
+
+Human: get quotes on a draft → confirm ranked scores from Python → approve → optionally commit.  
+Keep intelligence API running: `uvicorn main:app --host 127.0.0.1 --port 8000`  
+Next request when ready: **execute Step 8**.
 
 ---
 
