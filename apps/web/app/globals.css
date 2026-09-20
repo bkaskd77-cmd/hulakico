@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand palette — refined final combination */
+  --navy: #0f2744;
+  --navy-elevated: #163556;
+  --teal: #0a8f8c;
+  --gold: #d4a84b;
+  --off-white: #f7f8fa;
+
+  --background: var(--navy);
+  --foreground: var(--off-white);
+  --muted: color-mix(in srgb, var(--off-white) 72%, var(--navy));
+  --accent: var(--gold);
+  --accent-soft: color-mix(in srgb, var(--gold) 22%, transparent);
+  --ring: var(--teal);
+  --danger: #c45c4a;
+
+  --font-display: var(--font-manrope), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+
+  --gradient-sky: linear-gradient(
+    165deg,
+    #0a1c30 0%,
+    var(--navy) 42%,
+    #143d55 78%,
+    color-mix(in srgb, var(--teal) 45%, var(--navy)) 100%
+  );
+  --gradient-glow: radial-gradient(
+    ellipse 80% 50% at 72% 18%,
+    color-mix(in srgb, var(--teal) 32%, transparent),
+    transparent 70%
+  );
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-navy: var(--navy);
+  --color-navy-elevated: var(--navy-elevated);
+  --color-teal: var(--teal);
+  --color-gold: var(--gold);
+  --color-off-white: var(--off-white);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+@keyframes hush-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes route-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+.shell-sky {
+  min-height: 100dvh;
+  background-image: var(--gradient-glow), var(--gradient-sky);
+  background-attachment: fixed;
+}
+
+.shell-rise {
+  animation: hush-rise 0.9s ease-out both;
+}
+
+.shell-rise-delay {
+  animation: hush-rise 1s ease-out 0.15s both;
+}
+
+.shell-route {
+  animation: route-pulse 3.2s ease-in-out infinite;
+}
