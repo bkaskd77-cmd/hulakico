@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Step 7 complete (awaiting approval). Next: Step 8.
+**Status:** Step 8 complete (awaiting approval). Next: Step 9.
 
 **Local note:** Step 3 uses Node built-in SQLite (`DATABASE_PATH`) because Prisma engines are unavailable on Windows ARM64. Production target remains PostgreSQL; migrate when deploying to Linux/x64.
 
@@ -117,8 +117,8 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 | 4 | Carrier/rate models + adapter interface + seeds | **DONE** |
 | 5 | Booking draft wizard saves `DRAFT` | **DONE** |
 | 6 | Deterministic quotes from rate cards | **DONE** |
-| 7 | Python ranker + Next.js integration | **DONE** (awaiting approval) |
-| 8 | Book + AWB + tracking skeleton | Pending |
+| 7 | Python ranker + Next.js integration | **DONE** |
+| 8 | Book + AWB + tracking skeleton | **DONE** (awaiting approval) |
 | 9 | Ops list + exceptions | Pending |
 | 10 | Python ETA risk + document QC wired | Pending |
 | 11 | COD basics + landing polish + harden | Pending |
@@ -139,6 +139,13 @@ Own rider/vehicle apps, full customs filing (NNSW/ASYCUDA), full LC/trade financ
 - Next.js ↔ Python ranking contract is live.
 - `OWN_FLEET` representable in schema without driver apps yet.
 - Every step was approved before the next began.
+
+---
+
+## After Step 8
+
+Human: Select & book a quote → open public tracking link → approve → optionally commit.  
+Next request when ready: **execute Step 9**.
 
 ---
 

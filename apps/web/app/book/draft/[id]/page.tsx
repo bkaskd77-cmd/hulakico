@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { RequestQuotesButton } from "@/app/book/RequestQuotesButton";
+import { SelectQuoteButton } from "@/app/book/SelectQuoteButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { rankQuoteOptions } from "@/lib/data/intelligence-client";
 import { getLatestQuoteOptions } from "@/lib/data/quote-query";
 import { getDraftShipmentForUser } from "@/lib/data/shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
-import { RequestQuotesButton } from "@/app/book/RequestQuotesButton";
 
 export const runtime = "nodejs";
 
@@ -50,6 +51,9 @@ export default async function DraftSavedPage({
     }
   }
 
+  const canBook =
+    shipment.status === "QUOTED" || shipment.status === "DRAFT";
+
   return (
     <div className="shell-sky flex min-h-dvh items-center justify-center px-6 py-16">
       <div className="w-full max-w-lg rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
@@ -57,19 +61,11 @@ export default async function DraftSavedPage({
           {shipment.status === "QUOTED" ? "AI-ranked quotes" : "Draft saved"}
         </p>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
-          {shipment.status === "QUOTED"
-            ? "Ranked carrier options"
-            : "Shipment ready for quotes"}
+          Ranked carrier options
         </h1>
-        <dl className="mt-6 space-y-3 text-sm text-[var(--muted)]">
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Route</dt>
-            <dd className="text-[var(--off-white)]">
-              {shipment.origin_city} → {shipment.destination_city} (
-              {shipment.lane})
-            </dd>
-          </div>
-        </dl>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          {shipment.origin_city} → {shipment.destination_city} ({shipment.lane})
+        </p>
 
         {rankError ? (
           <p className="mt-4 text-sm text-[var(--gold)]">{rankError}</p>
@@ -91,21 +87,24 @@ export default async function DraftSavedPage({
                   </p>
                 </div>
                 <p className="text-[var(--muted)]">
-                  {option.serviceName} · {option.zoneLabel} · ETA{" "}
-                  {option.etaDaysMin}-{option.etaDaysMax}d
+                  {option.serviceName} · ETA {option.etaDaysMin}-
+                  {option.etaDaysMax}d
                 </p>
                 <p className="mt-1 text-[var(--gold)]">
                   {option.currency} {option.amount.toFixed(2)}
                 </p>
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  {option.rankReason}
-                </p>
+                {canBook ? (
+                  <SelectQuoteButton
+                    shipmentId={shipment.id}
+                    quoteOptionId={option.id}
+                  />
+                ) : null}
               </li>
             ))}
           </ul>
         ) : (
           <p className="mt-6 text-sm text-[var(--muted)]">
-            No quotes yet. Generate rates, then Python ranks them.
+            No quotes yet. Generate rates first.
           </p>
         )}
 
@@ -113,9 +112,6 @@ export default async function DraftSavedPage({
           <RequestQuotesButton shipmentId={shipment.id} />
           <Link href="/book" className="text-sm text-[var(--teal)] underline">
             New draft
-          </Link>
-          <Link href="/account" className="text-sm text-[var(--teal)] underline">
-            Account
           </Link>
         </div>
       </div>

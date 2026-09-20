@@ -9,12 +9,11 @@ let db: DatabaseSync | null = null;
 
 export function getDb(): DatabaseSync {
   try {
-    if (db) {
-      return db;
+    if (!db) {
+      const dbPath = process.env.DATABASE_PATH || DEFAULT_DB;
+      fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+      db = new DatabaseSync(dbPath);
     }
-    const dbPath = process.env.DATABASE_PATH || DEFAULT_DB;
-    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-    db = new DatabaseSync(dbPath);
     ensureSchema(db);
     return db;
   } catch (error) {

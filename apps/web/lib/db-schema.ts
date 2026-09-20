@@ -96,6 +96,12 @@ export function ensureSchema(database: DatabaseSync): void {
       currency TEXT NOT NULL,
       contents TEXT NOT NULL,
       wants_cod INTEGER NOT NULL DEFAULT 0,
+      hulakico_awb TEXT,
+      external_awb TEXT,
+      selected_quote_option_id TEXT,
+      carrier_id TEXT,
+      carrier_service_id TEXT,
+      tracking_token TEXT UNIQUE,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
@@ -122,5 +128,37 @@ export function ensureSchema(database: DatabaseSync): void {
       zone_label TEXT NOT NULL,
       FOREIGN KEY (quote_id) REFERENCES quotes(id)
     );
+
+    CREATE TABLE IF NOT EXISTS tracking_events (
+      id TEXT PRIMARY KEY,
+      shipment_id TEXT NOT NULL,
+      status TEXT NOT NULL,
+      description TEXT NOT NULL,
+      location TEXT,
+      occurred_at TEXT NOT NULL,
+      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+    );
   `);
+
+  migrateShipmentColumns(database);
+}
+
+function migrateShipmentColumns(database: DatabaseSync): void {
+  const columns = database
+    .prepare("PRAGMA table_info(shipments)")
+    .all() as Array<{ name: string }>;
+  const names = new Set(columns.map((column) => column.name));
+  const additions: Array<[string, string]> = [
+    ["hulakico_awb", "TEXT"],
+    ["external_awb", "TEXT"],
+    ["selected_quote_option_id", "TEXT"],
+    ["carrier_id", "TEXT"],
+    ["carrier_service_id", "TEXT"],
+    ["tracking_token", "TEXT"],
+  ];
+  for (const [name, type] of additions) {
+    if (!names.has(name)) {
+      database.exec(`ALTER TABLE shipments ADD COLUMN ${name} ${type}`);
+    }
+  }
 }
