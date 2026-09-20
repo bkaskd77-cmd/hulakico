@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 2 Step 1 complete (awaiting approval). Next: Step 2.
+**Status:** Phase 2 Step 2 complete (awaiting approval). Next: Step 3.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -99,8 +99,8 @@ Brand-first; Himalayan night-to-dawn; cards only where interaction requires them
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 0 | Phase 2 scope + checklist in `PLAN.md` | **DONE** |
-| 1 | Ops role gates (`CUSTOMER` / `OPS` / `ADMIN`) on `/ops/*` | **DONE** (awaiting approval) |
-| 2 | Exception: `INFO_REQUIRED` + ops UI to request customer info | Pending |
+| 1 | Ops role gates (`CUSTOMER` / `OPS` / `ADMIN`) on `/ops/*` | **DONE** |
+| 2 | Exception: `INFO_REQUIRED` + ops UI to request customer info | **DONE** (awaiting approval) |
 | 3 | Customer reply on `/track/[token]` when info required | Pending |
 | 4 | Advanced booking UX (wizard upgrade) | Pending |
 | 5 | Marketing homepage (sections + motion) | Pending |
@@ -120,6 +120,13 @@ Brand-first; Himalayan night-to-dawn; cards only where interaction requires them
 - Booking wizard feels clearly more advanced than Phase 1 skeleton.
 - Homepage reads as a multi-section brand marketing surface with motion.
 - Every step approved before the next began.
+
+---
+
+## After Phase 2 Step 2
+
+Human: as OPS, open an exception → **Request customer info** → confirm status `INFO_REQUIRED` on `/ops/exceptions` and tracking timeline → approve → optionally commit.  
+Next request when ready: **execute Step 3**.
 
 ---
 

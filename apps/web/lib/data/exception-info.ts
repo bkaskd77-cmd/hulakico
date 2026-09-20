@@ -1,0 +1,54 @@
+import { getDb } from "@/lib/db";
+import { newId } from "@/lib/domain/auth";
+
+export function requestExceptionInfo(
+  exceptionId: string,
+  infoRequestNote: string,
+): void {
+  try {
+    const note = infoRequestNote.trim();
+    if (note.length < 5) {
+      throw new Error("Info request must be at least 5 characters.");
+    }
+
+    const db = getDb();
+    const exception = db
+      .prepare(
+        `SELECT id, shipment_id, status FROM exception_cases WHERE id = ?`,
+      )
+      .get(exceptionId) as
+      | { id: string; shipment_id: string; status: string }
+      | undefined;
+
+    if (!exception) throw new Error("Exception not found.");
+    if (exception.status !== "OPEN" && exception.status !== "INFO_REQUIRED") {
+      throw new Error("Exception is already resolved.");
+    }
+
+    const now = new Date().toISOString();
+    db.prepare(
+      `UPDATE exception_cases
+       SET status = 'INFO_REQUIRED', info_request_note = ?, info_requested_at = ?,
+           customer_reply = NULL
+       WHERE id = ?`,
+    ).run(note, now, exceptionId);
+
+    db.prepare(
+      `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
+       VALUES (?, ?, 'EXCEPTION', ?, NULL, ?)`,
+    ).run(
+      newId("evt"),
+      exception.shipment_id,
+      `Info required from customer: ${note}`,
+      now,
+    );
+  } catch (error) {
+    console.error(
+      "[exception-info.ts:requestExceptionInfo]",
+      error instanceof Error ? error.message : error,
+    );
+    throw error instanceof Error
+      ? error
+      : new Error("Could not request customer info.");
+  }
+}

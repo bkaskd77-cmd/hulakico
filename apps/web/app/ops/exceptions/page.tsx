@@ -1,22 +1,15 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { RequestInfoForm } from "@/app/ops/RequestInfoForm";
 import { ResolveExceptionForm } from "@/app/ops/ResolveExceptionForm";
-import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listExceptions } from "@/lib/data/exception-query";
-import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
 
 export default async function OpsExceptionsPage() {
-  const token = await readSessionToken();
-  if (!token || !getUserBySessionToken(token)) {
-    redirect("/signin");
-  }
-
   let exceptions: ReturnType<typeof listExceptions> = [];
   let error: string | null = null;
   try {
-    exceptions = listExceptions("OPEN");
+    exceptions = listExceptions("ACTIVE");
   } catch (err) {
     console.error(
       "[ops/exceptions/page.tsx]",
@@ -50,11 +43,26 @@ export default async function OpsExceptionsPage() {
               key={item.id}
               className="rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-4"
             >
-              <p className="font-semibold text-[var(--off-white)]">{item.route}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold text-[var(--off-white)]">
+                  {item.route}
+                </p>
+                <span className="rounded bg-[color-mix(in_srgb,var(--gold)_22%,transparent)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--gold)]">
+                  {item.status}
+                </span>
+              </div>
               <p className="text-xs text-[var(--muted)]">
                 {item.hulakicoAwb ?? "No AWB"} · was {item.previousStatus}
               </p>
               <p className="mt-2 text-sm text-[var(--off-white)]">{item.reason}</p>
+              {item.infoRequestNote ? (
+                <p className="mt-2 text-sm text-[var(--gold)]">
+                  Asked customer: {item.infoRequestNote}
+                </p>
+              ) : null}
+              {item.status === "OPEN" ? (
+                <RequestInfoForm exceptionId={item.id} />
+              ) : null}
               <ResolveExceptionForm exceptionId={item.id} />
             </li>
           ))}

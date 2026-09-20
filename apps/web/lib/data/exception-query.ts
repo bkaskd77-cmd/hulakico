@@ -2,28 +2,33 @@ import { getDb } from "@/lib/db";
 import type { ExceptionCaseRow } from "@/lib/data/exceptions";
 
 export function listExceptions(
-  status: "OPEN" | "RESOLVED" | "ALL" = "OPEN",
+  status: "OPEN" | "INFO_REQUIRED" | "ACTIVE" | "RESOLVED" | "ALL" = "ACTIVE",
 ): ExceptionCaseRow[] {
   try {
     const db = getDb();
     const rows = db
       .prepare(
         `SELECT e.id, e.shipment_id, e.status, e.reason, e.previous_status,
-                e.resolution_note, e.created_at, e.resolved_at,
+                e.resolution_note, e.info_request_note, e.created_at, e.resolved_at,
                 s.hulakico_awb, s.origin_city, s.destination_city
          FROM exception_cases e
          JOIN shipments s ON s.id = e.shipment_id
-         WHERE (? = 'ALL' OR e.status = ?)
+         WHERE (
+           ? = 'ALL'
+           OR (? = 'ACTIVE' AND e.status IN ('OPEN', 'INFO_REQUIRED'))
+           OR e.status = ?
+         )
          ORDER BY e.created_at DESC
          LIMIT 100`,
       )
-      .all(status, status) as Array<{
+      .all(status, status, status) as Array<{
       id: string;
       shipment_id: string;
-      status: "OPEN" | "RESOLVED";
+      status: "OPEN" | "INFO_REQUIRED" | "RESOLVED";
       reason: string;
       previous_status: string;
       resolution_note: string | null;
+      info_request_note: string | null;
       created_at: string;
       resolved_at: string | null;
       hulakico_awb: string | null;
@@ -38,6 +43,7 @@ export function listExceptions(
       reason: row.reason,
       previousStatus: row.previous_status,
       resolutionNote: row.resolution_note,
+      infoRequestNote: row.info_request_note,
       createdAt: row.created_at,
       resolvedAt: row.resolved_at,
       hulakicoAwb: row.hulakico_awb,

@@ -4,10 +4,11 @@ import { newId } from "@/lib/domain/auth";
 export type ExceptionCaseRow = {
   id: string;
   shipmentId: string;
-  status: "OPEN" | "RESOLVED";
+  status: "OPEN" | "INFO_REQUIRED" | "RESOLVED";
   reason: string;
   previousStatus: string;
   resolutionNote: string | null;
+  infoRequestNote: string | null;
   createdAt: string;
   resolvedAt: string | null;
   hulakicoAwb: string | null;
@@ -29,18 +30,15 @@ export function openException(
     const shipment = db
       .prepare(`SELECT id, status FROM shipments WHERE id = ?`)
       .get(shipmentId) as { id: string; status: string } | undefined;
-    if (!shipment) {
-      throw new Error("Shipment not found.");
-    }
+    if (!shipment) throw new Error("Shipment not found.");
 
     const existing = db
       .prepare(
-        `SELECT id FROM exception_cases WHERE shipment_id = ? AND status = 'OPEN'`,
+        `SELECT id FROM exception_cases
+         WHERE shipment_id = ? AND status IN ('OPEN', 'INFO_REQUIRED')`,
       )
       .get(shipmentId);
-    if (existing) {
-      throw new Error("Shipment already has an open exception.");
-    }
+    if (existing) throw new Error("Shipment already has an open exception.");
 
     const id = newId("exc");
     const now = new Date().toISOString();
@@ -94,10 +92,8 @@ export function resolveException(
         }
       | undefined;
 
-    if (!exception) {
-      throw new Error("Exception not found.");
-    }
-    if (exception.status !== "OPEN") {
+    if (!exception) throw new Error("Exception not found.");
+    if (exception.status !== "OPEN" && exception.status !== "INFO_REQUIRED") {
       throw new Error("Exception is already resolved.");
     }
 

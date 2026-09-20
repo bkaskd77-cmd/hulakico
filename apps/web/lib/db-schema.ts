@@ -146,12 +146,15 @@ export function ensureSchema(database: DatabaseSync): void {
       id TEXT PRIMARY KEY,
       shipment_id TEXT NOT NULL,
       opened_by_user_id TEXT NOT NULL,
-      status TEXT NOT NULL CHECK (status IN ('OPEN', 'RESOLVED')),
+      status TEXT NOT NULL CHECK (status IN ('OPEN', 'INFO_REQUIRED', 'RESOLVED')),
       reason TEXT NOT NULL,
       previous_status TEXT NOT NULL,
       resolution_note TEXT,
+      info_request_note TEXT,
+      customer_reply TEXT,
       created_at TEXT NOT NULL,
       resolved_at TEXT,
+      info_requested_at TEXT,
       FOREIGN KEY (shipment_id) REFERENCES shipments(id)
     );
 
@@ -173,7 +176,51 @@ export function ensureSchema(database: DatabaseSync): void {
 
   migrateShipmentColumns(database);
   migrateUserPlatformRole(database);
+  migrateExceptionInfoRequired(database);
   bootstrapOpsRole(database);
+}
+
+function migrateExceptionInfoRequired(database: DatabaseSync): void {
+  try {
+    const columns = database
+      .prepare("PRAGMA table_info(exception_cases)")
+      .all() as Array<{ name: string }>;
+    if (columns.length === 0) return;
+    const names = new Set(columns.map((column) => column.name));
+    if (names.has("info_request_note")) return;
+
+    database.exec(`
+      CREATE TABLE exception_cases_v2 (
+        id TEXT PRIMARY KEY,
+        shipment_id TEXT NOT NULL,
+        opened_by_user_id TEXT NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('OPEN', 'INFO_REQUIRED', 'RESOLVED')),
+        reason TEXT NOT NULL,
+        previous_status TEXT NOT NULL,
+        resolution_note TEXT,
+        info_request_note TEXT,
+        customer_reply TEXT,
+        created_at TEXT NOT NULL,
+        resolved_at TEXT,
+        info_requested_at TEXT,
+        FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+      );
+      INSERT INTO exception_cases_v2 (
+        id, shipment_id, opened_by_user_id, status, reason, previous_status,
+        resolution_note, created_at, resolved_at
+      )
+      SELECT id, shipment_id, opened_by_user_id, status, reason, previous_status,
+             resolution_note, created_at, resolved_at
+      FROM exception_cases;
+      DROP TABLE exception_cases;
+      ALTER TABLE exception_cases_v2 RENAME TO exception_cases;
+    `);
+  } catch (error) {
+    console.error(
+      "[db-schema.ts:migrateExceptionInfoRequired]",
+      error instanceof Error ? error.message : error,
+    );
+  }
 }
 
 function migrateUserPlatformRole(database: DatabaseSync): void {
