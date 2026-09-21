@@ -3,30 +3,32 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PackageFields } from "./PackageFields";
+import type { SavedAddress } from "@/lib/data/addresses";
 import { applyLaneMode, postBookingDraft } from "./post-draft";
+import { pickPlaceForLane, pickSavedForLane } from "./lane-pick";
 import { ReviewSummary } from "./ReviewSummary";
 import { RouteFields } from "./RouteFields";
-import {
-  BOOK_FIELD,
-  INITIAL_BOOK_FORM,
-  type FormState,
-} from "./form-types";
+import { BOOK_FIELD, INITIAL_BOOK_FORM, type FormState } from "./form-types";
+import { PackageFields } from "./PackageFields";
 
 type Step = 1 | 2 | 3;
-
 const STEPS = [
   { n: 1 as Step, label: "Route" },
   { n: 2 as Step, label: "Package" },
   { n: 3 as Step, label: "Review" },
 ];
 
-export function BookWizard() {
+export function BookWizard({
+  initialAddresses,
+}: {
+  initialAddresses: SavedAddress[];
+}) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState<FormState>(INITIAL_BOOK_FORM);
+  const [addresses, setAddresses] = useState(initialAddresses);
   const lane = useMemo(
     () =>
       form.originCountry.toUpperCase() === "NP" &&
@@ -65,7 +67,6 @@ export function BookWizard() {
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
         Book a shipment
       </h1>
-
       <div className="mt-5 flex gap-2">
         {(["DOMESTIC", "INTERNATIONAL"] as const).map((mode) => (
           <button
@@ -82,7 +83,6 @@ export function BookWizard() {
           </button>
         ))}
       </div>
-
       <ol className="mt-6 flex gap-2">
         {STEPS.map((item) => (
           <li
@@ -99,50 +99,49 @@ export function BookWizard() {
           </li>
         ))}
       </ol>
-
       {step === 1 ? (
-        <RouteFields form={form} update={update} field={BOOK_FIELD} lane={lane} />
-      ) : null}
-      {step === 2 ? (
-        <PackageFields
+        <RouteFields
           form={form}
           update={update}
           field={BOOK_FIELD}
           lane={lane}
+          addresses={addresses}
+          onPickOrigin={(a) =>
+            setForm((prev) => pickSavedForLane(prev, "origin", a, lane))
+          }
+          onPickDestination={(a) =>
+            setForm((prev) => pickSavedForLane(prev, "destination", a, lane))
+          }
+          onSaved={(a) => setAddresses((prev) => [a, ...prev])}
+          onPlaceOrigin={(p) =>
+            setForm((prev) => pickPlaceForLane(prev, "origin", p, lane))
+          }
+          onPlaceDestination={(p) =>
+            setForm((prev) => pickPlaceForLane(prev, "destination", p, lane))
+          }
         />
+      ) : null}
+      {step === 2 ? (
+        <PackageFields form={form} update={update} field={BOOK_FIELD} lane={lane} />
       ) : null}
       {step === 3 ? <ReviewSummary form={form} lane={lane} /> : null}
       {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
       <div className="mt-8 flex flex-wrap gap-3">
         {step > 1 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => (s - 1) as Step)}
-            className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]"
-          >
+          <button type="button" onClick={() => setStep((s) => (s - 1) as Step)} className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]">
             Back
           </button>
         ) : null}
         {step < 3 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => (s + 1) as Step)}
-            className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
-          >
+          <button type="button" onClick={() => setStep((s) => (s + 1) as Step)} className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]">
             Continue
           </button>
         ) : (
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)] disabled:opacity-60"
-          >
+          <button type="submit" disabled={pending} className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)] disabled:opacity-60">
             {pending ? "Saving…" : "Save draft & get quotes"}
           </button>
         )}
-        <Link href="/account" className="px-2 py-2 text-sm text-[var(--teal)] underline">
-          Cancel
-        </Link>
+        <Link href="/account" className="px-2 py-2 text-sm text-[var(--teal)] underline">Cancel</Link>
       </div>
     </form>
   );

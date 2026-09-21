@@ -106,3 +106,32 @@ export async function runDocumentQc(input: {
     throw new Error("Could not run document QC.");
   }
 }
+
+export type PlaceSuggestion = {
+  label: string;
+  company?: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  postalCode?: string;
+  country: string;
+};
+
+export async function suggestPlaces(input: {
+  query: string;
+  countryHint?: string;
+}): Promise<PlaceSuggestion[]> {
+  try {
+    const data = await intelligenceFetch<{ places: PlaceSuggestion[] }>(
+      "/v1/suggest-places",
+      input,
+    );
+    return data.places ?? [];
+  } catch (error) {
+    console.error(
+      "[intelligence-client.ts:suggestPlaces]",
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
+}

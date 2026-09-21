@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from doc_qc import run_document_qc
 from eta_risk import assess_eta_risk
+from address_suggest import suggest_places
 from ranker import rank_quote_options
 
 load_dotenv()
@@ -55,6 +56,11 @@ class DocQcRequest(BaseModel):
     destinationAddress: str
     originCountry: str
     destinationCountry: str
+
+
+class PlaceSuggestRequest(BaseModel):
+    query: str
+    countryHint: str | None = None
 
 
 def _require_service_token(authorization: str | None) -> None:
@@ -128,3 +134,19 @@ def document_qc(
     except Exception as exc:
         print(f"[main.py:document_qc] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "Document QC failed."}, status_code=500)
+
+
+@app.post("/v1/suggest-places")
+def suggest_places_route(
+    body: PlaceSuggestRequest,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        _require_service_token(authorization)
+        places = suggest_places(body.query, body.countryHint)
+        return JSONResponse(content={"places": places})
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print(f"[main.py:suggest_places_route] {type(exc).__name__}: {exc}")
+        return JSONResponse(content={"error": "Place suggest failed."}, status_code=500)

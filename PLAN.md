@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 3 Step 2 complete (awaiting approval). Next: Step 3.
+**Status:** Phase 3 Step 3 complete (awaiting approval). Next: Step 4.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -64,12 +64,14 @@ Ops role gates, exception collaboration (INFO_REQUIRED + customer track reply), 
 ### In
 - Structured **shipper / consignee** (name, company, phone, email).
 - Structured **address** (line1, line2, postal, city, country).
+- **Country shown as full names** (ISO stored underneath).
 - **Saved addresses** (address book) for signed-in users.
+- **Place suggest seam** (intelligence `/v1/suggest-places` stub → click fills fields). Real Places/AI provider later.
 - Booking wizard wired to party/address fields.
 - Light **live validation** and country→defaults (currency / COD rules).
 
-### Out (later)
-Full postal autocomplete APIs, real carrier address validation, native mobile, own fleet apps.
+### Out (later / Phase 4)
+Live web geocoding & Places APIs, carrier address validation, native mobile, own fleet apps.
 
 ### Protocol
 1. One step per approval cycle.
@@ -84,8 +86,8 @@ Full postal autocomplete APIs, real carrier address validation, native mobile, o
 |------|-------------|--------|
 | 0 | Phase 3 scope + checklist in `PLAN.md` | **DONE** |
 | 1 | `saved_addresses` table + shipment party columns + data helpers | **DONE** |
-| 2 | Booking wizard: shipper/consignee + structured address fields | **DONE** (awaiting approval) |
-| 3 | Saved address picker on booking (From / To) | Pending |
+| 2 | Booking wizard: shipper/consignee + structured address fields | **DONE** |
+| 3 | Saved address picker + place-suggest seam + country full names | **DONE** (awaiting approval) |
 | 4 | Live field validation (required party, phone/email shape) | Pending |
 | 5 | Country defaults (currency, COD eligibility cues) | Pending |
 
@@ -98,6 +100,13 @@ Full postal autocomplete APIs, real carrier address validation, native mobile, o
 - Wizard validates party essentials before save.
 - Legacy flat `origin_address` / `destination_address` still populated for older views.
 - Every step approved before the next began.
+
+---
+
+## After Phase 3 Step 3
+
+Human: open `/book` → Country shows full names → Search “Yak & Yeti” or “Clarion” → click suggestion → fields fill → also try Save/pick from address book → approve → optionally commit.  
+Next request when ready: **execute Step 4**.
 
 ---
 

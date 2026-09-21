@@ -1,5 +1,6 @@
 "use client";
 
+import { countryName } from "./countries";
 import type { FormState } from "./form-types";
 
 export function ReviewSummary({
@@ -13,7 +14,9 @@ export function ReviewSummary({
     <div className="mt-6 space-y-4 text-sm">
       <div>
         <p className="text-xs uppercase tracking-wide text-[var(--teal)]">Lane</p>
-        <p className="text-[var(--off-white)]">{lane}</p>
+        <p className="text-[var(--off-white)]">
+          {lane === "DOMESTIC" ? "Nepal domestic" : "International"}
+        </p>
       </div>
       <div>
         <p className="text-xs uppercase tracking-wide text-[var(--teal)]">From</p>
@@ -28,7 +31,7 @@ export function ReviewSummary({
         <p className="mt-1 text-[var(--muted)]">
           {form.originLine1}
           {form.originLine2 ? `, ${form.originLine2}` : ""} · {form.originCity},{" "}
-          {form.originCountry}
+          {countryName(form.originCountry)}
           {form.originPostalCode ? ` ${form.originPostalCode}` : ""}
         </p>
       </div>
@@ -45,7 +48,7 @@ export function ReviewSummary({
         <p className="mt-1 text-[var(--muted)]">
           {form.destinationLine1}
           {form.destinationLine2 ? `, ${form.destinationLine2}` : ""} ·{" "}
-          {form.destinationCity}, {form.destinationCountry}
+          {form.destinationCity}, {countryName(form.destinationCountry)}
           {form.destinationPostalCode ? ` ${form.destinationPostalCode}` : ""}
         </p>
       </div>
