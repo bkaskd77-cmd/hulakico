@@ -63,10 +63,7 @@ export function PlaceSuggestControls({
   }, [value, lane, countryHint]);
 
   function choose(place: PlaceSuggestion) {
-    onPick({
-      ...place,
-      company: place.company || place.label,
-    });
+    onPick(place);
     setPlaces([]);
     setOpen(false);
   }

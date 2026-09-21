@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SavedAddress } from "@/lib/data/addresses";
+import { applyCountryDefaults } from "./country-defaults";
 import { applyLaneMode, postBookingDraft } from "./post-draft";
 import { pickPlaceForLane, pickSavedForLane } from "./lane-pick";
 import { ReviewSummary } from "./ReviewSummary";
@@ -35,15 +36,20 @@ export function BookWizard({
   const lane = detectFormLane(form);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key !== "originCountry" && key !== "destinationCountry") return next;
+      return applyCountryDefaults(next);
+    });
   }
 
   function blockIfRouteInvalid(): boolean {
     const result = validateRouteForm(form);
-    if (result.ok) return false;
-    setRevealRouteErrors(true);
-    setError(result.summary);
-    return true;
+    if (!result.ok) {
+      setRevealRouteErrors(true);
+      setError(result.summary);
+    }
+    return !result.ok;
   }
 
   function goNext() {
@@ -96,18 +102,11 @@ export function BookWizard({
       </div>
       <ol className="mt-6 flex gap-2">
         {([1, 2, 3] as Step[]).map((n) => (
-          <li
-            key={n}
-            className={`flex-1 rounded-md px-2 py-2 text-center text-xs font-semibold ${
-              step === n
-                ? "bg-[var(--teal)] text-[var(--off-white)]"
-                : step > n
-                  ? "bg-[color-mix(in_srgb,var(--teal)_35%,transparent)] text-[var(--off-white)]"
-                  : "bg-[var(--navy)] text-[var(--muted)]"
-            }`}
-          >
-            {n}. {n === 1 ? "Route" : n === 2 ? "Package" : "Review"}
-          </li>
+          <li key={n} className={`flex-1 rounded-md px-2 py-2 text-center text-xs font-semibold ${
+            step === n ? "bg-[var(--teal)] text-[var(--off-white)]"
+              : step > n ? "bg-[color-mix(in_srgb,var(--teal)_35%,transparent)] text-[var(--off-white)]"
+              : "bg-[var(--navy)] text-[var(--muted)]"
+          }`}>{n}. {n === 1 ? "Route" : n === 2 ? "Package" : "Review"}</li>
         ))}
       </ol>
       <RevealRouteErrors.Provider value={revealRouteErrors}>
@@ -131,9 +130,7 @@ export function BookWizard({
       {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
       <div className="mt-8 flex flex-wrap gap-3">
         {step > 1 ? (
-          <button type="button" onClick={() => setStep((s) => (s - 1) as Step)} className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]">
-            Back
-          </button>
+          <button type="button" onClick={() => setStep((s) => (s - 1) as Step)} className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]">Back</button>
         ) : null}
         {step < 3 ? (
           <button type="button" onClick={goNext} className={BTN}>Continue</button>

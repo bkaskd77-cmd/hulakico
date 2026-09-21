@@ -107,8 +107,11 @@ export async function runDocumentQc(input: {
   }
 }
 
+export type PlaceKind = "BUSINESS" | "ADDRESS";
+
 export type PlaceSuggestion = {
   label: string;
+  kind?: PlaceKind;
   company?: string;
   line1: string;
   line2?: string;

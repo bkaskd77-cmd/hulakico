@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 3 Step 4 complete (awaiting approval). Next: Step 5.
+**Status:** Phase 3 Step 5 complete (awaiting approval). Phase 3 checklist finished pending human review.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -88,8 +88,8 @@ Live web geocoding & Places APIs, carrier address validation, native mobile, own
 | 1 | `saved_addresses` table + shipment party columns + data helpers | **DONE** |
 | 2 | Booking wizard: shipper/consignee + structured address fields | **DONE** |
 | 3 | Saved address picker + place-suggest seam + country full names | **DONE** |
-| 4 | Live field validation (required party, phone/email shape) | **DONE** (awaiting approval) |
-| 5 | Country defaults (currency, COD eligibility cues) | Pending |
+| 4 | Live field validation (required party, phone/email shape) | **DONE** |
+| 5 | Country defaults (currency, COD eligibility cues) | **DONE** (awaiting approval) |
 
 ---
 
@@ -100,6 +100,13 @@ Live web geocoding & Places APIs, carrier address validation, native mobile, own
 - Wizard validates party essentials before save.
 - Legacy flat `origin_address` / `destination_address` still populated for older views.
 - Every step approved before the next began.
+
+---
+
+## After Phase 3 Step 5
+
+Human: open `/book` → Package step → domestic shows NPR + COD cue → switch International → USD default, COD message says unavailable → approve → commit.  
+Phase 3 complete when Step 5 is approved.
 
 ---
 

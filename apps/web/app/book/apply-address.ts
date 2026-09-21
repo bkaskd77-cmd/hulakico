@@ -29,9 +29,13 @@ export function applyPlaceSuggestionToForm(
   place: PlaceSuggestion,
 ): FormState {
   const k = PARTY_KEYS[side];
+  const existingCompany = prev[k.company].trim();
+  const isBusiness = place.kind === "BUSINESS";
+  const suggestedCompany = isBusiness ? (place.company ?? "").trim() : "";
   return {
     ...prev,
-    [k.company]: place.company ?? prev[k.company],
+    // ADDRESS kind never touches company; BUSINESS only fills when empty.
+    [k.company]: existingCompany || suggestedCompany || prev[k.company],
     [k.country]: place.country,
     [k.city]: place.city,
     [k.postal]: place.postalCode ?? "",

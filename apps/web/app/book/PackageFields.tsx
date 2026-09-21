@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormState, FormUpdate } from "./form-types";
+import { codCue, currencyCue } from "./country-defaults";
 
 export function PackageFields({
   form,
@@ -67,6 +68,9 @@ export function PackageFields({
             <option value="NPR">NPR</option>
             <option value="USD">USD</option>
           </select>
+          <span className="mt-1 block text-xs text-[var(--teal)]">
+            {currencyCue(lane)}
+          </span>
         </label>
         <label className="text-sm text-[var(--muted)]">
           Length (cm)
@@ -130,14 +134,12 @@ export function PackageFields({
             <span>
               Cash on delivery (COD)
               <span className="mt-0.5 block text-xs text-[var(--muted)]">
-                Receiver pays declared value on delivery. Domestic Nepal only.
+                {codCue(lane)} Receiver pays declared value on delivery.
               </span>
             </span>
           </label>
         ) : (
-          <p className="sm:col-span-2 text-xs text-[var(--gold)]">
-            After draft save, document QC checks contents, addresses, and value.
-          </p>
+          <p className="sm:col-span-2 text-xs text-[var(--gold)]">{codCue(lane)}</p>
         )}
       </div>
     </div>
