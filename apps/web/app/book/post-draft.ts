@@ -1,5 +1,10 @@
 import type { FormState } from "./form-types";
 
+function emptyToUndefined(value: string): string | undefined {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
 export async function postBookingDraft(
   form: FormState,
   lane: string,
@@ -10,6 +15,14 @@ export async function postBookingDraft(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        originCompany: emptyToUndefined(form.originCompany),
+        originEmail: emptyToUndefined(form.originEmail),
+        originLine2: emptyToUndefined(form.originLine2),
+        originPostalCode: emptyToUndefined(form.originPostalCode),
+        destinationCompany: emptyToUndefined(form.destinationCompany),
+        destinationEmail: emptyToUndefined(form.destinationEmail),
+        destinationLine2: emptyToUndefined(form.destinationLine2),
+        destinationPostalCode: emptyToUndefined(form.destinationPostalCode),
         weightKg: Number(form.weightKg),
         lengthCm: form.lengthCm ? Number(form.lengthCm) : undefined,
         widthCm: form.widthCm ? Number(form.widthCm) : undefined,

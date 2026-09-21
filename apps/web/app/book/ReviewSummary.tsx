@@ -16,13 +16,37 @@ export function ReviewSummary({
         <p className="text-[var(--off-white)]">{lane}</p>
       </div>
       <div>
-        <p className="text-xs uppercase tracking-wide text-[var(--teal)]">Route</p>
+        <p className="text-xs uppercase tracking-wide text-[var(--teal)]">From</p>
         <p className="text-[var(--off-white)]">
-          {form.originCity}, {form.originCountry} → {form.destinationCity},{" "}
-          {form.destinationCountry}
+          {form.originContactName}
+          {form.originCompany ? ` · ${form.originCompany}` : ""}
         </p>
         <p className="mt-1 text-[var(--muted)]">
-          {form.originAddress} → {form.destinationAddress}
+          {form.originPhone}
+          {form.originEmail ? ` · ${form.originEmail}` : ""}
+        </p>
+        <p className="mt-1 text-[var(--muted)]">
+          {form.originLine1}
+          {form.originLine2 ? `, ${form.originLine2}` : ""} · {form.originCity},{" "}
+          {form.originCountry}
+          {form.originPostalCode ? ` ${form.originPostalCode}` : ""}
+        </p>
+      </div>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-[var(--teal)]">To</p>
+        <p className="text-[var(--off-white)]">
+          {form.destinationContactName}
+          {form.destinationCompany ? ` · ${form.destinationCompany}` : ""}
+        </p>
+        <p className="mt-1 text-[var(--muted)]">
+          {form.destinationPhone}
+          {form.destinationEmail ? ` · ${form.destinationEmail}` : ""}
+        </p>
+        <p className="mt-1 text-[var(--muted)]">
+          {form.destinationLine1}
+          {form.destinationLine2 ? `, ${form.destinationLine2}` : ""} ·{" "}
+          {form.destinationCity}, {form.destinationCountry}
+          {form.destinationPostalCode ? ` ${form.destinationPostalCode}` : ""}
         </p>
       </div>
       <div>

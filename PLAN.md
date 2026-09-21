@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 3 Step 1 complete (awaiting approval). Next: Step 2.
+**Status:** Phase 3 Step 2 complete (awaiting approval). Next: Step 3.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -83,8 +83,8 @@ Full postal autocomplete APIs, real carrier address validation, native mobile, o
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 0 | Phase 3 scope + checklist in `PLAN.md` | **DONE** |
-| 1 | `saved_addresses` table + shipment party columns + data helpers | **DONE** (awaiting approval) |
-| 2 | Booking wizard: shipper/consignee + structured address fields | Pending |
+| 1 | `saved_addresses` table + shipment party columns + data helpers | **DONE** |
+| 2 | Booking wizard: shipper/consignee + structured address fields | **DONE** (awaiting approval) |
 | 3 | Saved address picker on booking (From / To) | Pending |
 | 4 | Live field validation (required party, phone/email shape) | Pending |
 | 5 | Country defaults (currency, COD eligibility cues) | Pending |
@@ -98,6 +98,13 @@ Full postal autocomplete APIs, real carrier address validation, native mobile, o
 - Wizard validates party essentials before save.
 - Legacy flat `origin_address` / `destination_address` still populated for older views.
 - Every step approved before the next began.
+
+---
+
+## After Phase 3 Step 2
+
+Human: open `/book` → fill From/To contact + line1/line2/postal → save draft → approve → optionally commit.  
+Next request when ready: **execute Step 3**.
 
 ---
 

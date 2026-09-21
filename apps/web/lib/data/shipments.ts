@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
 import {
+  composeAddressLine,
   detectLane,
   normalizeCountry,
   type DraftBookingInput,
@@ -25,18 +26,38 @@ export function createDraftShipment(
     const originCountry = normalizeCountry(input.originCountry);
     const destinationCountry = normalizeCountry(input.destinationCountry);
     const lane = detectLane(originCountry, destinationCountry);
+    const originAddress = composeAddressLine(
+      input.originLine1,
+      input.originLine2,
+      input.originPostalCode,
+    );
+    const destinationAddress = composeAddressLine(
+      input.destinationLine1,
+      input.destinationLine2,
+      input.destinationPostalCode,
+    );
 
     db.prepare(
       `INSERT INTO shipments (
          id, user_id, organization_id, status, transport_mode, lane, package_type,
          service_class, origin_country, origin_city, origin_address,
          destination_country, destination_city, destination_address,
+         origin_contact_name, origin_company, origin_phone, origin_email,
+         origin_line1, origin_line2, origin_postal_code,
+         destination_contact_name, destination_company, destination_phone,
+         destination_email, destination_line1, destination_line2,
+         destination_postal_code,
          weight_kg, length_cm, width_cm, height_cm, declared_value, currency,
          contents, wants_cod, created_at, updated_at
        ) VALUES (
          ?, ?, ?, 'DRAFT', 'THIRD_PARTY', ?, ?,
          ?, ?, ?, ?,
          ?, ?, ?,
+         ?, ?, ?, ?,
+         ?, ?, ?,
+         ?, ?, ?,
+         ?, ?, ?,
+         ?,
          ?, ?, ?, ?, ?, ?,
          ?, ?, ?, ?
        )`,
@@ -49,10 +70,24 @@ export function createDraftShipment(
       input.serviceClass,
       originCountry,
       input.originCity.trim(),
-      input.originAddress.trim(),
+      originAddress,
       destinationCountry,
       input.destinationCity.trim(),
-      input.destinationAddress.trim(),
+      destinationAddress,
+      input.originContactName.trim(),
+      input.originCompany?.trim() || null,
+      input.originPhone.trim(),
+      input.originEmail?.trim() || null,
+      input.originLine1.trim(),
+      input.originLine2?.trim() || null,
+      input.originPostalCode?.trim() || null,
+      input.destinationContactName.trim(),
+      input.destinationCompany?.trim() || null,
+      input.destinationPhone.trim(),
+      input.destinationEmail?.trim() || null,
+      input.destinationLine1.trim(),
+      input.destinationLine2?.trim() || null,
+      input.destinationPostalCode?.trim() || null,
       input.weightKg,
       input.lengthCm ?? null,
       input.widthCm ?? null,
@@ -75,44 +110,5 @@ export function createDraftShipment(
   }
 }
 
-export function getDraftShipmentForUser(userId: string, shipmentId: string) {
-  try {
-    const db = getDb();
-    return (
-      (db
-        .prepare(
-          `SELECT id, status, lane, transport_mode, origin_city, destination_city,
-                  package_type, wants_cod, service_class, contents, declared_value,
-                  currency, origin_address, destination_address,
-                  origin_country, destination_country
-           FROM shipments WHERE id = ? AND user_id = ?`,
-        )
-        .get(shipmentId, userId) as
-        | {
-            id: string;
-            status: string;
-            lane: string;
-            transport_mode: string;
-            origin_city: string;
-            destination_city: string;
-            package_type: string;
-            wants_cod: number;
-            service_class: string;
-            contents: string;
-            declared_value: number | null;
-            currency: string;
-            origin_address: string;
-            destination_address: string;
-            origin_country: string;
-            destination_country: string;
-          }
-        | undefined) ?? null
-    );
-  } catch (error) {
-    console.error(
-      "[shipments.ts:getDraftShipmentForUser]",
-      error instanceof Error ? error.message : error,
-    );
-    return null;
-  }
-}
+export { getDraftShipmentForUser } from "./shipment-query";
+
