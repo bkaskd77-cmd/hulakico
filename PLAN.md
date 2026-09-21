@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 3 Step 3 complete (awaiting approval). Next: Step 4.
+**Status:** Phase 3 Step 4 complete (awaiting approval). Next: Step 5.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -87,8 +87,8 @@ Live web geocoding & Places APIs, carrier address validation, native mobile, own
 | 0 | Phase 3 scope + checklist in `PLAN.md` | **DONE** |
 | 1 | `saved_addresses` table + shipment party columns + data helpers | **DONE** |
 | 2 | Booking wizard: shipper/consignee + structured address fields | **DONE** |
-| 3 | Saved address picker + place-suggest seam + country full names | **DONE** (awaiting approval) |
-| 4 | Live field validation (required party, phone/email shape) | Pending |
+| 3 | Saved address picker + place-suggest seam + country full names | **DONE** |
+| 4 | Live field validation (required party, phone/email shape) | **DONE** (awaiting approval) |
 | 5 | Country defaults (currency, COD eligibility cues) | Pending |
 
 ---
@@ -100,6 +100,13 @@ Live web geocoding & Places APIs, carrier address validation, native mobile, own
 - Wizard validates party essentials before save.
 - Legacy flat `origin_address` / `destination_address` still populated for older views.
 - Every step approved before the next began.
+
+---
+
+## After Phase 3 Step 4
+
+Human: open `/book` → leave shipper phone empty or type `abc` → Continue → see field errors → fix name/phone/email/line1 → Continue works.  
+Next request when ready: **execute Step 5**.
 
 ---
 

@@ -59,10 +59,14 @@ export function applyLaneMode(
       currency: "NPR",
     };
   }
+  const leavingNepalDestination = prev.destinationCountry.toUpperCase() === "NP";
   return {
     ...prev,
-    destinationCountry:
-      prev.destinationCountry === "NP" ? "IN" : prev.destinationCountry,
+    destinationCountry: leavingNepalDestination ? "IN" : prev.destinationCountry,
+    destinationCity: leavingNepalDestination ? "" : prev.destinationCity,
+    destinationPostalCode: leavingNepalDestination
+      ? ""
+      : prev.destinationPostalCode,
     wantsCod: false,
     currency: prev.currency === "NPR" ? "USD" : prev.currency,
   };

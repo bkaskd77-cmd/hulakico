@@ -5,6 +5,15 @@ from __future__ import annotations
 
 CATALOG = [
     {
+        "label": "The Soaltee Kathmandu — P72R+6CR, Tahachal Marg, Kathmandu, Bagmati Province 44600, Nepal",
+        "company": "The Soaltee Kathmandu",
+        "line1": "P72R+6CR, Tahachal Marg",
+        "line2": "",
+        "city": "Kathmandu",
+        "postalCode": "44600",
+        "country": "NP",
+    },
+    {
         "label": "Yak & Yeti Hotel, Kathmandu",
         "company": "Hotel Yak & Yeti",
         "line1": "Durbar Marg",
