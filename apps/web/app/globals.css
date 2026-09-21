@@ -68,6 +68,27 @@
   }
 }
 
+@keyframes home-dot-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 50%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 22px color-mix(in srgb, var(--teal) 55%, transparent);
+  }
+}
+
+@keyframes home-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -90,4 +111,22 @@ body {
 
 .shell-route {
   animation: route-pulse 3.2s ease-in-out infinite;
+}
+
+.home-dot {
+  animation: home-dot-glow 3.6s ease-in-out infinite;
+}
+
+.home-section {
+  animation: home-section-in 0.9s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-rise,
+  .shell-rise-delay,
+  .shell-route,
+  .home-dot,
+  .home-section {
+    animation: none;
+  }
 }
