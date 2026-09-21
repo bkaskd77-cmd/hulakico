@@ -172,6 +172,24 @@ export function ensureSchema(database: DatabaseSync): void {
       created_at TEXT NOT NULL,
       FOREIGN KEY (shipment_id) REFERENCES shipments(id)
     );
+
+    CREATE TABLE IF NOT EXISTS saved_addresses (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      label TEXT NOT NULL,
+      contact_name TEXT NOT NULL,
+      company TEXT,
+      phone TEXT,
+      email TEXT,
+      country TEXT NOT NULL,
+      city TEXT NOT NULL,
+      postal_code TEXT,
+      line1 TEXT NOT NULL,
+      line2 TEXT,
+      is_residential INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
   `);
 
   migrateShipmentColumns(database);
@@ -265,6 +283,20 @@ function migrateShipmentColumns(database: DatabaseSync): void {
     ["carrier_id", "TEXT"],
     ["carrier_service_id", "TEXT"],
     ["tracking_token", "TEXT"],
+    ["origin_contact_name", "TEXT"],
+    ["origin_company", "TEXT"],
+    ["origin_phone", "TEXT"],
+    ["origin_email", "TEXT"],
+    ["origin_line1", "TEXT"],
+    ["origin_line2", "TEXT"],
+    ["origin_postal_code", "TEXT"],
+    ["destination_contact_name", "TEXT"],
+    ["destination_company", "TEXT"],
+    ["destination_phone", "TEXT"],
+    ["destination_email", "TEXT"],
+    ["destination_line1", "TEXT"],
+    ["destination_line2", "TEXT"],
+    ["destination_postal_code", "TEXT"],
   ];
   for (const [name, type] of additions) {
     if (!names.has(name)) {
