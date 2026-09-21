@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 3 Step 5 complete (awaiting approval). Phase 3 checklist finished pending human review.
+**Status:** Phase 4 Step 0 complete (awaiting approval). Next: Step 1.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -57,88 +57,66 @@ Ops role gates, exception collaboration (INFO_REQUIRED + customer track reply), 
 
 ---
 
-## Phase 3 — Active
+## Phase 3 — COMPLETE
 
-**Goal:** Carrier-grade party + address model (inspired by MyDHL-style ship forms) — step by step, no rush.
+Carrier-grade party + address model: structured shipper/consignee, address book, inline place suggest seam (`BUSINESS` | `ADDRESS` kinds), live validation, NPR/USD + COD lane defaults.
+
+---
+
+## Phase 4 — Active
+
+**Goal:** Real-world address intelligence + international customs document foundation — step by step, no rush.
 
 ### In
-- Structured **shipper / consignee** (name, company, phone, email).
-- Structured **address** (line1, line2, postal, city, country).
-- **Country shown as full names** (ISO stored underneath).
-- **Saved addresses** (address book) for signed-in users.
-- **Place suggest seam** (intelligence `/v1/suggest-places` stub → click fills fields). Real Places/AI provider later.
-- Booking wizard wired to party/address fields.
-- Light **live validation** and country→defaults (currency / COD rules).
+- **Places provider seam** (env-backed adapter): stub catalog remains fallback; optional live provider maps results into existing `kind` + address fields.
+- **Tighter suggest matching** (no false Kathmandu hits); preserve typed company forever.
+- **Commercial / customs digital invoice** for **international** drafts (line items, values, currency) — not just a contents string.
+- Invoice fields stored on shipment / related table; wizard step or panel for international only.
+- Stub PDF or printable HTML invoice export (carrier-ready polish later).
+- Doc QC awareness of invoice presence on international lanes.
 
-### Out (later / Phase 4)
-Live web geocoding & Places APIs, carrier address validation, native mobile, own fleet apps.
+### Out (later phases)
+Native mobile, own-fleet apps, full carrier label APIs, payment settlement depth, live carrier address validation beyond Places.
 
 ### Protocol
 1. One step per approval cycle.
 2. Max 3 files per prompt; then stop.
 3. No placeholders; no silent scope expansion.
+4. Never hardcode Places/API secrets — `.env` only.
 
 ---
 
-## Phase 3 micro-step checklist
+## Phase 4 micro-step checklist
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 0 | Phase 3 scope + checklist in `PLAN.md` | **DONE** |
-| 1 | `saved_addresses` table + shipment party columns + data helpers | **DONE** |
-| 2 | Booking wizard: shipper/consignee + structured address fields | **DONE** |
-| 3 | Saved address picker + place-suggest seam + country full names | **DONE** |
-| 4 | Live field validation (required party, phone/email shape) | **DONE** |
-| 5 | Country defaults (currency, COD eligibility cues) | **DONE** (awaiting approval) |
+| 0 | Phase 4 scope + checklist in `PLAN.md` | **DONE** (awaiting approval) |
+| 1 | Places provider interface + stub adapter (kind-aware) behind intelligence | Pending |
+| 2 | Optional live provider hook via env (fallback to stub if unset) | Pending |
+| 3 | International commercial invoice schema + data helpers | Pending |
+| 4 | Booking UI: invoice line items for international only | Pending |
+| 5 | Printable/digital invoice view (HTML) + doc QC cue | Pending |
 
 ---
 
-## Success criteria (end of Phase 3)
+## Success criteria (end of Phase 4)
 
-- Drafts store contact + structured address for origin and destination.
-- User can save and reuse an address from their book.
-- Wizard validates party essentials before save.
-- Legacy flat `origin_address` / `destination_address` still populated for older views.
+- Suggest can use live Places when configured; stub still works offline.
+- `BUSINESS` vs `ADDRESS` continues to drive company fill rules.
+- International drafts can carry a structured commercial invoice.
+- Domestic booking unchanged (no invoice required).
 - Every step approved before the next began.
+
+---
+
+## After Phase 4 Step 0
+
+Human: read Phase 4 scope above → approve → optionally commit.  
+Next request when ready: **execute Step 1**.
 
 ---
 
 ## After Phase 3 Step 5
 
 Human: open `/book` → Package step → domestic shows NPR + COD cue → switch International → USD default, COD message says unavailable → approve → commit.  
-Phase 3 complete when Step 5 is approved.
-
----
-
-## After Phase 3 Step 4
-
-Human: open `/book` → leave shipper phone empty or type `abc` → Continue → see field errors → fix name/phone/email/line1 → Continue works.  
-Next request when ready: **execute Step 5**.
-
----
-
-## After Phase 3 Step 3
-
-Human: open `/book` → Country shows full names → Search “Yak & Yeti” or “Clarion” → click suggestion → fields fill → also try Save/pick from address book → approve → optionally commit.  
-Next request when ready: **execute Step 4**.
-
----
-
-## After Phase 3 Step 2
-
-Human: open `/book` → fill From/To contact + line1/line2/postal → save draft → approve → optionally commit.  
-Next request when ready: **execute Step 3**.
-
----
-
-## After Phase 3 Step 1
-
-Human: no UI change required this step — approve schema/helpers → optionally commit.  
-Next request when ready: **execute Step 2**.
-
----
-
-## After Phase 2 Step 5
-
-Human: open `/` → confirm marketing sections + motion → commit.  
-Phase 2 complete. Phase 3 started.
+Phase 3 complete. Phase 4 started.
