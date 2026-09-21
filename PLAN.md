@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 2 Step 3 complete (awaiting approval). Next: Step 4.
+**Status:** Phase 2 Step 4 complete (awaiting approval). Next: Step 5.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -101,8 +101,8 @@ Brand-first; Himalayan night-to-dawn; cards only where interaction requires them
 | 0 | Phase 2 scope + checklist in `PLAN.md` | **DONE** |
 | 1 | Ops role gates (`CUSTOMER` / `OPS` / `ADMIN`) on `/ops/*` | **DONE** |
 | 2 | Exception: `INFO_REQUIRED` + ops UI to request customer info | **DONE** |
-| 3 | Customer reply on `/track/[token]` when info required | **DONE** (awaiting approval) |
-| 4 | Advanced booking UX (wizard upgrade) | Pending |
+| 3 | Customer reply on `/track/[token]` when info required | **DONE** |
+| 4 | Advanced booking UX (wizard upgrade) | **DONE** (awaiting approval) |
 | 5 | Marketing homepage (sections + motion) | Pending |
 
 ### Protocol
@@ -120,6 +120,13 @@ Brand-first; Himalayan night-to-dawn; cards only where interaction requires them
 - Booking wizard feels clearly more advanced than Phase 1 skeleton.
 - Homepage reads as a multi-section brand marketing surface with motion.
 - Every step approved before the next began.
+
+---
+
+## After Phase 2 Step 4
+
+Human: open `/book` → try Nepal domestic (city chips, COD cues) and International toggle → save draft → approve → optionally commit.  
+Next request when ready: **execute Step 5**.
 
 ---
 
