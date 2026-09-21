@@ -52,3 +52,56 @@ export function requestExceptionInfo(
       : new Error("Could not request customer info.");
   }
 }
+
+export function submitCustomerReply(
+  trackingToken: string,
+  reply: string,
+): { ok: true } | { error: string } {
+  try {
+    const trimmed = reply.trim();
+    if (trimmed.length < 3) {
+      return { error: "Reply must be at least 3 characters." };
+    }
+
+    const db = getDb();
+    const row = db
+      .prepare(
+        `SELECT e.id as exception_id, e.shipment_id
+         FROM shipments s
+         JOIN exception_cases e ON e.shipment_id = s.id
+         WHERE s.tracking_token = ? AND e.status = 'INFO_REQUIRED'
+         ORDER BY e.created_at DESC
+         LIMIT 1`,
+      )
+      .get(trackingToken) as
+      | { exception_id: string; shipment_id: string }
+      | undefined;
+
+    if (!row) {
+      return { error: "No open info request for this shipment." };
+    }
+
+    const now = new Date().toISOString();
+    db.prepare(
+      `UPDATE exception_cases SET customer_reply = ? WHERE id = ?`,
+    ).run(trimmed, row.exception_id);
+
+    db.prepare(
+      `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
+       VALUES (?, ?, 'EXCEPTION', ?, NULL, ?)`,
+    ).run(
+      newId("evt"),
+      row.shipment_id,
+      `Customer replied: ${trimmed}`,
+      now,
+    );
+
+    return { ok: true };
+  } catch (error) {
+    console.error(
+      "[exception-info.ts:submitCustomerReply]",
+      error instanceof Error ? error.message : error,
+    );
+    return { error: "Failed to submit reply." };
+  }
+}

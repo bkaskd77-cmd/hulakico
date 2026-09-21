@@ -8,6 +8,11 @@ export type PublicTrackingView = {
   destinationCity: string;
   lane: string;
   carrierName: string | null;
+  trackingToken: string;
+  infoRequest: {
+    note: string;
+    customerReply: string | null;
+  } | null;
   events: Array<{
     id: string;
     status: string;
@@ -45,6 +50,18 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
       return null;
     }
 
+    const infoRow = db
+      .prepare(
+        `SELECT info_request_note, customer_reply
+         FROM exception_cases
+         WHERE shipment_id = ? AND status = 'INFO_REQUIRED'
+         ORDER BY created_at DESC
+         LIMIT 1`,
+      )
+      .get(shipment.id) as
+      | { info_request_note: string | null; customer_reply: string | null }
+      | undefined;
+
     const events = db
       .prepare(
         `SELECT id, status, description, location, occurred_at
@@ -66,6 +83,14 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
       destinationCity: shipment.destination_city,
       lane: shipment.lane,
       carrierName: shipment.carrier_name,
+      trackingToken: token,
+      infoRequest:
+        infoRow?.info_request_note
+          ? {
+              note: infoRow.info_request_note,
+              customerReply: infoRow.customer_reply,
+            }
+          : null,
       events: events.map((event) => ({
         id: event.id,
         status: event.status,

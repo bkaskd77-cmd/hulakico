@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackReplyForm } from "@/app/track/TrackReplyForm";
 import { getTrackingByToken } from "@/lib/data/tracking";
 
 export const runtime = "nodejs";
@@ -46,6 +47,24 @@ export default async function PublicTrackPage({
             </dd>
           </div>
         </dl>
+
+        {tracking.infoRequest ? (
+          <div className="mt-8 rounded-md border border-[var(--gold)]/40 bg-[color-mix(in_srgb,var(--gold)_10%,transparent)] p-4">
+            <p className="text-xs uppercase tracking-wide text-[var(--gold)]">
+              Action needed
+            </p>
+            <p className="mt-2 text-sm text-[var(--off-white)]">
+              {tracking.infoRequest.note}
+            </p>
+            {tracking.infoRequest.customerReply ? (
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                Your reply: {tracking.infoRequest.customerReply}
+              </p>
+            ) : (
+              <TrackReplyForm trackingToken={tracking.trackingToken} />
+            )}
+          </div>
+        ) : null}
 
         <ol className="mt-8 space-y-4 border-l border-[var(--teal)] pl-4">
           {tracking.events.map((event) => (

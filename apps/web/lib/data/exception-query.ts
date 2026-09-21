@@ -9,7 +9,8 @@ export function listExceptions(
     const rows = db
       .prepare(
         `SELECT e.id, e.shipment_id, e.status, e.reason, e.previous_status,
-                e.resolution_note, e.info_request_note, e.created_at, e.resolved_at,
+                e.resolution_note, e.info_request_note, e.customer_reply,
+                e.created_at, e.resolved_at,
                 s.hulakico_awb, s.origin_city, s.destination_city
          FROM exception_cases e
          JOIN shipments s ON s.id = e.shipment_id
@@ -29,6 +30,7 @@ export function listExceptions(
       previous_status: string;
       resolution_note: string | null;
       info_request_note: string | null;
+      customer_reply: string | null;
       created_at: string;
       resolved_at: string | null;
       hulakico_awb: string | null;
@@ -44,6 +46,7 @@ export function listExceptions(
       previousStatus: row.previous_status,
       resolutionNote: row.resolution_note,
       infoRequestNote: row.info_request_note,
+      customerReply: row.customer_reply,
       createdAt: row.created_at,
       resolvedAt: row.resolved_at,
       hulakicoAwb: row.hulakico_awb,

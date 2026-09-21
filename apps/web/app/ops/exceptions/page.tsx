@@ -60,6 +60,11 @@ export default async function OpsExceptionsPage() {
                   Asked customer: {item.infoRequestNote}
                 </p>
               ) : null}
+              {item.customerReply ? (
+                <p className="mt-2 text-sm text-[var(--teal)]">
+                  Customer reply: {item.customerReply}
+                </p>
+              ) : null}
               {item.status === "OPEN" ? (
                 <RequestInfoForm exceptionId={item.id} />
               ) : null}

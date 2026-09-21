@@ -9,6 +9,7 @@ export type ExceptionCaseRow = {
   previousStatus: string;
   resolutionNote: string | null;
   infoRequestNote: string | null;
+  customerReply: string | null;
   createdAt: string;
   resolvedAt: string | null;
   hulakicoAwb: string | null;
