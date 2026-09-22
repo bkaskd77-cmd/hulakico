@@ -211,6 +211,7 @@ export function ensureSchema(database: DatabaseSync): void {
       quantity REAL NOT NULL,
       unit TEXT NOT NULL DEFAULT 'PCS',
       unit_value REAL NOT NULL,
+      weight_kg REAL,
       hs_code TEXT,
       country_of_origin TEXT,
       sort_order INTEGER NOT NULL DEFAULT 0,
@@ -221,7 +222,25 @@ export function ensureSchema(database: DatabaseSync): void {
   migrateShipmentColumns(database);
   migrateUserPlatformRole(database);
   migrateExceptionInfoRequired(database);
+  migrateInvoiceLineWeight(database);
   bootstrapOpsRole(database);
+}
+
+function migrateInvoiceLineWeight(database: DatabaseSync): void {
+  try {
+    const columns = database
+      .prepare("PRAGMA table_info(commercial_invoice_lines)")
+      .all() as Array<{ name: string }>;
+    if (columns.length === 0) return;
+    const names = new Set(columns.map((column) => column.name));
+    if (names.has("weight_kg")) return;
+    database.exec(`ALTER TABLE commercial_invoice_lines ADD COLUMN weight_kg REAL`);
+  } catch (error) {
+    console.error(
+      "[db-schema.ts:migrateInvoiceLineWeight]",
+      error instanceof Error ? error.message : error,
+    );
+  }
 }
 
 function migrateExceptionInfoRequired(database: DatabaseSync): void {

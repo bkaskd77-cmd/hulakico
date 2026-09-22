@@ -25,6 +25,7 @@ type LineRow = {
   quantity: number;
   unit: string;
   unit_value: number;
+  weight_kg: number | null;
   hs_code: string | null;
   country_of_origin: string | null;
   sort_order: number;
@@ -44,6 +45,7 @@ function loadLines(invoiceId: string): CommercialInvoiceLine[] {
     unit: line.unit,
     unitValue: line.unit_value,
     lineTotal: lineTotal({ quantity: line.quantity, unitValue: line.unit_value }),
+    weightKg: line.weight_kg,
     hsCode: line.hs_code,
     countryOfOrigin: line.country_of_origin,
     sortOrder: line.sort_order,
@@ -115,13 +117,14 @@ export function upsertCommercialInvoice(
       }
       const insertLine = db.prepare(
         `INSERT INTO commercial_invoice_lines
-           (id, invoice_id, description, quantity, unit, unit_value, hs_code, country_of_origin, sort_order)
-         VALUES (?,?,?,?,?,?,?,?,?)`,
+           (id, invoice_id, description, quantity, unit, unit_value, weight_kg,
+            hs_code, country_of_origin, sort_order)
+         VALUES (?,?,?,?,?,?,?,?,?,?)`,
       );
       data.lines.forEach((line, index) => {
         insertLine.run(
           newId("ciln"), invoiceId, line.description.trim(), line.quantity,
-          line.unit.trim() || "PCS", line.unitValue,
+          line.unit, line.unitValue, line.weightKg ?? null,
           line.hsCode?.trim() || null,
           line.countryOfOrigin?.trim().toUpperCase() || null, index,
         );
@@ -131,7 +134,6 @@ export function upsertCommercialInvoice(
       db.exec("ROLLBACK");
       throw inner;
     }
-
     const invoice = getInvoiceForShipment(data.shipmentId);
     if (!invoice) return { error: "Invoice saved but could not be reloaded." };
     return { invoice };

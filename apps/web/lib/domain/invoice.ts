@@ -8,11 +8,21 @@ export const invoiceExportReasons = [
   "OTHER",
 ] as const;
 
+/** Packaging units accepted on commercial invoice lines (customs). */
+export const invoiceLineUnits = [
+  "PCS",
+  "BOX",
+  "KG",
+  "SET",
+  "PAIR",
+] as const;
+
 export const commercialInvoiceLineSchema = z.object({
   description: z.string().trim().min(2).max(200),
   quantity: z.number().positive().max(100_000),
-  unit: z.string().trim().min(1).max(20).default("PCS"),
+  unit: z.enum(invoiceLineUnits).default("PCS"),
   unitValue: z.number().nonnegative().max(10_000_000),
+  weightKg: z.number().positive().max(1_000).optional(),
   hsCode: z.string().trim().max(20).optional(),
   countryOfOrigin: z.string().trim().min(2).max(2).optional(),
 });
@@ -37,6 +47,7 @@ export type CommercialInvoiceLine = {
   unit: string;
   unitValue: number;
   lineTotal: number;
+  weightKg: number | null;
   hsCode: string | null;
   countryOfOrigin: string | null;
   sortOrder: number;
@@ -66,5 +77,23 @@ export function invoiceTotal(
 ): number {
   return Number(
     lines.reduce((sum, line) => sum + lineTotal(line), 0).toFixed(2),
+  );
+}
+
+export function invoiceTotalWeightKg(
+  lines: Array<{ quantity: number; weightKg: number | null | undefined }>,
+): number {
+  return Number(
+    lines
+      .reduce((sum, line) => sum + line.quantity * (line.weightKg ?? 0), 0)
+      .toFixed(3),
+  );
+}
+
+export function invoiceTotalUnits(
+  lines: Array<{ quantity: number }>,
+): number {
+  return Number(
+    lines.reduce((sum, line) => sum + line.quantity, 0).toFixed(2),
   );
 }
