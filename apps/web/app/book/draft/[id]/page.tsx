@@ -118,7 +118,18 @@ export default async function DraftSavedPage({
         )}
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <RequestQuotesButton shipmentId={shipment.id} />
-          <Link href="/book" className="text-sm text-[var(--teal)] underline">New draft</Link>
+          <Link
+            href={`/book?editDraft=${encodeURIComponent(shipment.id)}`}
+            className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]"
+          >
+            Back
+          </Link>
+          <Link
+            href="/account"
+            className="ml-auto rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]"
+          >
+            Cancel
+          </Link>
         </div>
       </div>
     </div>
