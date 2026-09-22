@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { DraftInsights } from "@/app/book/DraftInsights";
+import { InvoiceEditor } from "@/app/book/InvoiceEditor";
 import { RequestQuotesButton } from "@/app/book/RequestQuotesButton";
 import { SelectQuoteButton } from "@/app/book/SelectQuoteButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
@@ -9,6 +10,7 @@ import {
   rankQuoteOptions,
   runDocumentQc,
 } from "@/lib/data/intelligence-client";
+import { getInvoiceForShipment } from "@/lib/data/invoices";
 import { getLatestQuoteOptions } from "@/lib/data/quote-query";
 import { getDraftShipmentForUser } from "@/lib/data/shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
@@ -22,15 +24,11 @@ export default async function DraftSavedPage({
 }) {
   const token = await readSessionToken();
   const user = token ? getUserBySessionToken(token) : null;
-  if (!user) {
-    redirect("/signin");
-  }
+  if (!user) redirect("/signin");
 
   const { id } = await params;
   const shipment = getDraftShipmentForUser(user.id, id);
-  if (!shipment) {
-    notFound();
-  }
+  if (!shipment) notFound();
 
   const baseQuotes = getLatestQuoteOptions(user.id, id);
   let quotes = baseQuotes.map((option, index) => ({
@@ -85,67 +83,42 @@ export default async function DraftSavedPage({
   return (
     <div className="shell-sky flex min-h-dvh items-center justify-center px-6 py-16">
       <div className="w-full max-w-lg rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">
-          Intelligence checks
-        </p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Intelligence checks</p>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
           Quotes & risk
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           {shipment.origin_city} → {shipment.destination_city} ({shipment.lane})
         </p>
-
-        <DraftInsights
-          etaRisk={etaRisk}
-          docQc={docQc}
-          insightError={insightError}
-        />
-
-        {rankError ? (
-          <p className="mt-4 text-sm text-[var(--gold)]">{rankError}</p>
+        {shipment.lane === "INTERNATIONAL" ? (
+          <InvoiceEditor
+            shipmentId={shipment.id}
+            currency={shipment.currency}
+            initial={getInvoiceForShipment(shipment.id)}
+          />
         ) : null}
-
+        <DraftInsights etaRisk={etaRisk} docQc={docQc} insightError={insightError} />
+        {rankError ? <p className="mt-4 text-sm text-[var(--gold)]">{rankError}</p> : null}
         {quotes.length > 0 ? (
           <ul className="mt-6 space-y-3">
             {quotes.map((option) => (
-              <li
-                key={option.id}
-                className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-4 py-3 text-sm"
-              >
+              <li key={option.id} className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-4 py-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-semibold text-[var(--off-white)]">
-                    #{option.rank} {option.carrierName}
-                  </p>
-                  <p className="text-xs text-[var(--teal)]">
-                    score {option.rankScore.toFixed(3)}
-                  </p>
+                  <p className="font-semibold text-[var(--off-white)]">#{option.rank} {option.carrierName}</p>
+                  <p className="text-xs text-[var(--teal)]">score {option.rankScore.toFixed(3)}</p>
                 </div>
-                <p className="text-[var(--muted)]">
-                  {option.serviceName} · ETA {option.etaDaysMin}-{option.etaDaysMax}d
-                </p>
-                <p className="mt-1 text-[var(--gold)]">
-                  {option.currency} {option.amount.toFixed(2)}
-                </p>
-                {canBook ? (
-                  <SelectQuoteButton
-                    shipmentId={shipment.id}
-                    quoteOptionId={option.id}
-                  />
-                ) : null}
+                <p className="text-[var(--muted)]">{option.serviceName} · ETA {option.etaDaysMin}-{option.etaDaysMax}d</p>
+                <p className="mt-1 text-[var(--gold)]">{option.currency} {option.amount.toFixed(2)}</p>
+                {canBook ? <SelectQuoteButton shipmentId={shipment.id} quoteOptionId={option.id} /> : null}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-6 text-sm text-[var(--muted)]">
-            Generate quotes to rank carriers.
-          </p>
+          <p className="mt-6 text-sm text-[var(--muted)]">Generate quotes to rank carriers.</p>
         )}
-
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <RequestQuotesButton shipmentId={shipment.id} />
-          <Link href="/book" className="text-sm text-[var(--teal)] underline">
-            New draft
-          </Link>
+          <Link href="/book" className="text-sm text-[var(--teal)] underline">New draft</Link>
         </div>
       </div>
     </div>

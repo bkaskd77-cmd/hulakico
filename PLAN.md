@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 4 Step 3 complete (awaiting approval). Next: Step 4.
+**Status:** Phase 4 Step 4 complete (awaiting approval). Next: Step 5.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -93,8 +93,8 @@ Native mobile, own-fleet apps, full carrier label APIs, payment settlement depth
 | 0 | Phase 4 scope + checklist in `PLAN.md` | **DONE** |
 | 1 | Places provider interface + stub adapter (kind-aware) behind intelligence | **DONE** |
 | 2 | Optional live provider hook via env (fallback to stub if unset) | **DONE** |
-| 3 | International commercial invoice schema + data helpers | **DONE** (awaiting approval) |
-| 4 | Booking UI: invoice line items for international only | Pending |
+| 3 | International commercial invoice schema + data helpers | **DONE** |
+| 4 | Booking UI: invoice line items for international only | **DONE** (awaiting approval) |
 | 5 | Printable/digital invoice view (HTML) + doc QC cue | Pending |
 
 ---
@@ -106,6 +106,13 @@ Native mobile, own-fleet apps, full carrier label APIs, payment settlement depth
 - International drafts can carry a structured commercial invoice.
 - Domestic booking unchanged (no invoice required).
 - Every step approved before the next began.
+
+---
+
+## After Phase 4 Step 4
+
+Human: book an **international** draft → open `/book/draft/[id]` → fill commercial invoice lines → Save invoice → reload shows saved lines. Domestic draft has no invoice block.  
+Next request when ready: **execute Step 5**.
 
 ---
 
