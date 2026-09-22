@@ -190,6 +190,32 @@ export function ensureSchema(database: DatabaseSync): void {
       created_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS commercial_invoices (
+      id TEXT PRIMARY KEY,
+      shipment_id TEXT NOT NULL UNIQUE,
+      currency TEXT NOT NULL CHECK (currency IN ('NPR', 'USD')),
+      export_reason TEXT NOT NULL DEFAULT 'SALE' CHECK (
+        export_reason IN ('SALE', 'GIFT', 'SAMPLE', 'RETURN', 'OTHER')
+      ),
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS commercial_invoice_lines (
+      id TEXT PRIMARY KEY,
+      invoice_id TEXT NOT NULL,
+      description TEXT NOT NULL,
+      quantity REAL NOT NULL,
+      unit TEXT NOT NULL DEFAULT 'PCS',
+      unit_value REAL NOT NULL,
+      hs_code TEXT,
+      country_of_origin TEXT,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (invoice_id) REFERENCES commercial_invoices(id)
+    );
   `);
 
   migrateShipmentColumns(database);
