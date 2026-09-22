@@ -124,6 +124,7 @@ export function PartyAddressBlock({
           field={field}
           lane={lane}
           countryHint={form[k.country]}
+          cityHint={form[k.city]}
           onPick={onPlacePick}
         />
         {hint(k.line1) ? (

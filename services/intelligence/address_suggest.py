@@ -70,6 +70,16 @@ STUB_CATALOG: list[dict] = [
         "country": "NO",
     },
     {
+        "label": "Nabil Bank Limited — Bina Marg, Kathmandu",
+        "kind": "BUSINESS",
+        "company": "Nabil Bank Limited",
+        "line1": "Bina Marg",
+        "line2": "",
+        "city": "Kathmandu",
+        "postalCode": "44600",
+        "country": "NP",
+    },
+    {
         "label": "Connaught Place, New Delhi",
         "kind": "ADDRESS",
         "company": "",
@@ -120,16 +130,34 @@ def query_matches(query: str, place: dict) -> bool:
 class StubPlacesProvider:
     name = "stub"
 
-    def suggest(self, query: str, country_hint: str | None = None) -> list[dict]:
+    def suggest(
+        self,
+        query: str,
+        country_hint: str | None = None,
+        city_hint: str | None = None,
+    ) -> list[dict]:
         try:
+            # Strip trailing ", City" added by the UI so stub matching stays clean.
+            q = (query or "").strip()
+            city = (city_hint or "").strip()
+            if city and q.lower().endswith(f", {city.lower()}"):
+                q = q[: -(len(city) + 2)].strip()
             matches = [
                 normalize_place(place)
                 for place in STUB_CATALOG
-                if query_matches(query, place)
+                if query_matches(q, place)
             ]
-            hint = (country_hint or "").strip().upper()
-            if hint:
-                matches.sort(key=lambda item: 0 if item["country"] == hint else 1)
+            country = (country_hint or "").strip().upper()
+            if country:
+                matches = [item for item in matches if item.get("country") == country]
+            if city:
+                city_l = city.lower()
+                matches = [
+                    item
+                    for item in matches
+                    if city_l in (item.get("city") or "").lower()
+                    or (item.get("city") or "").lower() in city_l
+                ]
             return matches[:6]
         except Exception as exc:
             print(f"[address_suggest.py:StubPlacesProvider.suggest] {type(exc).__name__}: {exc}")

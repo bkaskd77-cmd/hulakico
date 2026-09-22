@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import {
   invoiceExportReasons,
@@ -101,6 +102,10 @@ export function InvoiceEditor({
     <form onSubmit={save} className="mt-8 space-y-4 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-6">
       <p className="text-xs uppercase tracking-[0.2em] text-[var(--gold)]">Commercial invoice</p>
       <p className="-mt-2 text-xs text-[var(--muted)]">International only — unique item details for customs ({currency}).</p>
+      <Link href={`/book/invoice/${shipmentId}`}
+        className="inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+        Open digital invoice document
+      </Link>
       <label className="block text-sm text-[var(--muted)]">
         Export reason
         <select className={FIELD} value={exportReason} onChange={(e) => setExportReason(e.target.value)}>

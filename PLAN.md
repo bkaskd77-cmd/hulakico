@@ -68,6 +68,10 @@ Carrier-grade party + address model: structured shipper/consignee, address book,
 Places provider seam + international commercial invoice editor are in.  
 **Deferred:** Step 5 — customs-grade digital invoice UX + printable HTML + doc QC cue (resume after Phase 5 hub basics).
 
+### Places suggest quality (locked)
+
+Address intelligence must only suggest places that match the **selected country** and, when the user has entered a **city**, that city/location too. Wrong-country or wrong-city hits are bugs, not “best effort.” Stub catalog is a seed; live `PLACES_PROVIDER=nominatim` expands coverage. Product-list/Google-grade completeness is later.
+
 ### Customs invoice target (from carrier-grade reference)
 
 Line-item screen should support what customs typically expects — not a bare description box:

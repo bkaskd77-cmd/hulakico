@@ -26,6 +26,9 @@ class FallbackPlacesProvider:
     def suggest(self, query: str, country_hint: str | None = None) -> list[dict]:
         try:
             places = self._primary.suggest(query, country_hint)
+            hint = (country_hint or "").strip().upper()
+            if hint:
+                places = [p for p in places if (p.get("country") or "").upper() == hint]
             if places:
                 return places
         except Exception as exc:

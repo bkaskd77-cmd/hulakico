@@ -3,6 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
 
+function sameCity(placeCity: string, hint: string): boolean {
+  const a = placeCity.trim().toLowerCase();
+  const b = hint.trim().toLowerCase();
+  if (!a || !b) return true;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+/** Country + city scoped place typeahead for booking addresses. */
 export function PlaceSuggestControls({
   value,
   onChange,
@@ -10,6 +18,7 @@ export function PlaceSuggestControls({
   field,
   lane,
   countryHint,
+  cityHint,
   onPick,
 }: {
   value: string;
@@ -18,6 +27,7 @@ export function PlaceSuggestControls({
   field: string;
   lane: string;
   countryHint: string;
+  cityHint: string;
   onPick: (place: PlaceSuggestion) => void;
 }) {
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
@@ -36,19 +46,28 @@ export function PlaceSuggestControls({
     setPending(true);
     const timer = window.setTimeout(async () => {
       try {
+        const country =
+          lane === "DOMESTIC" ? "NP" : countryHint.trim().toUpperCase();
+        const city = cityHint.trim();
+        // Include city in the search text so live providers bias to that location.
+        const query = city ? `${q}, ${city}` : q;
         const response = await fetch("/api/addresses/suggest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            query: q,
-            countryHint: lane === "DOMESTIC" ? "NP" : countryHint,
+            query,
+            countryHint: country || undefined,
+            cityHint: city || undefined,
           }),
         });
         const data = await response.json();
         if (ticket !== seq.current) return;
         let list = (data.places ?? []) as PlaceSuggestion[];
-        if (lane === "DOMESTIC") {
-          list = list.filter((place) => place.country === "NP");
+        if (country) {
+          list = list.filter((place) => place.country === country);
+        }
+        if (city) {
+          list = list.filter((place) => sameCity(place.city, city));
         }
         setPlaces(list);
         setOpen(list.length > 0);
@@ -60,7 +79,7 @@ export function PlaceSuggestControls({
       }
     }, 280);
     return () => window.clearTimeout(timer);
-  }, [value, lane, countryHint]);
+  }, [value, lane, countryHint, cityHint]);
 
   function choose(place: PlaceSuggestion) {
     onPick(place);
