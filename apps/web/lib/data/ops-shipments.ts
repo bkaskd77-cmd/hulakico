@@ -7,6 +7,7 @@ export type OpsShipmentRow = {
   originCity: string;
   destinationCity: string;
   hulakicoAwb: string | null;
+  externalAwb: string | null;
   customerEmail: string;
   customerName: string;
   updatedAt: string;
@@ -19,7 +20,7 @@ export function listOpsShipments(): OpsShipmentRow[] {
     const rows = db
       .prepare(
         `SELECT s.id, s.status, s.lane, s.origin_city, s.destination_city,
-                s.hulakico_awb, s.updated_at, u.email, u.name,
+                s.hulakico_awb, s.external_awb, s.updated_at, u.email, u.name,
                 (
                   SELECT e.id FROM exception_cases e
                   WHERE e.shipment_id = s.id AND e.status = 'OPEN'
@@ -37,6 +38,7 @@ export function listOpsShipments(): OpsShipmentRow[] {
       origin_city: string;
       destination_city: string;
       hulakico_awb: string | null;
+      external_awb: string | null;
       updated_at: string;
       email: string;
       name: string;
@@ -50,6 +52,7 @@ export function listOpsShipments(): OpsShipmentRow[] {
       originCity: row.origin_city,
       destinationCity: row.destination_city,
       hulakicoAwb: row.hulakico_awb,
+      externalAwb: row.external_awb,
       customerEmail: row.email,
       customerName: row.name,
       updatedAt: row.updated_at,

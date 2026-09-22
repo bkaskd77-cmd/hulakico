@@ -25,6 +25,19 @@ export function emptyInvoiceLine(): LineDraft {
   };
 }
 
+/** True when any customs-required line field is blank or invalid. */
+export function invoiceLineIncomplete(line: LineDraft): boolean {
+  return (
+    !line.description.trim() ||
+    line.hsCode.trim().length < 4 ||
+    !line.countryOfOrigin.trim() ||
+    !line.quantity.trim() ||
+    !line.unitValue.trim() ||
+    !line.weightKg.trim() ||
+    Number(line.weightKg) <= 0
+  );
+}
+
 const LINK =
   "text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline";
 
@@ -62,12 +75,12 @@ export function InvoiceLineFields({
       </label>
       <label className="text-sm text-[var(--muted)]">
         Commodity / HS code
-        <input className={field} value={line.hsCode}
+        <input className={field} value={line.hsCode} required minLength={4} maxLength={20}
           onChange={(e) => onChange({ hsCode: e.target.value })} />
       </label>
       <label className="text-sm text-[var(--muted)]">
         Where was it made?
-        <select className={field} value={line.countryOfOrigin}
+        <select className={field} value={line.countryOfOrigin} required
           onChange={(e) => onChange({ countryOfOrigin: e.target.value })}>
           <option value="">Select country</option>
           {!originKnown && line.countryOfOrigin ? (
@@ -85,7 +98,7 @@ export function InvoiceLineFields({
       </label>
       <label className="text-sm text-[var(--muted)]">
         Units
-        <select className={field} value={line.unit}
+        <select className={field} value={line.unit} required
           onChange={(e) => onChange({ unit: e.target.value as LineDraft["unit"] })}>
           {invoiceLineUnits.map((unit) => (
             <option key={unit} value={unit}>{unit}</option>
@@ -99,7 +112,7 @@ export function InvoiceLineFields({
       </label>
       <label className="text-sm text-[var(--muted)]">
         Weight (per item, kg)
-        <input className={field} type="number" min="0.001" step="0.001"
+        <input className={field} type="number" min="0.001" step="0.001" required
           value={line.weightKg} onChange={(e) => onChange({ weightKg: e.target.value })} />
       </label>
       <div className="sm:col-span-2 flex flex-wrap gap-3 pt-1">

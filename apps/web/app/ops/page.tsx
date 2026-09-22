@@ -1,17 +1,25 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AttachPartnerAwbForm } from "@/app/ops/AttachPartnerAwbForm";
 import { OpenExceptionForm } from "@/app/ops/OpenExceptionForm";
+import { RefreshTrackingButton } from "@/app/ops/RefreshTrackingButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listOpsShipments } from "@/lib/data/ops-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
 
+const AWB_STATUSES = new Set([
+  "BOOKED",
+  "HANDOVER_PENDING",
+  "IN_TRANSIT",
+  "OUT_FOR_DELIVERY",
+  "EXCEPTION",
+]);
+
 export default async function OpsShipmentsPage() {
   const token = await readSessionToken();
-  if (!token || !getUserBySessionToken(token)) {
-    redirect("/signin");
-  }
+  if (!token || !getUserBySessionToken(token)) redirect("/signin");
 
   let shipments: ReturnType<typeof listOpsShipments> = [];
   let error: string | null = null;
@@ -27,26 +35,16 @@ export default async function OpsShipmentsPage() {
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">
-              Ops control tower
-            </p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Ops control tower</p>
             <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
               Active shipments
             </h1>
           </div>
           <nav className="flex gap-4 text-sm">
-            <Link href="/ops/exceptions" className="text-[var(--gold)] underline">
-              Exceptions
-            </Link>
-            <Link href="/ops/cod" className="text-[var(--gold)] underline">
-              COD
-            </Link>
-            <Link href="/ops/carriers" className="text-[var(--teal)] underline">
-              Carriers
-            </Link>
-            <Link href="/account" className="text-[var(--teal)] underline">
-              Account
-            </Link>
+            <Link href="/ops/exceptions" className="text-[var(--gold)] underline">Exceptions</Link>
+            <Link href="/ops/cod" className="text-[var(--gold)] underline">COD</Link>
+            <Link href="/ops/carriers" className="text-[var(--teal)] underline">Carriers</Link>
+            <Link href="/account" className="text-[var(--teal)] underline">Account</Link>
           </nav>
         </div>
 
@@ -64,9 +62,8 @@ export default async function OpsShipmentsPage() {
                     {shipment.originCity} → {shipment.destinationCity}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {shipment.status} · {shipment.lane} ·{" "}
-                    {shipment.hulakicoAwb ?? "No AWB"} · {shipment.customerName} (
-                    {shipment.customerEmail})
+                    {shipment.status} · {shipment.lane} · HK {shipment.hulakicoAwb ?? "—"} · Partner{" "}
+                    {shipment.externalAwb ?? "—"} · {shipment.customerName}
                   </p>
                 </div>
                 {shipment.openExceptionId ? (
@@ -77,6 +74,17 @@ export default async function OpsShipmentsPage() {
                   <OpenExceptionForm shipmentId={shipment.id} />
                 ) : null}
               </div>
+              {AWB_STATUSES.has(shipment.status) ? (
+                <>
+                  <AttachPartnerAwbForm
+                    shipmentId={shipment.id}
+                    currentAwb={shipment.externalAwb}
+                  />
+                  {shipment.externalAwb ? (
+                    <RefreshTrackingButton shipmentId={shipment.id} />
+                  ) : null}
+                </>
+              ) : null}
             </li>
           ))}
         </ul>

@@ -22,9 +22,9 @@ export const commercialInvoiceLineSchema = z.object({
   quantity: z.number().positive().max(100_000),
   unit: z.enum(invoiceLineUnits).default("PCS"),
   unitValue: z.number().nonnegative().max(10_000_000),
-  weightKg: z.number().positive().max(1_000).optional(),
-  hsCode: z.string().trim().max(20).optional(),
-  countryOfOrigin: z.string().trim().min(2).max(2).optional(),
+  weightKg: z.number().positive().max(1_000),
+  hsCode: z.string().trim().min(4).max(20),
+  countryOfOrigin: z.string().trim().length(2),
 });
 
 export const commercialInvoiceSchema = z.object({

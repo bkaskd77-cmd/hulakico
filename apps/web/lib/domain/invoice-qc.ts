@@ -37,8 +37,8 @@ export function mergeInvoiceIntoDocQc(
     }
     if (invoice.lines.some((line) => line.weightKg == null || line.weightKg <= 0)) {
       warnings.push({
-        code: "INVOICE_WEIGHT_GAP",
-        message: "Add weight (kg) on each invoice line so totals match the parcel.",
+        code: "INVOICE_WEIGHT_MISSING",
+        message: "Every invoice line needs weight per item (kg) before booking.",
       });
     }
   }

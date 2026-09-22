@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 5 Step 2 complete (awaiting approval). Next: Step 3.
+**Status:** Phase 6 live third-party carriers in progress (Steps 1–4). Phase 5 hub polish may continue in parallel.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -71,6 +71,14 @@ Places provider seam + international commercial invoice editor are in.
 ### Places suggest quality (locked)
 
 Address intelligence must only suggest places that match the **selected country** and, when the user has entered a **city**, that city/location too. Wrong-country or wrong-city hits are bugs, not “best effort.” Stub catalog is a seed; live `PLACES_PROVIDER=nominatim` expands coverage. Product-list/Google-grade completeness is later.
+
+### Mobile UX (locked)
+
+Core flows (book, account, track) use narrow `max-w-*` shells and should remain usable on phones. **Documents** (digital invoice) must not rely on wide tables alone: stack line items on small screens; keep a full table for desktop and print. Long IDs wrap (`break-all`). Broader mobile QA pass is ongoing.
+
+### Required fields (locked)
+
+Customs invoice lines require description, HS code, country of manufacture, qty, unit, unit value, and **weight per item (kg)** before save. Incomplete invoices are Doc QC **BLOCKER**s and must not advance to booking. The same rule applies system-wide: required fields gate the next step (UI + schema + QC).
 
 ### Customs invoice target (from carrier-grade reference)
 
@@ -162,3 +170,30 @@ Next request when ready: **execute Step 2** (Copy / rebook).
 
 Human: book an **international** draft → open `/book/draft/[id]` → fill commercial invoice lines → Save invoice.  
 Phase 4 Step 5 deferred; Phase 5 customer hub started.
+
+---
+
+## Phase 6 — Live third-party carriers
+
+**Goal:** Replace stub freight with real partner AWB + tracking sync while customers still track on Hulakico.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Ops attach/edit `external_awb` on booked shipments | **DONE** |
+| 2 | `syncTrackingFromCarrier` + status mapper + ops refresh | **DONE** |
+| 3 | `DhlAdapter` behind `DHL_API_KEY` (sandbox/live) | **DONE** |
+| 4 | FedEx + domestic adapters + `POST /api/webhooks/carrier` | **DONE** |
+
+**Ops:** `/ops` → Attach/Update partner AWB → Refresh partner tracking.  
+**Webhook:** `POST /api/webhooks/carrier` with `{ externalAwb, events }` (+ `CARRIER_WEBHOOK_SECRET` when set).
+
+### Hybrid tracking (starting phase — no partner API required)
+
+**Principle:** Hulakico AWB is the primary handle for booking, account, invoice, support, and the Hulakico timeline. Partner AWB is secondary: pasted once, then used for live partner movement.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| A | Public `/track` shows Hulakico AWB first + partner AWB deep link | **DONE** |
+| B | Ops 1-click Hulakico status / timeline presets (milestones only) | NEXT |
+
+Customers track partner hops via the partner link; Ops updates Hulakico only for our milestones until live API/webhook sync exists.

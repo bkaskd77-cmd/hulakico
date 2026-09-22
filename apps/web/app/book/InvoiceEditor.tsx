@@ -11,6 +11,7 @@ import {
 } from "@/lib/domain/invoice";
 import {
   emptyInvoiceLine,
+  invoiceLineIncomplete,
   InvoiceLineFields,
   type LineDraft,
 } from "./InvoiceLineFields";
@@ -63,8 +64,12 @@ export function InvoiceEditor({
 
   async function save(event: FormEvent) {
     event.preventDefault();
-    setPending(true);
     setMessage(null);
+    if (lines.some(invoiceLineIncomplete)) {
+      setMessage("Every item needs description, HS code, origin, qty, value, and weight (kg).");
+      return;
+    }
+    setPending(true);
     try {
       const response = await fetch(`/api/bookings/${shipmentId}/invoice`, {
         method: "POST",
@@ -78,9 +83,9 @@ export function InvoiceEditor({
             quantity: Number(line.quantity),
             unit: line.unit,
             unitValue: Number(line.unitValue),
-            weightKg: line.weightKg.trim() ? Number(line.weightKg) : undefined,
-            hsCode: line.hsCode.trim() || undefined,
-            countryOfOrigin: line.countryOfOrigin.trim() || undefined,
+            weightKg: Number(line.weightKg),
+            hsCode: line.hsCode.trim(),
+            countryOfOrigin: line.countryOfOrigin.trim().toUpperCase(),
           })),
         }),
       });
@@ -101,9 +106,8 @@ export function InvoiceEditor({
   return (
     <form onSubmit={save} className="mt-8 space-y-4 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-6">
       <p className="text-xs uppercase tracking-[0.2em] text-[var(--gold)]">Commercial invoice</p>
-      <p className="-mt-2 text-xs text-[var(--muted)]">International only — unique item details for customs ({currency}).</p>
-      <Link href={`/book/invoice/${shipmentId}`}
-        className="inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+      <p className="-mt-2 text-xs text-[var(--muted)]">International — all item fields required ({currency}).</p>
+      <Link href={`/book/invoice/${shipmentId}`} className="inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
         Open digital invoice document
       </Link>
       <label className="block text-sm text-[var(--muted)]">
@@ -115,12 +119,7 @@ export function InvoiceEditor({
         </select>
       </label>
       {lines.map((line, index) => (
-        <InvoiceLineFields
-          key={index}
-          line={line}
-          index={index}
-          currency={currency}
-          field={FIELD}
+        <InvoiceLineFields key={index} line={line} index={index} currency={currency} field={FIELD}
           onChange={(patch) => updateLine(index, patch)}
           onCopy={() => setLines((prev) => [...prev, { ...prev[index] }])}
           onRemove={() => setLines((prev) => prev.filter((_, i) => i !== index))}

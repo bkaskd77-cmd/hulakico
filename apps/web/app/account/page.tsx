@@ -98,6 +98,12 @@ export default async function AccountPage({
                       {row.lane}{row.hulakicoAwb ? ` · ${row.hulakicoAwb}` : ""} · {new Date(row.updatedAt).toLocaleString()}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-3">
+                      <Link
+                        href={`/account/shipments/${row.id}`}
+                        className="text-xs font-semibold text-[var(--off-white)] underline"
+                      >
+                        Open shipment
+                      </Link>
                       <Link href={shipmentHref(row)} className="text-xs text-[var(--gold)] underline">
                         {row.status === "DRAFT" || row.status === "QUOTED" ? "Open draft" : "Track"}
                       </Link>
