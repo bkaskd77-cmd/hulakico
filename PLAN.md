@@ -87,6 +87,15 @@ Line-item screen should support what customs typically expects — not a bare de
 
 **Step 5 scope (when resumed):** expand line schema (unit select, weightKg), live totals bar, copy-line, country-of-origin UX, printable invoice HTML, doc QC cue. Product-list save/lookup and HS lookup can follow after.
 
+### Phase 4 Step 5 micro-steps
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 5a | Line unit enum + `weightKg` domain/DB/data | **DONE** |
+| 5b | InvoiceEditor: unit, weight, totals bar, copy line | **DONE** (awaiting approval) |
+| 5c | Printable commercial invoice HTML | Pending |
+| 5d | Doc QC cue tied to invoice completeness | Pending |
+
 ---
 
 ## Phase 5 — Active

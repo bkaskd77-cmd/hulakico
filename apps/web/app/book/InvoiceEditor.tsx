@@ -1,26 +1,36 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { invoiceExportReasons, type CommercialInvoice } from "@/lib/domain/invoice";
+import {
+  invoiceExportReasons,
+  invoiceTotal,
+  invoiceTotalUnits,
+  invoiceTotalWeightKg,
+  type CommercialInvoice,
+} from "@/lib/domain/invoice";
+import {
+  emptyInvoiceLine,
+  InvoiceLineFields,
+  type LineDraft,
+} from "./InvoiceLineFields";
 
 const FIELD =
   "mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-sm text-[var(--off-white)] outline-none focus:border-[var(--teal)]";
 
-type LineDraft = {
-  description: string;
-  quantity: string;
-  unitValue: string;
-  hsCode: string;
-  countryOfOrigin: string;
-};
-
-const emptyLine = (): LineDraft => ({
-  description: "",
-  quantity: "1",
-  unitValue: "",
-  hsCode: "",
-  countryOfOrigin: "",
-});
+function toDraft(initial: CommercialInvoice | null): LineDraft[] {
+  if (!initial?.lines.length) return [emptyInvoiceLine()];
+  return initial.lines.map((line) => ({
+    description: line.description,
+    quantity: String(line.quantity),
+    unit: (["PCS", "BOX", "KG", "SET", "PAIR"].includes(line.unit)
+      ? line.unit
+      : "PCS") as LineDraft["unit"],
+    unitValue: String(line.unitValue),
+    weightKg: line.weightKg != null ? String(line.weightKg) : "",
+    hsCode: line.hsCode ?? "",
+    countryOfOrigin: line.countryOfOrigin ?? "",
+  }));
+}
 
 export function InvoiceEditor({
   shipmentId,
@@ -33,19 +43,18 @@ export function InvoiceEditor({
 }) {
   const [exportReason, setExportReason] = useState(initial?.exportReason ?? "SALE");
   const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [lines, setLines] = useState<LineDraft[]>(
-    initial?.lines.length
-      ? initial.lines.map((line) => ({
-          description: line.description,
-          quantity: String(line.quantity),
-          unitValue: String(line.unitValue),
-          hsCode: line.hsCode ?? "",
-          countryOfOrigin: line.countryOfOrigin ?? "",
-        }))
-      : [emptyLine()],
-  );
+  const [lines, setLines] = useState<LineDraft[]>(() => toDraft(initial));
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const numeric = lines.map((line) => ({
+    quantity: Number(line.quantity) || 0,
+    unitValue: Number(line.unitValue) || 0,
+    weightKg: line.weightKg.trim() ? Number(line.weightKg) : null,
+  }));
+  const totalUnits = invoiceTotalUnits(numeric);
+  const totalWeight = invoiceTotalWeightKg(numeric);
+  const totalValue = invoiceTotal(numeric);
 
   function updateLine(index: number, patch: Partial<LineDraft>) {
     setLines((prev) => prev.map((line, i) => (i === index ? { ...line, ...patch } : line)));
@@ -66,8 +75,9 @@ export function InvoiceEditor({
           lines: lines.map((line) => ({
             description: line.description,
             quantity: Number(line.quantity),
-            unit: "PCS",
+            unit: line.unit,
             unitValue: Number(line.unitValue),
+            weightKg: line.weightKg.trim() ? Number(line.weightKg) : undefined,
             hsCode: line.hsCode.trim() || undefined,
             countryOfOrigin: line.countryOfOrigin.trim() || undefined,
           })),
@@ -90,7 +100,7 @@ export function InvoiceEditor({
   return (
     <form onSubmit={save} className="mt-8 space-y-4 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-6">
       <p className="text-xs uppercase tracking-[0.2em] text-[var(--gold)]">Commercial invoice</p>
-      <p className="-mt-2 text-xs text-[var(--muted)]">International only — goods for customs ({currency}).</p>
+      <p className="-mt-2 text-xs text-[var(--muted)]">International only — unique item details for customs ({currency}).</p>
       <label className="block text-sm text-[var(--muted)]">
         Export reason
         <select className={FIELD} value={exportReason} onChange={(e) => setExportReason(e.target.value)}>
@@ -100,50 +110,35 @@ export function InvoiceEditor({
         </select>
       </label>
       {lines.map((line, index) => (
-        <div key={index} className="grid gap-2 rounded-md border border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] p-3 sm:grid-cols-2">
-          <label className="sm:col-span-2 text-sm text-[var(--muted)]">
-            Description
-            <input className={FIELD} value={line.description} required minLength={2}
-              onChange={(e) => updateLine(index, { description: e.target.value })} />
-          </label>
-          <label className="text-sm text-[var(--muted)]">
-            Qty
-            <input className={FIELD} type="number" min="0.01" step="0.01" required value={line.quantity}
-              onChange={(e) => updateLine(index, { quantity: e.target.value })} />
-          </label>
-          <label className="text-sm text-[var(--muted)]">
-            Unit value ({currency})
-            <input className={FIELD} type="number" min="0" step="0.01" required value={line.unitValue}
-              onChange={(e) => updateLine(index, { unitValue: e.target.value })} />
-          </label>
-          <label className="text-sm text-[var(--muted)]">
-            HS code
-            <input className={FIELD} value={line.hsCode}
-              onChange={(e) => updateLine(index, { hsCode: e.target.value })} />
-          </label>
-          <label className="text-sm text-[var(--muted)]">
-            Origin (ISO)
-            <input className={FIELD} value={line.countryOfOrigin} maxLength={2} placeholder="NP"
-              onChange={(e) => updateLine(index, { countryOfOrigin: e.target.value.toUpperCase() })} />
-          </label>
-        </div>
+        <InvoiceLineFields
+          key={index}
+          line={line}
+          index={index}
+          currency={currency}
+          field={FIELD}
+          onChange={(patch) => updateLine(index, patch)}
+          onCopy={() => setLines((prev) => [...prev, { ...prev[index] }])}
+          onRemove={() => setLines((prev) => prev.filter((_, i) => i !== index))}
+          canRemove={lines.length > 1}
+        />
       ))}
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => setLines((prev) => [...prev, emptyLine()])}
-          className="rounded-md border border-[var(--teal)] px-3 py-1.5 text-xs text-[var(--teal)]">Add line</button>
-        {lines.length > 1 ? (
-          <button type="button" onClick={() => setLines((prev) => prev.slice(0, -1))}
-            className="rounded-md border border-[var(--muted)] px-3 py-1.5 text-xs text-[var(--muted)]">Remove last</button>
-        ) : null}
-        <button type="submit" disabled={pending}
-          className="rounded-md bg-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--navy)] disabled:opacity-60">
-          {pending ? "Saving…" : "Save invoice"}
+      <div className="flex flex-wrap items-center gap-3 rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-3 py-2 text-xs text-[var(--muted)]">
+        <span>Total units {totalUnits}</span>
+        <span>Total weight {totalWeight.toFixed(3)} kg</span>
+        <span className="text-[var(--gold)]">Total value {currency} {totalValue.toFixed(2)}</span>
+        <button type="button" onClick={() => setLines((prev) => [...prev, emptyInvoiceLine()])}
+          className="ml-auto rounded-md bg-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--navy)]">
+          Add another item
         </button>
       </div>
       <label className="block text-sm text-[var(--muted)]">
         Notes
         <input className={FIELD} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </label>
+      <button type="submit" disabled={pending}
+        className="rounded-md bg-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--navy)] disabled:opacity-60">
+        {pending ? "Saving…" : "Save invoice"}
+      </button>
       {message ? <p className="text-xs text-[var(--teal)]">{message}</p> : null}
     </form>
   );
