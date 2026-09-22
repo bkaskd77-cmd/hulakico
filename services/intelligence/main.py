@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 from doc_qc import run_document_qc
 from eta_risk import assess_eta_risk
-from address_suggest import suggest_places
+from places_provider import get_places_provider
 from ranker import rank_quote_options
 
 load_dotenv()
@@ -86,17 +86,14 @@ def health() -> JSONResponse:
         print(f"[main.py:health] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"status": "error"}, status_code=500)
 
-
 @app.post("/v1/rank-quotes")
 def rank_quotes(
-    body: RankRequest,
-    authorization: str | None = Header(default=None),
+    body: RankRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
         _require_service_token(authorization)
         ranked = rank_quote_options(
-            [option.model_dump() for option in body.options],
-            wants_cod=body.wantsCod,
+            [option.model_dump() for option in body.options], wants_cod=body.wantsCod,
         )
         return JSONResponse(content={"options": ranked})
     except HTTPException:
@@ -105,11 +102,9 @@ def rank_quotes(
         print(f"[main.py:rank_quotes] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "Ranking failed."}, status_code=500)
 
-
 @app.post("/v1/eta-risk")
 def eta_risk(
-    body: EtaRiskRequest,
-    authorization: str | None = Header(default=None),
+    body: EtaRiskRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
         _require_service_token(authorization)
@@ -120,11 +115,9 @@ def eta_risk(
         print(f"[main.py:eta_risk] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "ETA risk failed."}, status_code=500)
 
-
 @app.post("/v1/document-qc")
 def document_qc(
-    body: DocQcRequest,
-    authorization: str | None = Header(default=None),
+    body: DocQcRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
         _require_service_token(authorization)
@@ -135,16 +128,19 @@ def document_qc(
         print(f"[main.py:document_qc] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "Document QC failed."}, status_code=500)
 
-
 @app.post("/v1/suggest-places")
 def suggest_places_route(
-    body: PlaceSuggestRequest,
-    authorization: str | None = Header(default=None),
+    body: PlaceSuggestRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
         _require_service_token(authorization)
-        places = suggest_places(body.query, body.countryHint)
-        return JSONResponse(content={"places": places})
+        provider = get_places_provider()
+        return JSONResponse(
+            content={
+                "places": provider.suggest(body.query, body.countryHint),
+                "provider": getattr(provider, "name", "stub"),
+            }
+        )
     except HTTPException:
         raise
     except Exception as exc:

@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 4 Step 0 complete (awaiting approval). Next: Step 1.
+**Status:** Phase 4 Step 1 complete (awaiting approval). Next: Step 2.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -90,8 +90,8 @@ Native mobile, own-fleet apps, full carrier label APIs, payment settlement depth
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 0 | Phase 4 scope + checklist in `PLAN.md` | **DONE** (awaiting approval) |
-| 1 | Places provider interface + stub adapter (kind-aware) behind intelligence | Pending |
+| 0 | Phase 4 scope + checklist in `PLAN.md` | **DONE** |
+| 1 | Places provider interface + stub adapter (kind-aware) behind intelligence | **DONE** (awaiting approval) |
 | 2 | Optional live provider hook via env (fallback to stub if unset) | Pending |
 | 3 | International commercial invoice schema + data helpers | Pending |
 | 4 | Booking UI: invoice line items for international only | Pending |
@@ -106,6 +106,13 @@ Native mobile, own-fleet apps, full carrier label APIs, payment settlement depth
 - International drafts can carry a structured commercial invoice.
 - Domestic booking unchanged (no invoice required).
 - Every step approved before the next began.
+
+---
+
+## After Phase 4 Step 1
+
+Human: restart intelligence → `/book` type `Hyatt Regency Kathmandu` → should NOT list unrelated Kathmandu hotels; type `Soaltee` or `lakeside` → matches → approve.  
+Next request when ready: **execute Step 2**.
 
 ---
 

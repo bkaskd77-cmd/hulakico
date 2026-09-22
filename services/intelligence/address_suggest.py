@@ -1,15 +1,14 @@
-"""Stub place/address suggestions — swap for Places/geocoder later.
-
-Each place carries kind:
-  BUSINESS — hotel/company/org; may fill empty Company field
-  ADDRESS  — street/area only; never treated as a company name
-Phase 4 Places APIs map types (lodging, establishment vs street_address) into kind.
-"""
+"""Stub Places catalog + adapter (kind-aware). Live provider comes in Step 2."""
 
 from __future__ import annotations
 
+GEO_WORDS = {
+    "kathmandu", "pokhara", "birgunj", "biratnagar", "nepal", "delhi", "india",
+    "oslo", "norway", "province", "bagmati", "road", "marg", "street", "hotel",
+    "the", "and",
+}
 
-CATALOG = [
+STUB_CATALOG: list[dict] = [
     {
         "label": "The Soaltee Kathmandu — P72R+6CR, Tahachal Marg, Kathmandu, Bagmati Province 44600, Nepal",
         "kind": "BUSINESS",
@@ -84,7 +83,6 @@ CATALOG = [
 
 
 def normalize_place(place: dict) -> dict:
-    """Ensure kind is set; never invent a company from the display label."""
     kind = (place.get("kind") or "").strip().upper()
     company = (place.get("company") or "").strip()
     if kind not in {"BUSINESS", "ADDRESS"}:
@@ -96,32 +94,51 @@ def normalize_place(place: dict) -> dict:
     }
 
 
-def suggest_places(query: str, country_hint: str | None = None) -> list[dict]:
-    try:
-        q = (query or "").strip().lower()
-        if len(q) < 2:
+def query_matches(query: str, place: dict) -> bool:
+    q = query.strip().lower()
+    if len(q) < 2:
+        return False
+    hay = " ".join(
+        [
+            place.get("label") or "",
+            place.get("company") or "",
+            place.get("line1") or "",
+            place.get("city") or "",
+        ]
+    ).lower()
+    if q in hay:
+        return True
+    parts = [part for part in q.split() if len(part) > 2]
+    if not parts:
+        return False
+    distinctive = [part for part in parts if part not in GEO_WORDS]
+    if distinctive:
+        return any(part in hay for part in distinctive)
+    return any(part in hay for part in parts)
+
+
+class StubPlacesProvider:
+    name = "stub"
+
+    def suggest(self, query: str, country_hint: str | None = None) -> list[dict]:
+        try:
+            matches = [
+                normalize_place(place)
+                for place in STUB_CATALOG
+                if query_matches(query, place)
+            ]
+            hint = (country_hint or "").strip().upper()
+            if hint:
+                matches.sort(key=lambda item: 0 if item["country"] == hint else 1)
+            return matches[:6]
+        except Exception as exc:
+            print(f"[address_suggest.py:StubPlacesProvider.suggest] {type(exc).__name__}: {exc}")
             return []
 
-        matches: list[dict] = []
-        for place in CATALOG:
-            hay = " ".join(
-                [
-                    place["label"],
-                    place.get("company") or "",
-                    place["line1"],
-                    place["city"],
-                ]
-            ).lower()
-            if q not in hay and not any(
-                part in hay for part in q.split() if len(part) > 2
-            ):
-                continue
-            matches.append(normalize_place(place))
 
-        hint = (country_hint or "").strip().upper()
-        if hint:
-            matches.sort(key=lambda item: 0 if item["country"] == hint else 1)
-        return matches[:6]
+def suggest_places(query: str, country_hint: str | None = None) -> list[dict]:
+    try:
+        return StubPlacesProvider().suggest(query, country_hint)
     except Exception as exc:
         print(f"[address_suggest.py:suggest_places] {type(exc).__name__}: {exc}")
         return []
