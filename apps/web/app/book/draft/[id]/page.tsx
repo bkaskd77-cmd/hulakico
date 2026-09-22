@@ -11,6 +11,7 @@ import {
   runDocumentQc,
 } from "@/lib/data/intelligence-client";
 import { getInvoiceForShipment } from "@/lib/data/invoices";
+import { mergeInvoiceIntoDocQc } from "@/lib/domain/invoice-qc";
 import { getLatestQuoteOptions } from "@/lib/data/quote-query";
 import { getDraftShipmentForUser } from "@/lib/data/shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
@@ -41,6 +42,8 @@ export default async function DraftSavedPage({
   let etaRisk: Awaited<ReturnType<typeof assessEtaRisk>> | null = null;
   let docQc: Awaited<ReturnType<typeof runDocumentQc>> | null = null;
   let insightError: string | null = null;
+  const invoice =
+    shipment.lane === "INTERNATIONAL" ? getInvoiceForShipment(shipment.id) : null;
 
   if (baseQuotes.length > 0) {
     try {
@@ -60,25 +63,28 @@ export default async function DraftSavedPage({
       destinationCity: shipment.destination_city,
       serviceClass: shipment.service_class,
     });
-    docQc = await runDocumentQc({
-      lane: shipment.lane,
-      packageType: shipment.package_type,
-      contents: shipment.contents,
-      declaredValue: shipment.declared_value,
-      currency: shipment.currency,
-      originAddress: shipment.origin_address,
-      destinationAddress: shipment.destination_address,
-      originCountry: shipment.origin_country,
-      destinationCountry: shipment.destination_country,
-    });
+    docQc = mergeInvoiceIntoDocQc(
+      await runDocumentQc({
+        lane: shipment.lane,
+        packageType: shipment.package_type,
+        contents: shipment.contents,
+        declaredValue: shipment.declared_value,
+        currency: shipment.currency,
+        originAddress: shipment.origin_address,
+        destinationAddress: shipment.destination_address,
+        originCountry: shipment.origin_country,
+        destinationCountry: shipment.destination_country,
+      }),
+      invoice,
+      shipment.lane,
+    );
   } catch (error) {
     console.error("[draft/page insights]", error instanceof Error ? error.message : error);
     insightError = "ETA/document intelligence offline.";
   }
 
   const canBook =
-    (shipment.status === "QUOTED" || shipment.status === "DRAFT") &&
-    docQc?.severity !== "BLOCKER";
+    (shipment.status === "QUOTED" || shipment.status === "DRAFT") && docQc?.severity !== "BLOCKER";
 
   return (
     <div className="shell-sky flex min-h-dvh items-center justify-center px-6 py-16">
@@ -94,10 +100,17 @@ export default async function DraftSavedPage({
           <InvoiceEditor
             shipmentId={shipment.id}
             currency={shipment.currency}
-            initial={getInvoiceForShipment(shipment.id)}
+            initial={invoice}
           />
         ) : null}
-        <DraftInsights etaRisk={etaRisk} docQc={docQc} insightError={insightError} />
+        <DraftInsights
+          etaRisk={etaRisk}
+          docQc={docQc}
+          insightError={insightError}
+          digitalInvoiceHref={
+            shipment.lane === "INTERNATIONAL" ? `/book/invoice/${shipment.id}` : null
+          }
+        />
         {rankError ? <p className="mt-4 text-sm text-[var(--gold)]">{rankError}</p> : null}
         {quotes.length > 0 ? (
           <ul className="mt-6 space-y-3">

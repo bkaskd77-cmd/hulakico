@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type EtaRisk = {
   level: string;
   score: number;
@@ -13,11 +15,16 @@ export function DraftInsights({
   etaRisk,
   docQc,
   insightError,
+  digitalInvoiceHref,
 }: {
   etaRisk: EtaRisk | null;
   docQc: DocQc | null;
   insightError: string | null;
+  digitalInvoiceHref?: string | null;
 }) {
+  const invoiceGaps =
+    docQc?.warnings.some((item) => item.code.startsWith("INVOICE_")) ?? false;
+
   return (
     <>
       {insightError ? (
@@ -55,6 +62,14 @@ export function DraftInsights({
             <p className="mt-2 text-xs text-[var(--danger)]">
               Fix blockers before booking.
             </p>
+          ) : null}
+          {invoiceGaps && digitalInvoiceHref ? (
+            <Link
+              href={digitalInvoiceHref}
+              className="mt-2 inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline"
+            >
+              Open digital invoice document
+            </Link>
           ) : null}
         </div>
       ) : null}
