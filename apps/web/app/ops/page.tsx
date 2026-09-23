@@ -2,18 +2,18 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AttachPartnerAwbForm } from "@/app/ops/AttachPartnerAwbForm";
 import { OpenExceptionForm } from "@/app/ops/OpenExceptionForm";
-import { RefreshTrackingButton } from "@/app/ops/RefreshTrackingButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listOpsShipments } from "@/lib/data/ops-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
 
-const AWB_STATUSES = new Set([
+const OPS_TRACK_STATUSES = new Set([
   "BOOKED",
   "HANDOVER_PENDING",
   "IN_TRANSIT",
   "OUT_FOR_DELIVERY",
+  "DELIVERED",
   "EXCEPTION",
 ]);
 
@@ -74,16 +74,12 @@ export default async function OpsShipmentsPage() {
                   <OpenExceptionForm shipmentId={shipment.id} />
                 ) : null}
               </div>
-              {AWB_STATUSES.has(shipment.status) ? (
-                <>
-                  <AttachPartnerAwbForm
-                    shipmentId={shipment.id}
-                    currentAwb={shipment.externalAwb}
-                  />
-                  {shipment.externalAwb ? (
-                    <RefreshTrackingButton shipmentId={shipment.id} />
-                  ) : null}
-                </>
+              {OPS_TRACK_STATUSES.has(shipment.status) ? (
+                <AttachPartnerAwbForm
+                  shipmentId={shipment.id}
+                  currentAwb={shipment.externalAwb}
+                  currentStatus={shipment.status}
+                />
               ) : null}
             </li>
           ))}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getMyShipmentSummary } from "@/lib/data/shipment-summary";
+import { partnerTrackUrl } from "@/lib/domain/partner-track-url";
 import { readSessionToken } from "@/lib/http/session-cookie";
 import { countryName } from "@/app/book/countries";
 
@@ -24,6 +25,7 @@ export default async function OpenShipmentPage({
   const trackHref = s.trackingToken ? `/track/${s.trackingToken}` : null;
   const draftHref =
     s.status === "DRAFT" || s.status === "QUOTED" ? `/book/draft/${s.id}` : null;
+  const partnerUrl = partnerTrackUrl(s.carrierName, s.externalAwb);
 
   return (
     <div className="shell-sky min-h-dvh px-6 py-16 sm:px-10">
@@ -34,10 +36,31 @@ export default async function OpenShipmentPage({
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
           {s.status} · {s.lane}
-          {s.hulakicoAwb ? ` · ${s.hulakicoAwb}` : ""}
+          {s.carrierName ? ` · ${s.carrierName}` : ""}
         </p>
 
         <dl className="mt-6 space-y-3 text-sm text-[var(--muted)]">
+          <div>
+            <dt className="text-xs uppercase tracking-wide">Hulakico AWB</dt>
+            <dd className="break-all text-[var(--off-white)]">{s.hulakicoAwb ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide">Partner AWB</dt>
+            <dd className="mt-1 text-[var(--off-white)]">
+              {s.externalAwb ? (
+                partnerUrl ? (
+                  <a href={partnerUrl} target="_blank" rel="noopener noreferrer"
+                    className="break-all text-[var(--teal)] underline">
+                    {s.externalAwb} — track on partner
+                  </a>
+                ) : (
+                  <span className="break-all">{s.externalAwb}</span>
+                )
+              ) : (
+                <span className="text-[var(--muted)]">Pending after handover</span>
+              )}
+            </dd>
+          </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Shipper</dt>
             <dd className="text-[var(--off-white)]">
@@ -60,10 +83,6 @@ export default async function OpenShipmentPage({
             <dt className="text-xs uppercase tracking-wide">Contents</dt>
             <dd className="text-[var(--off-white)]">{s.contents || "—"}</dd>
           </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Updated</dt>
-            <dd className="text-[var(--off-white)]">{new Date(s.updatedAt).toLocaleString()}</dd>
-          </div>
           {s.lane === "INTERNATIONAL" ? (
             <div>
               <dt className="text-xs uppercase tracking-wide">Digital invoice</dt>
@@ -78,10 +97,8 @@ export default async function OpenShipmentPage({
 
         <div className="mt-8 flex flex-wrap gap-3">
           {s.lane === "INTERNATIONAL" ? (
-            <Link
-              href={`/book/invoice/${s.id}`}
-              className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
-            >
+            <Link href={`/book/invoice/${s.id}`}
+              className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]">
               View digital invoice
             </Link>
           ) : null}
@@ -94,12 +111,12 @@ export default async function OpenShipmentPage({
           {trackHref ? (
             <Link href={trackHref}
               className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm text-[var(--teal)]">
-              Track
+              Track on Hulakico
             </Link>
           ) : null}
-          <Link href="/account"
+          <Link href="/account/shipments"
             className="rounded-md border border-[var(--muted)] px-4 py-2 text-sm text-[var(--off-white)]">
-            Back to account
+            All shipments
           </Link>
         </div>
       </div>

@@ -21,13 +21,13 @@ export function InvoiceDocumentBody({
       <header className="border-b border-neutral-200 pb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">Hulakico digital invoice</p>
         <h1 className="mt-1 text-xl font-bold sm:text-2xl">Commercial Invoice</h1>
-        <p className="mt-2 break-all text-xs text-neutral-600 sm:text-sm">Document {invoice.id}</p>
-        <p className="break-all text-xs text-neutral-600 sm:text-sm">
-          Shipment {s.id}{s.hulakico_awb ? ` · AWB ${s.hulakico_awb}` : ""}
+        <p className="mt-2 text-sm text-neutral-700">
+          Hulakico AWB:{" "}
+          <span className="break-all font-semibold">{s.hulakico_awb ?? "Pending"}</span>
         </p>
         <p className="mt-1 text-xs text-neutral-600 sm:text-sm">
-          Export reason: {invoice.exportReason} · {invoice.currency} · Status {s.status}
-          {isAuthority ? " · Authority / OPS view" : ""}
+          Export reason: {invoice.exportReason} · {invoice.currency} · {s.status.replaceAll("_", " ")}
+          {isAuthority ? " · Ops view" : ""}
         </p>
       </header>
 
@@ -94,8 +94,9 @@ export function InvoiceDocumentBody({
         <p className="font-bold">Total value: {invoice.currency} {invoice.totalValue.toFixed(2)}</p>
       </div>
       {invoice.notes ? <p className="mt-6 text-sm text-neutral-600">Notes: {invoice.notes}</p> : null}
-      <p className="mt-8 break-all text-xs text-neutral-500">
-        Hulakico digital invoice for customs/authority review. Cite document ID {invoice.id}.
+      <p className="mt-8 text-xs text-neutral-500">
+        Hulakico commercial invoice for customs / authority review.
+        {s.hulakico_awb ? ` Reference AWB ${s.hulakico_awb}.` : ""}
       </p>
     </article>
   );

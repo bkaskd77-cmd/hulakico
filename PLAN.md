@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 6 live third-party carriers in progress (Steps 1–4). Phase 5 hub polish may continue in parallel.
+**Status:** Phases 1–6 core complete. Hybrid tracking + customer hub follow-ons as needed.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -63,10 +63,9 @@ Carrier-grade party + address model: structured shipper/consignee, address book,
 
 ---
 
-## Phase 4 — PAUSED (Step 5 pending)
+## Phase 4 — COMPLETE (Step 5 closed)
 
-Places provider seam + international commercial invoice editor are in.  
-**Deferred:** Step 5 — customs-grade digital invoice UX + printable HTML + doc QC cue (resume after Phase 5 hub basics).
+Places provider seam + international commercial invoice editor + printable digital invoice + invoice Doc QC blockers are in.
 
 ### Places suggest quality (locked)
 
@@ -104,9 +103,9 @@ Line-item screen should support what customs typically expects — not a bare de
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 5a | Line unit enum + `weightKg` domain/DB/data | **DONE** |
-| 5b | InvoiceEditor: unit, weight, totals bar, copy line | **DONE** (awaiting approval) |
-| 5c | Printable commercial invoice HTML | Pending |
-| 5d | Doc QC cue tied to invoice completeness | Pending |
+| 5b | InvoiceEditor: unit, weight, totals bar, copy line | **DONE** |
+| 5c | Printable commercial invoice HTML | **DONE** |
+| 5d | Doc QC cue tied to invoice completeness | **DONE** |
 
 ---
 
@@ -140,7 +139,13 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 | 1 | `listMyShipments` + All shipments on account (15/page, pages 1–10, 3‑mo finished retention) | **DONE** |
 | 2 | Copy / rebook → wizard prefilled (`/book?copyFrom=`) | **DONE** |
 | 3 | Dedicated `/account/shipments` page polish + empty states | **DONE** |
-| 4 | Resume Phase 4 Step 5 (customs invoice UX + printable + doc QC) | Pending |
+| 4 | Resume Phase 4 Step 5 (customs invoice UX + printable + doc QC) | **DONE** |
+
+### Phase 5 follow-on (hub + hybrid track)
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 5 | Open shipment shows Hulakico AWB + partner AWB deep link | **DONE** |
 
 ---
 

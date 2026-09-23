@@ -55,8 +55,8 @@ export function openException(
 
     db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
-       VALUES (?, ?, 'EXCEPTION', ?, NULL, ?)`,
-    ).run(newId("evt"), shipmentId, `Exception opened: ${trimmed}`, now);
+       VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
+    ).run(newId("evt"), shipmentId, `On hold: ${trimmed}`, now);
 
     return { id };
   } catch (error) {

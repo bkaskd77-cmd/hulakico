@@ -31,16 +31,23 @@ export default async function PublicTrackPage({
         <h1 className="mt-4 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
           Track shipment
         </h1>
+        <p className="mt-3 text-sm font-semibold text-[var(--gold)]">
+          {tracking.statusNote}
+        </p>
         <dl className="mt-6 grid gap-3 text-sm text-[var(--muted)] sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase tracking-wide">Hulakico AWB</dt>
-            <dd className="break-all text-[var(--off-white)]">
-              {tracking.hulakicoAwb}
-            </dd>
+            <dd className="break-all text-[var(--off-white)]">{tracking.hulakicoAwb}</dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Status</dt>
-            <dd className="text-[var(--off-white)]">{tracking.status}</dd>
+            <dd className="text-[var(--off-white)]">
+              {tracking.status === "HANDOVER_PENDING"
+                ? "Handed over / picked up"
+                : tracking.status === "EXCEPTION"
+                  ? "Hold"
+                  : tracking.status.replaceAll("_", " ")}
+            </dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Route</dt>
@@ -59,38 +66,24 @@ export default async function PublicTrackPage({
             <dd className="mt-1 text-[var(--off-white)]">
               {tracking.externalAwb ? (
                 partnerUrl ? (
-                  <a
-                    href={partnerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="break-all text-[var(--teal)] underline"
-                  >
+                  <a href={partnerUrl} target="_blank" rel="noopener noreferrer"
+                    className="break-all text-[var(--teal)] underline">
                     {tracking.externalAwb} — track on partner
                   </a>
                 ) : (
                   <span className="break-all">{tracking.externalAwb}</span>
                 )
               ) : (
-                <span className="text-[var(--muted)]">
-                  Pending — Ops will attach after handover
-                </span>
+                <span className="text-[var(--muted)]">Pending after handover</span>
               )}
             </dd>
           </div>
         </dl>
-        <p className="mt-4 text-sm text-[var(--muted)]">
-          Hulakico timeline below is your shipment record. For live partner
-          scans after handover, use the partner AWB link.
-        </p>
 
         {tracking.infoRequest ? (
           <div className="mt-8 rounded-md border border-[var(--gold)]/40 bg-[color-mix(in_srgb,var(--gold)_10%,transparent)] p-4">
-            <p className="text-xs uppercase tracking-wide text-[var(--gold)]">
-              Action needed
-            </p>
-            <p className="mt-2 text-sm text-[var(--off-white)]">
-              {tracking.infoRequest.note}
-            </p>
+            <p className="text-xs uppercase tracking-wide text-[var(--gold)]">Action needed</p>
+            <p className="mt-2 text-sm text-[var(--off-white)]">{tracking.infoRequest.note}</p>
             {tracking.infoRequest.customerReply ? (
               <p className="mt-3 text-sm text-[var(--muted)]">
                 Your reply: {tracking.infoRequest.customerReply}
@@ -102,18 +95,38 @@ export default async function PublicTrackPage({
         ) : null}
 
         <ol className="mt-8 space-y-4 border-l border-[var(--teal)] pl-4">
-          {tracking.events.map((event) => (
-            <li key={event.id}>
-              <p className="text-sm font-semibold text-[var(--off-white)]">
-                {event.status}
-              </p>
-              <p className="text-sm text-[var(--muted)]">{event.description}</p>
-              <p className="text-xs text-[var(--muted)]">
-                {event.location ? `${event.location} · ` : ""}
-                {new Date(event.occurredAt).toLocaleString()}
-              </p>
-            </li>
-          ))}
+          <p className="-ml-4 mb-4 text-xs uppercase tracking-wide text-[var(--muted)]">
+            Status history
+          </p>
+          {tracking.events.map((event) => {
+            const atDestination =
+              event.status === "OUT_FOR_DELIVERY" || event.status === "DELIVERED";
+            const location = atDestination
+              ? tracking.destinationCity
+              : event.location || tracking.originCity;
+            const title =
+              event.status === "HANDOVER_PENDING"
+                ? "Handed over / picked up"
+                : event.status === "EXCEPTION" || event.status === "HOLD"
+                  ? "Hold"
+                  : event.status.replaceAll("_", " ");
+            const description =
+              event.status === "HANDOVER_PENDING" &&
+              event.description.toLowerCase().includes("awaiting")
+                ? "Handed over / picked up by partner."
+                : event.status === "EXCEPTION"
+                  ? event.description.replace(/^Exception opened:\s*/i, "On hold: ")
+                  : event.description;
+            return (
+              <li key={event.id}>
+                <p className="text-sm font-semibold text-[var(--off-white)]">{title}</p>
+                <p className="text-sm text-[var(--muted)]">{description}</p>
+                <p className="text-xs text-[var(--muted)]">
+                  {location} · {new Date(event.occurredAt).toLocaleString()}
+                </p>
+              </li>
+            );
+          })}
         </ol>
 
         <Link href="/" className="mt-8 inline-block text-sm text-[var(--teal)] underline">

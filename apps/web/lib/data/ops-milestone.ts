@@ -11,10 +11,19 @@ const MILESTONES = [
 export type OpsMilestone = (typeof MILESTONES)[number];
 
 const LABELS: Record<OpsMilestone, string> = {
-  HANDOVER_PENDING: "Handover pending / with partner",
-  IN_TRANSIT: "In transit (Hulakico confirmed)",
-  OUT_FOR_DELIVERY: "Out for delivery",
-  DELIVERED: "Delivered",
+  HANDOVER_PENDING: "Shipment is handed over / picked up now.",
+  IN_TRANSIT: "Shipment is in transit now.",
+  OUT_FOR_DELIVERY: "Shipment is out for delivery now.",
+  DELIVERED: "Shipment is delivered now.",
+};
+
+const RANK: Record<string, number> = {
+  BOOKED: 0,
+  HANDOVER_PENDING: 1,
+  IN_TRANSIT: 2,
+  OUT_FOR_DELIVERY: 3,
+  DELIVERED: 4,
+  EXCEPTION: 0,
 };
 
 const ALLOWED_FROM = new Set([
@@ -29,7 +38,11 @@ export function listOpsMilestones(): Array<{ status: OpsMilestone; label: string
   return MILESTONES.map((status) => ({ status, label: LABELS[status] }));
 }
 
-/** Ops: set Hulakico milestone + append a tracking_events row (no partner API). */
+export function milestoneRank(status: string): number {
+  return RANK[status] ?? 0;
+}
+
+/** Ops: set Hulakico status forward (may skip steps); never move backward. */
 export function postOpsMilestone(
   shipmentId: string,
   status: string,
@@ -42,18 +55,33 @@ export function postOpsMilestone(
     const db = getDb();
     const row = db
       .prepare(
-        `SELECT id, status, origin_city FROM shipments WHERE id = ?`,
+        `SELECT id, status, origin_city, destination_city FROM shipments WHERE id = ?`,
       )
       .get(shipmentId) as
-      | { id: string; status: string; origin_city: string }
+      | {
+          id: string;
+          status: string;
+          origin_city: string;
+          destination_city: string;
+        }
       | undefined;
     if (!row) return { error: "Shipment not found." };
-    if (!ALLOWED_FROM.has(row.status) && row.status !== "DELIVERED") {
-      return { error: "Milestones only apply to booked active shipments." };
+    if (!ALLOWED_FROM.has(row.status)) {
+      return { error: "Milestones only apply to active booked shipments." };
     }
-    if (row.status === "DELIVERED" && milestone !== "DELIVERED") {
-      return { error: "Delivered shipments cannot move backward." };
+
+    const current = milestoneRank(row.status);
+    const next = milestoneRank(milestone);
+    if (next <= current) {
+      return {
+        error: `Already at ${row.status.replaceAll("_", " ")}. Pick a later milestone.`,
+      };
     }
+
+    const location =
+      milestone === "OUT_FOR_DELIVERY" || milestone === "DELIVERED"
+        ? row.destination_city
+        : row.origin_city;
 
     const now = new Date().toISOString();
     db.prepare(
@@ -67,7 +95,7 @@ export function postOpsMilestone(
       shipmentId,
       milestone,
       LABELS[milestone],
-      row.origin_city,
+      location,
       now,
     );
     return { ok: true, status: milestone };

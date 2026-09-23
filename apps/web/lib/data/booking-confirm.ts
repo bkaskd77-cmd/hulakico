@@ -71,7 +71,7 @@ export async function confirmShipmentBooking(
     const trackingToken = randomBytes(16).toString("base64url");
 
     db.prepare(
-      `UPDATE shipments SET status = 'HANDOVER_PENDING', hulakico_awb = ?, external_awb = ?,
+      `UPDATE shipments SET status = 'BOOKED', hulakico_awb = ?, external_awb = ?,
          selected_quote_option_id = ?, carrier_id = ?, carrier_service_id = ?,
          tracking_token = ?, updated_at = ? WHERE id = ?`,
     ).run(
@@ -79,18 +79,13 @@ export async function confirmShipmentBooking(
       option.carrier_service_id, trackingToken, now, shipmentId,
     );
 
-    const insertEvt = db.prepare(
+    db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-    );
-    insertEvt.run(
+    ).run(
       newId("evt"), shipmentId, "BOOKED",
       `Booked with ${option.carrier_name}. Hulakico AWB ${hulakicoAwb}. ${booked.message}`,
       shipment.origin_country, now,
-    );
-    insertEvt.run(
-      newId("evt"), shipmentId, "HANDOVER_PENDING",
-      "Awaiting handover to carrier partner.", shipment.origin_country, now,
     );
 
     if (shipment.wants_cod === 1 && shipment.lane === "DOMESTIC") {
@@ -108,7 +103,7 @@ export async function confirmShipmentBooking(
 
     return {
       id: shipmentId,
-      status: "HANDOVER_PENDING",
+      status: "BOOKED",
       hulakicoAwb,
       externalAwb: booked.externalAwb,
       trackingToken,

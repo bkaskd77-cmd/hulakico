@@ -44,6 +44,10 @@ export function RefreshTrackingButton({ shipmentId }: { shipmentId: string }) {
       >
         {pending ? "Refreshing…" : "Refresh partner tracking"}
       </button>
+      <p className="mt-1 text-[10px] text-[var(--muted)]">
+        Pulls scans from partner API when connected. Stub carriers only demo fake hops — use
+        Hulakico milestones for real Ops updates for now.
+      </p>
       {error ? <p className="mt-1 text-xs text-[var(--danger)]">{error}</p> : null}
       {message ? <p className="mt-1 text-xs text-[var(--teal)]">{message}</p> : null}
     </div>

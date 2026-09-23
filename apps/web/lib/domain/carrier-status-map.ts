@@ -1,36 +1,49 @@
 /** Map partner scan codes / labels into Hulakico shipment statuses. */
 
-const DELIVERED = ["DELIVERED", "OK", "UD", "SUCCESS"];
-const OUT = ["OUT_FOR_DELIVERY", "OFD", "OUT FOR DELIVERY", "WITH_DELIVERY_COURIER"];
-const TRANSIT = [
-  "IN_TRANSIT",
-  "TRANSIT",
-  "PICKED_UP",
-  "PICKUP",
-  "DEPARTED",
-  "ARRIVED",
-  "PROCESSED",
-  "BOOKED",
-  "HANDOVER_PENDING",
-];
-const EXCEPTION = [
-  "EXCEPTION",
-  "HELD",
-  "CUSTOMS",
-  "RETURN",
-  "RTO",
-  "FAILED",
-  "DAMAGE",
+const EXACT: Record<string, string> = {
+  DELIVERED: "DELIVERED",
+  OK: "DELIVERED",
+  UD: "DELIVERED",
+  SUCCESS: "DELIVERED",
+  OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
+  OFD: "OUT_FOR_DELIVERY",
+  WITH_DELIVERY_COURIER: "OUT_FOR_DELIVERY",
+  IN_TRANSIT: "IN_TRANSIT",
+  TRANSIT: "IN_TRANSIT",
+  PICKED_UP: "IN_TRANSIT",
+  PICKUP: "IN_TRANSIT",
+  DEPARTED: "IN_TRANSIT",
+  ARRIVED: "IN_TRANSIT",
+  PROCESSED: "IN_TRANSIT",
+  BOOKED: "BOOKED",
+  HANDOVER_PENDING: "HANDOVER_PENDING",
+  EXCEPTION: "EXCEPTION",
+  HELD: "EXCEPTION",
+  CUSTOMS: "EXCEPTION",
+  RETURN: "EXCEPTION",
+  RTO: "RTO",
+  FAILED: "EXCEPTION",
+  DAMAGE: "EXCEPTION",
+};
+
+const PHRASE_RULES: Array<{ needle: string; status: string }> = [
+  { needle: "OUT FOR DELIVERY", status: "OUT_FOR_DELIVERY" },
+  { needle: "OUT_FOR_DELIVERY", status: "OUT_FOR_DELIVERY" },
+  { needle: "DELIVERED", status: "DELIVERED" },
+  { needle: "IN TRANSIT", status: "IN_TRANSIT" },
+  { needle: "IN_TRANSIT", status: "IN_TRANSIT" },
+  { needle: "HANDOVER", status: "HANDOVER_PENDING" },
+  { needle: "EXCEPTION", status: "EXCEPTION" },
 ];
 
 export function mapPartnerStatusToHulakico(partnerStatus: string): string {
-  const code = partnerStatus.trim().toUpperCase().replace(/[\s-]+/g, "_");
-  if (DELIVERED.some((item) => code.includes(item) || item === code)) return "DELIVERED";
-  if (EXCEPTION.some((item) => code.includes(item) || item === code)) return "EXCEPTION";
-  if (OUT.some((item) => code.includes(item) || item === code)) return "OUT_FOR_DELIVERY";
-  if (TRANSIT.some((item) => code.includes(item) || item === code)) {
-    if (code === "BOOKED" || code === "HANDOVER_PENDING") return code;
-    return "IN_TRANSIT";
+  const raw = partnerStatus.trim().toUpperCase();
+  const code = raw.replace(/[\s-]+/g, "_");
+  if (EXACT[code]) return EXACT[code];
+  for (const rule of PHRASE_RULES) {
+    if (raw.includes(rule.needle) || code.includes(rule.needle.replace(/\s+/g, "_"))) {
+      return rule.status;
+    }
   }
   return "IN_TRANSIT";
 }

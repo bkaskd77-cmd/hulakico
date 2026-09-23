@@ -18,6 +18,8 @@ export type ShipmentSummary = {
   destinationCountry: string;
   destinationContactName: string | null;
   hulakicoAwb: string | null;
+  externalAwb: string | null;
+  carrierName: string | null;
   trackingToken: string | null;
   updatedAt: string;
   createdAt: string;
@@ -32,11 +34,14 @@ export function getMyShipmentSummary(
   try {
     const row = getDb()
       .prepare(
-        `SELECT id, status, lane, currency, package_type, service_class, weight_kg,
-                contents, origin_city, origin_country, origin_contact_name,
-                destination_city, destination_country, destination_contact_name,
-                hulakico_awb, tracking_token, updated_at, created_at
-         FROM shipments WHERE id = ? AND user_id = ?`,
+        `SELECT s.id, s.status, s.lane, s.currency, s.package_type, s.service_class, s.weight_kg,
+                s.contents, s.origin_city, s.origin_country, s.origin_contact_name,
+                s.destination_city, s.destination_country, s.destination_contact_name,
+                s.hulakico_awb, s.external_awb, s.tracking_token, s.updated_at, s.created_at,
+                c.name as carrier_name
+         FROM shipments s
+         LEFT JOIN carriers c ON c.id = s.carrier_id
+         WHERE s.id = ? AND s.user_id = ?`,
       )
       .get(shipmentId, userId) as
       | {
@@ -55,9 +60,11 @@ export function getMyShipmentSummary(
           destination_country: string;
           destination_contact_name: string | null;
           hulakico_awb: string | null;
+          external_awb: string | null;
           tracking_token: string | null;
           updated_at: string;
           created_at: string;
+          carrier_name: string | null;
         }
       | undefined;
     if (!row) return { error: "Shipment not found." };
@@ -77,6 +84,8 @@ export function getMyShipmentSummary(
       destinationCountry: row.destination_country,
       destinationContactName: row.destination_contact_name,
       hulakicoAwb: row.hulakico_awb,
+      externalAwb: row.external_awb,
+      carrierName: row.carrier_name,
       trackingToken: row.tracking_token,
       updatedAt: row.updated_at,
       createdAt: row.created_at,
