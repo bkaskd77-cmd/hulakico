@@ -146,10 +146,27 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 5 | Open shipment shows Hulakico AWB + partner AWB deep link | **DONE** |
+| 6 | Track: clean timeline, Hold (not Exception), handed over / dest city | **DONE** |
+| 7 | Exception info-request / reply events use Hold on customer track | **DONE** |
 
 ---
 
-## Success criteria (end of Phase 5 Steps 1–3)
+## Phase 7 — NEXT (settle & notify)
+
+**Goal:** Close the loop after booking — customer knows what to pay and when something needs action, without Ops chasing manually.
+
+### In (first slices)
+- Clear pay / settle status on account + open shipment (COD already exists; card/transfer later).
+- Customer email/SMS hooks for: booked, handed over, on hold (info needed), delivered (provider behind env; stub OK first).
+- Ops: one-click “request info” already exists — ensure Hold timeline + notify stay aligned.
+
+### Out (later)
+Full accounting, multi-currency settlement ledger, marketing campaigns.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 0 | Phase 7 scope in `PLAN.md` | **DONE** |
+| 1 | Notify stub: write outbound notification log on book + Hold | NEXT |
 
 - Customer sees their shipments from account without tracking URLs alone.
 - One-click copy creates a new draft prefilled from a past shipment.
@@ -189,7 +206,7 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 | 3 | `DhlAdapter` behind `DHL_API_KEY` (sandbox/live) | **DONE** |
 | 4 | FedEx + domestic adapters + `POST /api/webhooks/carrier` | **DONE** |
 
-**Ops:** `/ops` → Attach/Update partner AWB → Refresh partner tracking.  
+**Ops:** `/ops` → Attach/Update partner AWB → Hulakico milestones (Refresh partner tracking deferred until live API).  
 **Webhook:** `POST /api/webhooks/carrier` with `{ externalAwb, events }` (+ `CARRIER_WEBHOOK_SECRET` when set).
 
 ### Hybrid tracking (starting phase — no partner API required)
@@ -200,8 +217,10 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 |------|-------------|--------|
 | A | Public `/track` shows Hulakico AWB first + partner AWB deep link | **DONE** |
 | B | Ops 1-click Hulakico status / timeline presets (milestones only) | **DONE** |
+| C | Remove demo Refresh from Ops UI until partner API | **DONE** |
+| D | Clean track timeline (no stub duplicates); Hold not Exception | **DONE** |
 
-Customers track partner hops via the partner link; Ops updates Hulakico only for our milestones until live API/webhook sync exists.
+Customers track partner hops via the partner link; Ops updates Hulakico milestones until live API/webhook sync exists.
 
 ---
 

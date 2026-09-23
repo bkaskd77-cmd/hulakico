@@ -121,7 +121,7 @@ export function resolveException(
       newId("evt"),
       exception.shipment_id,
       restoreStatus,
-      `Exception resolved: ${note}`,
+      `Hold cleared: ${note}`,
       now,
     );
   } catch (error) {

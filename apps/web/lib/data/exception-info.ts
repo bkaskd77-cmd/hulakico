@@ -35,11 +35,11 @@ export function requestExceptionInfo(
 
     db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
-       VALUES (?, ?, 'EXCEPTION', ?, NULL, ?)`,
+       VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
     ).run(
       newId("evt"),
       exception.shipment_id,
-      `Info required from customer: ${note}`,
+      `On hold — info needed: ${note}`,
       now,
     );
   } catch (error) {
@@ -88,11 +88,11 @@ export function submitCustomerReply(
 
     db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
-       VALUES (?, ?, 'EXCEPTION', ?, NULL, ?)`,
+       VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
     ).run(
       newId("evt"),
       row.shipment_id,
-      `Customer replied: ${trimmed}`,
+      `Hold update — customer replied: ${trimmed}`,
       now,
     );
 
