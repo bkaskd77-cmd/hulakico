@@ -43,6 +43,7 @@ export default async function OpsShipmentsPage() {
           <nav className="flex gap-4 text-sm">
             <Link href="/ops/exceptions" className="text-[var(--gold)] underline">Exceptions</Link>
             <Link href="/ops/cod" className="text-[var(--gold)] underline">COD</Link>
+            <Link href="/ops/notifications" className="text-[var(--teal)] underline">Notifications</Link>
             <Link href="/ops/carriers" className="text-[var(--teal)] underline">Carriers</Link>
             <Link href="/account" className="text-[var(--teal)] underline">Account</Link>
           </nav>
