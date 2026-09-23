@@ -138,8 +138,8 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 |------|-------------|--------|
 | 0 | Phase 5 scope + checklist in `PLAN.md` | **DONE** |
 | 1 | `listMyShipments` + All shipments on account (15/page, pages 1–10, 3‑mo finished retention) | **DONE** |
-| 2 | Copy / rebook → wizard prefilled (`/book?copyFrom=`) | **DONE** (awaiting approval) |
-| 3 | Dedicated `/account/shipments` page polish + empty states | Pending |
+| 2 | Copy / rebook → wizard prefilled (`/book?copyFrom=`) | **DONE** |
+| 3 | Dedicated `/account/shipments` page polish + empty states | **DONE** |
 | 4 | Resume Phase 4 Step 5 (customs invoice UX + printable + doc QC) | Pending |
 
 ---
@@ -194,6 +194,13 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | A | Public `/track` shows Hulakico AWB first + partner AWB deep link | **DONE** |
-| B | Ops 1-click Hulakico status / timeline presets (milestones only) | NEXT |
+| B | Ops 1-click Hulakico status / timeline presets (milestones only) | **DONE** |
 
 Customers track partner hops via the partner link; Ops updates Hulakico only for our milestones until live API/webhook sync exists.
+
+---
+
+## After Phase 5 Step 3
+
+Human: `/account` → **All shipments** → `/account/shipments` list (15/page, pages 1–10) · empty state books first send · open/track/copy work.  
+Next when ready: Phase 4 Step 5 polish **or** ops/partner tracking refinements.
