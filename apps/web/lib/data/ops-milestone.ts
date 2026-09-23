@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
+import { logCustomerNotification } from "@/lib/data/notifications";
 
 const MILESTONES = [
   "HANDOVER_PENDING",
@@ -55,7 +56,8 @@ export function postOpsMilestone(
     const db = getDb();
     const row = db
       .prepare(
-        `SELECT id, status, origin_city, destination_city FROM shipments WHERE id = ?`,
+        `SELECT id, status, origin_city, destination_city, hulakico_awb
+         FROM shipments WHERE id = ?`,
       )
       .get(shipmentId) as
       | {
@@ -63,6 +65,7 @@ export function postOpsMilestone(
           status: string;
           origin_city: string;
           destination_city: string;
+          hulakico_awb: string | null;
         }
       | undefined;
     if (!row) return { error: "Shipment not found." };
@@ -98,6 +101,23 @@ export function postOpsMilestone(
       location,
       now,
     );
+
+    if (milestone === "HANDOVER_PENDING" || milestone === "DELIVERED") {
+      const awb = row.hulakico_awb ?? shipmentId;
+      const notify = logCustomerNotification({
+        shipmentId,
+        kind: milestone === "DELIVERED" ? "DELIVERED" : "HANDED_OVER",
+        subject:
+          milestone === "DELIVERED"
+            ? `Hulakico delivered · ${awb}`
+            : `Hulakico handed over · ${awb}`,
+        body: LABELS[milestone],
+      });
+      if ("error" in notify) {
+        console.error("[ops-milestone.ts:postOpsMilestone]", notify.error);
+      }
+    }
+
     return { ok: true, status: milestone };
   } catch (error) {
     console.error(

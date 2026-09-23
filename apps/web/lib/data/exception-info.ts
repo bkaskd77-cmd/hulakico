@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
+import { logCustomerNotification } from "@/lib/data/notifications";
 
 export function requestExceptionInfo(
   exceptionId: string,
@@ -42,6 +43,16 @@ export function requestExceptionInfo(
       `On hold — info needed: ${note}`,
       now,
     );
+
+    const notify = logCustomerNotification({
+      shipmentId: exception.shipment_id,
+      kind: "HOLD",
+      subject: "Hulakico — info needed for your shipment",
+      body: `Your shipment is on hold. Ops asked: ${note}`,
+    });
+    if ("error" in notify) {
+      console.error("[exception-info.ts:requestExceptionInfo]", notify.error);
+    }
   } catch (error) {
     console.error(
       "[exception-info.ts:requestExceptionInfo]",
