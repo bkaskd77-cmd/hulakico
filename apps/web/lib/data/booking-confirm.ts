@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { getCarrierAdapter } from "@/lib/carriers/adapter";
 import { createCodCollection } from "@/lib/data/cod";
+import { logCustomerNotification } from "@/lib/data/notifications";
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
 
@@ -99,6 +100,16 @@ export async function confirmShipmentBooking(
       if ("error" in cod) {
         console.error("[booking-confirm.ts:confirmShipmentBooking]", cod.error);
       }
+    }
+
+    const notify = logCustomerNotification({
+      shipmentId,
+      kind: "BOOKED",
+      subject: `Hulakico booking confirmed · ${hulakicoAwb}`,
+      body: `Your shipment is booked with ${option.carrier_name}. Hulakico AWB ${hulakicoAwb}. Track with your Hulakico link.`,
+    });
+    if ("error" in notify) {
+      console.error("[booking-confirm.ts:confirmShipmentBooking]", notify.error);
     }
 
     return {

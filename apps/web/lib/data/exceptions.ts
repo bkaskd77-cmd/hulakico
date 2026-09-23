@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
+import { logCustomerNotification } from "@/lib/data/notifications";
 
 export type ExceptionCaseRow = {
   id: string;
@@ -57,6 +58,16 @@ export function openException(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
     ).run(newId("evt"), shipmentId, `On hold: ${trimmed}`, now);
+
+    const notify = logCustomerNotification({
+      shipmentId,
+      kind: "HOLD",
+      subject: "Hulakico shipment on hold",
+      body: `Your shipment is on hold: ${trimmed}. Open your Hulakico track link if Ops asked for more info.`,
+    });
+    if ("error" in notify) {
+      console.error("[exceptions.ts:openException]", notify.error);
+    }
 
     return { id };
   } catch (error) {

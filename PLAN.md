@@ -166,7 +166,8 @@ Full accounting, multi-currency settlement ledger, marketing campaigns.
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 0 | Phase 7 scope in `PLAN.md` | **DONE** |
-| 1 | Notify stub: write outbound notification log on book + Hold | NEXT |
+| 1 | Notify stub: write outbound notification log on book + Hold | **DONE** |
+| 2 | Ops/account view of notification log (optional) | NEXT |
 
 - Customer sees their shipments from account without tracking URLs alone.
 - One-click copy creates a new draft prefilled from a past shipment.
