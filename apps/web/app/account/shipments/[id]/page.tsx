@@ -83,6 +83,10 @@ export default async function OpenShipmentPage({
             <dt className="text-xs uppercase tracking-wide">Contents</dt>
             <dd className="text-[var(--off-white)]">{s.contents || "—"}</dd>
           </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide">Pay / settle</dt>
+            <dd className="text-[var(--off-white)]">{s.settle.label}</dd>
+          </div>
           {s.lane === "INTERNATIONAL" ? (
             <div>
               <dt className="text-xs uppercase tracking-wide">Digital invoice</dt>

@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { getInvoiceForShipment } from "@/lib/data/invoices";
+import { getSettleSummary, type SettleSummary } from "@/lib/data/settle";
 import type { CommercialInvoice } from "@/lib/domain/invoice";
 
 export type ShipmentSummary = {
@@ -24,6 +25,7 @@ export type ShipmentSummary = {
   updatedAt: string;
   createdAt: string;
   invoice: CommercialInvoice | null;
+  settle: SettleSummary;
 };
 
 /** Short shipment details for the signed-in owner (account hub). */
@@ -91,6 +93,7 @@ export function getMyShipmentSummary(
       createdAt: row.created_at,
       invoice:
         row.lane === "INTERNATIONAL" ? getInvoiceForShipment(row.id) : null,
+      settle: getSettleSummary(row.id),
     };
   } catch (error) {
     console.error(
