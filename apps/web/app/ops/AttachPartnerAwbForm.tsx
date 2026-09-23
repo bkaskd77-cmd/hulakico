@@ -3,7 +3,14 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-/** Ops form to paste/correct the third-party (DHL/FedEx) waybill. */
+const MILESTONES = [
+  { status: "HANDOVER_PENDING", label: "Handover" },
+  { status: "IN_TRANSIT", label: "In transit" },
+  { status: "OUT_FOR_DELIVERY", label: "Out for delivery" },
+  { status: "DELIVERED", label: "Delivered" },
+] as const;
+
+/** Ops: partner AWB paste + Hulakico milestone presets (no partner API). */
 export function AttachPartnerAwbForm({
   shipmentId,
   currentAwb,
@@ -15,6 +22,7 @@ export function AttachPartnerAwbForm({
   const [awb, setAwb] = useState(currentAwb ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [milestonePending, setMilestonePending] = useState<string | null>(null);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -41,28 +49,69 @@ export function AttachPartnerAwbForm({
     }
   }
 
+  async function postMilestone(status: string) {
+    setError(null);
+    setMilestonePending(status);
+    try {
+      const response = await fetch(`/api/ops/shipments/${shipmentId}/milestone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Could not update Hulakico status.");
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      console.error("[AttachPartnerAwbForm.tsx:postMilestone]", err);
+      setError("Could not update Hulakico status.");
+    } finally {
+      setMilestonePending(null);
+    }
+  }
+
   return (
-    <form onSubmit={onSubmit} className="mt-3 flex flex-wrap items-end gap-2">
-      <label className="flex min-w-[12rem] flex-1 flex-col text-xs text-[var(--muted)]">
-        Partner AWB
-        <input
-          value={awb}
-          onChange={(e) => setAwb(e.target.value)}
-          required
-          minLength={6}
-          maxLength={40}
-          placeholder="DHL / FedEx waybill"
-          className="mt-1 rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-2 py-1 text-xs text-[var(--off-white)]"
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-md bg-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--navy)] disabled:opacity-60"
-      >
-        {pending ? "Saving…" : currentAwb ? "Update AWB" : "Attach AWB"}
-      </button>
-      {error ? <p className="w-full text-xs text-[var(--danger)]">{error}</p> : null}
-    </form>
+    <div className="mt-3 space-y-2">
+      <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
+        <label className="flex min-w-[12rem] flex-1 flex-col text-xs text-[var(--muted)]">
+          Partner AWB
+          <input
+            value={awb}
+            onChange={(e) => setAwb(e.target.value)}
+            required
+            minLength={6}
+            maxLength={40}
+            placeholder="DHL / FedEx waybill"
+            className="mt-1 rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-2 py-1 text-xs text-[var(--off-white)]"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={pending}
+          className="rounded-md bg-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--navy)] disabled:opacity-60"
+        >
+          {pending ? "Saving…" : currentAwb ? "Update AWB" : "Attach AWB"}
+        </button>
+      </form>
+      <div>
+        <p className="text-xs text-[var(--muted)]">Hulakico milestone</p>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {MILESTONES.map((item) => (
+            <button
+              key={item.status}
+              type="button"
+              disabled={milestonePending !== null}
+              onClick={() => postMilestone(item.status)}
+              className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_20%,transparent)] px-2 py-1 text-xs text-[var(--off-white)] disabled:opacity-60"
+            >
+              {milestonePending === item.status ? "…" : item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {error ? <p className="text-xs text-[var(--danger)]">{error}</p> : null}
+    </div>
   );
 }
