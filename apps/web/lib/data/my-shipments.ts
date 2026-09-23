@@ -5,7 +5,9 @@ import {
   retentionCutoffIso,
 } from "@/lib/data/shipment-purge";
 
-export const SHIPMENTS_PAGE_SIZE = 10;
+/** Customer hub: fixed page size; UI shows at most page buttons 1–10. */
+export const SHIPMENTS_PAGE_SIZE = 15;
+export const SHIPMENTS_MAX_PAGE_BUTTONS = 10;
 
 export type MyShipmentRow = {
   id: string;

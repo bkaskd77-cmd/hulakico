@@ -116,7 +116,7 @@ Line-item screen should support what customs typically expects — not a bare de
 
 ### In
 - **All shipments** list for the signed-in customer (status, route, AWB, dates).
-- Pagination: **10 per page**, page numbers from **1**, plus **View more**.
+- Pagination: **15 per page**, page number buttons **1–10** max, plus **View more**.
 - Finished shipments (`DELIVERED` / `CANCELLED` / `RTO`) remain visible for **3 months**, then auto-deleted.
 - Open draft / track booked from the list.
 - **Copy / rebook** — open `/book?copyFrom=` with party + address + package prefilled so the user reviews Route → Package → Review stepwise, then saves a new draft.
@@ -137,7 +137,7 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 0 | Phase 5 scope + checklist in `PLAN.md` | **DONE** |
-| 1 | `listMyShipments` + All shipments on account (10/page, 3‑mo finished retention) | **DONE** |
+| 1 | `listMyShipments` + All shipments on account (15/page, pages 1–10, 3‑mo finished retention) | **DONE** |
 | 2 | Copy / rebook → wizard prefilled (`/book?copyFrom=`) | **DONE** (awaiting approval) |
 | 3 | Dedicated `/account/shipments` page polish + empty states | Pending |
 | 4 | Resume Phase 4 Step 5 (customs invoice UX + printable + doc QC) | Pending |

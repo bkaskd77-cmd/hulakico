@@ -2,7 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { copyShipmentAction } from "@/app/account/copy-actions";
 import { getUserBySessionToken, destroySession } from "@/lib/data/auth-store";
-import { listMyShipments } from "@/lib/data/my-shipments";
+import {
+  listMyShipments,
+  SHIPMENTS_MAX_PAGE_BUTTONS,
+  SHIPMENTS_PAGE_SIZE,
+} from "@/lib/data/my-shipments";
 import {
   clearSessionCookie,
   readSessionToken,
@@ -45,7 +49,8 @@ export default async function AccountPage({
   const opsDenied = params.ops === "denied";
   const copyError = params.copy && params.copy !== "missing" ? params.copy : null;
   const list = listMyShipments(user.id, Number(params.page ?? "1"));
-  const pageNumbers = Array.from({ length: list.pageCount }, (_, i) => i + 1);
+  const buttonCount = Math.min(list.pageCount, SHIPMENTS_MAX_PAGE_BUTTONS);
+  const pageNumbers = Array.from({ length: buttonCount }, (_, i) => i + 1);
 
   return (
     <div className="shell-sky min-h-dvh px-6 py-16 sm:px-10">
@@ -81,7 +86,8 @@ export default async function AccountPage({
         <section className="rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
           <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">All shipments</h2>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            10 per page. Use Copy to rebook the same consignee. Finished stay 3 months.
+            {SHIPMENTS_PAGE_SIZE} per page · pages 1–{SHIPMENTS_MAX_PAGE_BUTTONS}.
+            Use Copy to rebook. Finished stay 3 months.
           </p>
           {list.total === 0 ? (
             <p className="mt-4 text-sm text-[var(--muted)]">No shipments yet — book your first one.</p>
