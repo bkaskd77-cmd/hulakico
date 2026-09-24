@@ -178,7 +178,7 @@ Live card checkout, real bank webhook reconciliation, multi-currency ledger, cus
 |------|-------------|--------|
 | 0 | Phase 8 scope in `PLAN.md` | **DONE** |
 | 1 | `listAwaitingTransferPayments` + `markTransferPaid` + Ops API | **DONE** |
-| 2 | Ops `/ops/payments` desk + Mark paid form | — |
+| 2 | Ops `/ops/payments` desk + Mark paid form | **DONE** |
 | 3 | Stub notify on transfer marked paid | — |
 | 4 | Ops nav link + COD/payments cross-links | — |
 
