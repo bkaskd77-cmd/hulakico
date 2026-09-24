@@ -43,7 +43,7 @@ export function TrackReplyForm({ trackingToken }: { trackingToken: string }) {
         required
         minLength={3}
         rows={3}
-        className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-sm text-[var(--off-white)]"
+        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[var(--teal)]"
       />
       <button
         type="submit"

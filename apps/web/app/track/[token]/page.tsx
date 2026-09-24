@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TrackReplyForm } from "@/app/track/TrackReplyForm";
 import { getTrackingByToken } from "@/lib/data/tracking";
+import { nextStepFor } from "@/lib/data/tracking-timeline";
 import { partnerTrackUrl } from "@/lib/domain/partner-track-url";
 
 export const runtime = "nodejs";
@@ -22,108 +23,128 @@ export default async function PublicTrackPage({
   if (!tracking) notFound();
 
   const partnerUrl = partnerTrackUrl(tracking.carrierName, tracking.externalAwb);
+  const latest = tracking.events[tracking.events.length - 1];
+  const history = [...tracking.events].reverse();
 
   return (
-    <div className="shell-sky min-h-dvh px-6 py-16 sm:px-10">
-      <div className="mx-auto w-full max-w-2xl rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
-        <p className="font-display text-lg font-bold text-[var(--off-white)]">Hulakico</p>
-        <h1 className="font-display mt-4 text-3xl font-bold text-[var(--off-white)]">
-          Track shipment
-        </h1>
-        <p className="mt-3 text-sm font-semibold text-[var(--gold)]">{tracking.statusNote}</p>
+    <div className="min-h-dvh bg-[#eef5f8] px-4 py-10 text-slate-900 sm:px-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <header className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">Hulakico</p>
+            <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight">
+              Track shipment
+            </h1>
+          </div>
+          <Link href="/" className="text-sm font-semibold text-slate-700 underline-offset-2 hover:underline">
+            Back to Hulakico
+          </Link>
+        </header>
+
+        <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 sm:p-6">
+          <p className="text-sm font-semibold text-[var(--teal)]">
+            {statusLabel(tracking.status)}
+          </p>
+          <p className="mt-2 text-lg font-semibold text-slate-900">{tracking.statusNote}</p>
+          <p className="mt-2 text-sm text-slate-600">
+            <span className="font-semibold text-slate-800">Next step: </span>
+            {tracking.holdInfo
+              ? tracking.holdInfo.contactHint
+              : nextStepFor(tracking.status)}
+          </p>
+          {latest ? (
+            <p className="mt-3 text-xs text-slate-500">
+              Last update {new Date(latest.occurredAt).toLocaleString()}
+              {latest.location ? ` · ${latest.location}` : ""}
+            </p>
+          ) : null}
+
+          <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-5 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Hulakico AWB</dt>
+              <dd className="mt-1 break-all font-semibold text-slate-900">{tracking.hulakicoAwb}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Route</dt>
+              <dd className="mt-1 text-slate-900">
+                {tracking.originCity} → {tracking.destinationCity}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Carrier</dt>
+              <dd className="mt-1 text-slate-900">{tracking.carrierName ?? "Pending"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Partner AWB</dt>
+              <dd className="mt-1 break-all text-slate-900">
+                {tracking.externalAwb ? (
+                  partnerUrl ? (
+                    <a href={partnerUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--teal)] underline">
+                      {tracking.externalAwb}
+                    </a>
+                  ) : (
+                    tracking.externalAwb
+                  )
+                ) : (
+                  <span className="text-slate-500">Pending after handover</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </section>
 
         {tracking.holdInfo ? (
-          <div className="mt-6 rounded-md border border-[var(--danger)]/50 bg-[color-mix(in_srgb,var(--danger)_12%,transparent)] p-4">
-            <p className="text-xs uppercase tracking-wide text-[var(--danger)]">On hold</p>
-            <p className="mt-2 text-sm text-[var(--off-white)]">{tracking.holdInfo.reason}</p>
-            <p className="mt-2 text-sm text-[var(--muted)]">{tracking.holdInfo.contactHint}</p>
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-red-700">On hold</p>
+            <p className="mt-2 text-sm text-slate-900">{tracking.holdInfo.reason}</p>
           </div>
         ) : null}
 
-        <dl className="mt-6 grid gap-3 text-sm text-[var(--muted)] sm:grid-cols-2">
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Hulakico AWB</dt>
-            <dd className="break-all text-[var(--off-white)]">{tracking.hulakicoAwb}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Status</dt>
-            <dd className="text-[var(--off-white)]">{statusLabel(tracking.status)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Route</dt>
-            <dd className="text-[var(--off-white)]">
-              {tracking.originCity} → {tracking.destinationCity}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide">Carrier</dt>
-            <dd className="text-[var(--off-white)]">{tracking.carrierName ?? "Pending"}</dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs uppercase tracking-wide">Partner AWB</dt>
-            <dd className="mt-1 text-[var(--off-white)]">
-              {tracking.externalAwb ? (
-                partnerUrl ? (
-                  <a href={partnerUrl} target="_blank" rel="noopener noreferrer"
-                    className="break-all text-[var(--teal)] underline">
-                    {tracking.externalAwb} — track on partner
-                  </a>
-                ) : (
-                  <span className="break-all">{tracking.externalAwb}</span>
-                )
-              ) : (
-                <span className="text-[var(--muted)]">Pending after handover</span>
-              )}
-            </dd>
-          </div>
-        </dl>
-
         {tracking.infoRequest ? (
-          <div className="mt-8 rounded-md border border-[var(--gold)]/40 bg-[color-mix(in_srgb,var(--gold)_10%,transparent)] p-4">
-            <p className="text-xs uppercase tracking-wide text-[var(--gold)]">Action needed</p>
-            <p className="mt-2 text-sm text-[var(--off-white)]">{tracking.infoRequest.note}</p>
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Action needed</p>
+            <p className="mt-2 text-sm text-slate-900">{tracking.infoRequest.note}</p>
             {tracking.infoRequest.customerReply ? (
-              <p className="mt-3 text-sm text-[var(--muted)]">
-                Your reply: {tracking.infoRequest.customerReply}
-              </p>
+              <p className="mt-3 text-sm text-slate-600">Your reply: {tracking.infoRequest.customerReply}</p>
             ) : (
               <TrackReplyForm trackingToken={tracking.trackingToken} />
             )}
           </div>
         ) : null}
 
-        <ol className="mt-8 space-y-4 border-l border-[var(--teal)] pl-4">
-          <p className="-ml-4 mb-4 text-xs uppercase tracking-wide text-[var(--muted)]">
-            Status history
-          </p>
-          {tracking.events.map((event) => {
-            const atDest =
-              event.status === "OUT_FOR_DELIVERY" || event.status === "DELIVERED";
-            const location = atDest
-              ? tracking.destinationCity
-              : event.location || tracking.originCity;
-            const description =
-              event.status === "HANDOVER_PENDING" &&
-              event.description.toLowerCase().includes("awaiting")
-                ? "Handed over / picked up by partner."
-                : event.description;
-            return (
-              <li key={event.id}>
-                <p className="text-sm font-semibold text-[var(--off-white)]">
-                  {statusLabel(event.status)}
-                </p>
-                <p className="text-sm text-[var(--muted)]">{description}</p>
-                <p className="text-xs text-[var(--muted)]">
-                  {location} · {new Date(event.occurredAt).toLocaleString()}
-                </p>
-              </li>
-            );
-          })}
-        </ol>
-
-        <Link href="/" className="mt-8 inline-block text-sm text-[var(--teal)] underline">
-          Back to Hulakico
-        </Link>
+        <section className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="border-b border-slate-100 px-5 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status history</p>
+          </div>
+          <ol className="divide-y divide-slate-100">
+            {history.map((event, index) => {
+              const atDest =
+                event.status === "OUT_FOR_DELIVERY" || event.status === "DELIVERED";
+              const location = atDest
+                ? tracking.destinationCity
+                : event.location || tracking.originCity;
+              const description =
+                event.status === "HANDOVER_PENDING" &&
+                event.description.toLowerCase().includes("awaiting")
+                  ? "Handed over / picked up by partner."
+                  : event.description;
+              return (
+                <li key={event.id} className="grid gap-1 px-5 py-4 sm:grid-cols-[1.2fr_1fr_auto]">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {history.length - index}. {statusLabel(event.status)}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">{description}</p>
+                  </div>
+                  <p className="text-sm text-slate-600">{location}</p>
+                  <p className="text-xs text-slate-500 sm:text-right">
+                    {new Date(event.occurredAt).toLocaleString()}
+                  </p>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
       </div>
     </div>
   );
