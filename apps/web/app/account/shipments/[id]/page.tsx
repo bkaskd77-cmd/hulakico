@@ -86,6 +86,9 @@ export default async function OpenShipmentPage({
           <div>
             <dt className="text-xs uppercase tracking-wide">Pay / settle</dt>
             <dd className="text-[var(--off-white)]">{s.settle.label}</dd>
+            {s.settle.detail ? (
+              <p className="mt-1 text-xs text-[var(--muted)]">{s.settle.detail}</p>
+            ) : null}
           </div>
           {s.lane === "INTERNATIONAL" ? (
             <div>

@@ -1,9 +1,16 @@
 import { getDb } from "@/lib/db";
+import { ensureTransferPaymentIntent } from "@/lib/data/payments";
 
 export type SettleSummary = {
-  mode: "COD" | "NONE";
-  status: "PENDING_COLLECTION" | "COLLECTED" | "NOT_APPLICABLE";
+  mode: "COD" | "TRANSFER" | "NONE";
+  status:
+    | "PENDING_COLLECTION"
+    | "COLLECTED"
+    | "AWAITING_PAYMENT"
+    | "PAID"
+    | "NOT_APPLICABLE";
   label: string;
+  detail: string | null;
   amount: number | null;
   currency: string | null;
 };
@@ -13,58 +20,92 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
   try {
     const db = getDb();
     const shipment = db
-      .prepare(`SELECT wants_cod, currency FROM shipments WHERE id = ?`)
-      .get(shipmentId) as { wants_cod: number; currency: string } | undefined;
+      .prepare(`SELECT wants_cod, currency, status FROM shipments WHERE id = ?`)
+      .get(shipmentId) as
+      | { wants_cod: number; currency: string; status: string }
+      | undefined;
     if (!shipment) {
       return {
         mode: "NONE",
         status: "NOT_APPLICABLE",
         label: "Settle status unavailable",
+        detail: null,
         amount: null,
         currency: null,
       };
     }
-    if (shipment.wants_cod !== 1) {
-      return {
-        mode: "NONE",
-        status: "NOT_APPLICABLE",
-        label: "No COD — freight settled outside Hulakico (partner / invoice)",
-        amount: null,
-        currency: shipment.currency,
-      };
-    }
-    const cod = db
-      .prepare(
-        `SELECT amount, currency, status FROM cod_collections
-         WHERE shipment_id = ? ORDER BY created_at DESC LIMIT 1`,
-      )
-      .get(shipmentId) as
-      | { amount: number; currency: string; status: string }
-      | undefined;
-    if (!cod) {
+
+    if (shipment.wants_cod === 1) {
+      const cod = db
+        .prepare(
+          `SELECT amount, currency, status FROM cod_collections
+           WHERE shipment_id = ? ORDER BY created_at DESC LIMIT 1`,
+        )
+        .get(shipmentId) as
+        | { amount: number; currency: string; status: string }
+        | undefined;
+      if (!cod) {
+        return {
+          mode: "COD",
+          status: "PENDING_COLLECTION",
+          label: "COD requested — collection record pending",
+          detail: null,
+          amount: null,
+          currency: shipment.currency,
+        };
+      }
+      if (cod.status === "COLLECTED") {
+        return {
+          mode: "COD",
+          status: "COLLECTED",
+          label: `COD collected · ${cod.currency} ${cod.amount.toFixed(2)}`,
+          detail: null,
+          amount: cod.amount,
+          currency: cod.currency,
+        };
+      }
       return {
         mode: "COD",
         status: "PENDING_COLLECTION",
-        label: "COD requested — collection record pending",
-        amount: null,
-        currency: shipment.currency,
-      };
-    }
-    if (cod.status === "COLLECTED") {
-      return {
-        mode: "COD",
-        status: "COLLECTED",
-        label: `COD collected · ${cod.currency} ${cod.amount.toFixed(2)}`,
+        label: `COD pending collection · ${cod.currency} ${cod.amount.toFixed(2)}`,
+        detail: null,
         amount: cod.amount,
         currency: cod.currency,
       };
     }
+
+    const booked = !["DRAFT", "QUOTED", "CANCELLED"].includes(shipment.status);
+    if (booked) {
+      const pay = ensureTransferPaymentIntent(shipmentId);
+      if (pay) {
+        if (pay.status === "PAID") {
+          return {
+            mode: "TRANSFER",
+            status: "PAID",
+            label: `Paid · ${pay.currency} ${pay.amount.toFixed(2)}`,
+            detail: null,
+            amount: pay.amount,
+            currency: pay.currency,
+          };
+        }
+        return {
+          mode: "TRANSFER",
+          status: "AWAITING_PAYMENT",
+          label: `Pay by transfer · ${pay.currency} ${pay.amount.toFixed(2)}`,
+          detail: pay.instructions,
+          amount: pay.amount,
+          currency: pay.currency,
+        };
+      }
+    }
+
     return {
-      mode: "COD",
-      status: "PENDING_COLLECTION",
-      label: `COD pending collection · ${cod.currency} ${cod.amount.toFixed(2)}`,
-      amount: cod.amount,
-      currency: cod.currency,
+      mode: "NONE",
+      status: "NOT_APPLICABLE",
+      label: "No COD — freight settled outside Hulakico (partner / invoice)",
+      detail: null,
+      amount: null,
+      currency: shipment.currency,
     };
   } catch (error) {
     console.error(
@@ -75,6 +116,7 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
       mode: "NONE",
       status: "NOT_APPLICABLE",
       label: "Could not load settle status",
+      detail: null,
       amount: null,
       currency: null,
     };
@@ -85,5 +127,7 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
 export function settleShortLabel(summary: SettleSummary): string {
   if (summary.mode === "COD" && summary.status === "COLLECTED") return "COD collected";
   if (summary.mode === "COD") return "COD pending";
+  if (summary.mode === "TRANSFER" && summary.status === "PAID") return "Paid";
+  if (summary.mode === "TRANSFER") return "Pay pending";
   return "No COD";
 }
