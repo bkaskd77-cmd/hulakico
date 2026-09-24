@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phases 1–6 core complete. Hybrid tracking + customer hub follow-ons as needed.
+**Status:** Phases 1–7 complete. Phase 8 — Ops settle confirm (mark transfer paid).
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -151,31 +151,36 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 
 ---
 
-## Phase 7 — NEXT (settle & notify)
+## Phase 7 — COMPLETE (settle & notify)
 
 **Goal:** Close the loop after booking — customer knows what to pay and when something needs action, without Ops chasing manually.
 
-### In (first slices)
-- Clear pay / settle status on account + open shipment (COD already exists; card/transfer later).
-- Customer email/SMS hooks for: booked, handed over, on hold (info needed), delivered (provider behind env; stub OK first).
-- Ops: one-click “request info” already exists — ensure Hold timeline + notify stay aligned.
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 0–6 | Notify stub + Ops log + settle status/list + stub transfer pay | **DONE** |
+
+---
+
+## Phase 8 — NEXT (Ops settle confirm)
+
+**Goal:** Ops can close the stub transfer loop the same way COD is collected — see awaiting payments and mark them paid so the customer open shipment shows **Paid**.
+
+### In
+- List `payment_intents` with status `AWAITING_PAYMENT` (Ops desk).
+- One-click **Mark paid** (note required) → intent `PAID`; settle UI flips.
+- Stub notify when marked paid.
+- Link from Ops nav (alongside COD ledger).
 
 ### Out (later)
-Full accounting, multi-currency settlement ledger, marketing campaigns.
+Live card checkout, real bank webhook reconciliation, multi-currency ledger, customer self-confirm.
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 0 | Phase 7 scope in `PLAN.md` | **DONE** |
-| 1 | Notify stub: write outbound notification log on book + Hold | **DONE** |
-| 2 | Ops view of notification log (`/ops/notifications`) | **DONE** |
-| 3 | Notify stub on handed over, delivered, info-request Hold | **DONE** |
-| 4 | Pay / settle status on open shipment | **DONE** |
-| 5 | Pay / settle short badge on All shipments list | **DONE** |
-| 6 | Card/transfer pay provider (env) | **DONE** |
-
-- Customer sees their shipments from account without tracking URLs alone.
-- One-click copy creates a new draft prefilled from a past shipment.
-- Domestic and international copies respect lane/currency defaults.
+| 0 | Phase 8 scope in `PLAN.md` | **DONE** |
+| 1 | `listAwaitingTransferPayments` + `markTransferPaid` + Ops API | **DONE** |
+| 2 | Ops `/ops/payments` desk + Mark paid form | — |
+| 3 | Stub notify on transfer marked paid | — |
+| 4 | Ops nav link + COD/payments cross-links | — |
 
 ---
 
