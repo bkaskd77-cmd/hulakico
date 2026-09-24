@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { logCustomerNotification } from "@/lib/data/notifications";
 
 export type AwaitingTransferPayment = {
   id: string;
@@ -78,7 +79,27 @@ export function markTransferPaid(
       return { error: "Payment note is required." };
     }
     ensurePaymentsTable();
-    const result = getDb()
+    const db = getDb();
+    const pending = db
+      .prepare(
+        `SELECT p.shipment_id, p.amount, p.currency, s.hulakico_awb
+         FROM payment_intents p
+         JOIN shipments s ON s.id = p.shipment_id
+         WHERE p.id = ? AND p.status = 'AWAITING_PAYMENT'`,
+      )
+      .get(paymentId) as
+      | {
+          shipment_id: string;
+          amount: number;
+          currency: string;
+          hulakico_awb: string | null;
+        }
+      | undefined;
+    if (!pending) {
+      return { error: "Payment not found or already settled." };
+    }
+
+    const result = db
       .prepare(
         `UPDATE payment_intents
          SET status = 'PAID',
@@ -89,6 +110,20 @@ export function markTransferPaid(
     if (result.changes === 0) {
       return { error: "Payment not found or already settled." };
     }
+
+    const awb = pending.hulakico_awb ?? pending.shipment_id;
+    const notify = logCustomerNotification({
+      shipmentId: pending.shipment_id,
+      kind: "PAID",
+      subject: `Hulakico payment received · ${awb}`,
+      body:
+        `We recorded your transfer of ${pending.currency} ` +
+        `${pending.amount.toFixed(2)} for ${awb}. Note: ${trimmed}`,
+    });
+    if ("error" in notify) {
+      console.error("[payment-ops.ts:markTransferPaid]", notify.error);
+    }
+
     return { ok: true };
   } catch (error) {
     console.error(

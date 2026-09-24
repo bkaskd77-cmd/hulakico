@@ -1,7 +1,13 @@
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
 
-export type NotifyKind = "BOOKED" | "HOLD" | "HANDED_OVER" | "DELIVERED";
+export type NotifyKind =
+  | "BOOKED"
+  | "HOLD"
+  | "HANDED_OVER"
+  | "DELIVERED"
+  | "PAID";
+
 
 export type NotificationRow = {
   id: string;
