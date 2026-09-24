@@ -47,6 +47,41 @@ export async function postBookingDraft(
   }
 }
 
+/** Generate quotes then confirm with the top-ranked option. */
+export async function quoteAndConfirmBooking(
+  shipmentId: string,
+): Promise<{ ok: true } | { error: string }> {
+  try {
+    const quotesRes = await fetch(`/api/bookings/${shipmentId}/quotes`, {
+      method: "POST",
+    });
+    const quotesData = await quotesRes.json();
+    if (!quotesRes.ok) {
+      return { error: quotesData.error || "Could not generate quotes." };
+    }
+    const options = quotesData.options as Array<{ id: string }> | undefined;
+    if (!options?.length) {
+      return { error: "No carrier quotes available." };
+    }
+    const confirmRes = await fetch(`/api/bookings/${shipmentId}/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quoteOptionId: options[0].id }),
+    });
+    const confirmData = await confirmRes.json();
+    if (!confirmRes.ok) {
+      return { error: confirmData.error || "Booking failed." };
+    }
+    return { ok: true };
+  } catch (error) {
+    console.error(
+      "[post-draft.ts:quoteAndConfirmBooking]",
+      error instanceof Error ? error.message : error,
+    );
+    return { error: "Booking failed. Please try again." };
+  }
+}
+
 export function applyLaneMode(
   prev: FormState,
   mode: "DOMESTIC" | "INTERNATIONAL",

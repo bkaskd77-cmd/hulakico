@@ -57,18 +57,22 @@ export function openException(
     db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
-    ).run(newId("evt"), shipmentId, `On hold: ${trimmed}`, now);
+    ).run(
+      newId("evt"),
+      shipmentId,
+      `On hold: ${trimmed}. Please contact Hulakico for more information so we can clear this hold.`,
+      now,
+    );
 
     const notify = logCustomerNotification({
       shipmentId,
       kind: "HOLD",
       subject: "Hulakico shipment on hold",
-      body: `Your shipment is on hold: ${trimmed}. Open your Hulakico track link if Ops asked for more info.`,
+      body: `Your shipment is on hold: ${trimmed}. Please contact Hulakico for more information so we can clear this hold.`,
     });
     if ("error" in notify) {
       console.error("[exceptions.ts:openException]", notify.error);
     }
-
     return { id };
   } catch (error) {
     console.error(
@@ -85,9 +89,7 @@ export function resolveException(
 ): void {
   try {
     const note = resolutionNote.trim();
-    if (note.length < 3) {
-      throw new Error("Resolution note must be at least 3 characters.");
-    }
+    if (note.length < 3) throw new Error("Resolution note must be at least 3 characters.");
 
     const db = getDb();
     const exception = db

@@ -4,7 +4,11 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SavedAddress } from "@/lib/data/addresses";
 import { applyCountryDefaults } from "./country-defaults";
-import { applyLaneMode, postBookingDraft } from "./post-draft";
+import {
+  applyLaneMode,
+  postBookingDraft,
+  quoteAndConfirmBooking,
+} from "./post-draft";
 import { pickPlaceForLane, pickSavedForLane } from "./lane-pick";
 import { ReviewSummary } from "./ReviewSummary";
 import { RouteFields } from "./RouteFields";
@@ -67,7 +71,7 @@ export function BookWizard({
     setStep((s) => (s - 1) as Step);
   }
 
-  async function saveDraft(event: FormEvent) {
+  async function bookShipment(event: FormEvent) {
     event.preventDefault();
     setError(null);
     if (blockIfRouteInvalid()) {
@@ -75,19 +79,25 @@ export function BookWizard({
       return;
     }
     setPending(true);
-    const result = await postBookingDraft(form, lane);
-    setPending(false);
-    if ("error" in result) {
-      setError(result.error);
+    const draft = await postBookingDraft(form, lane);
+    if ("error" in draft) {
+      setPending(false);
+      setError(draft.error);
       return;
     }
-    router.push(`/book/draft/${result.id}`);
+    const booked = await quoteAndConfirmBooking(draft.id);
+    setPending(false);
+    if ("error" in booked) {
+      setError(booked.error);
+      return;
+    }
+    router.push(`/book/booked/${draft.id}`);
     router.refresh();
   }
 
   return (
     <form
-      onSubmit={saveDraft}
+      onSubmit={bookShipment}
       noValidate
       className="shell-rise mx-auto w-full max-w-2xl rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-6 sm:p-8"
     >

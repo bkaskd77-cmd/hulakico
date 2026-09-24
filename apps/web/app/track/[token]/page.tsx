@@ -6,6 +6,12 @@ import { partnerTrackUrl } from "@/lib/domain/partner-track-url";
 
 export const runtime = "nodejs";
 
+function statusLabel(status: string): string {
+  if (status === "HANDOVER_PENDING") return "Handed over / picked up";
+  if (status === "EXCEPTION" || status === "HOLD") return "Hold";
+  return status.replaceAll("_", " ");
+}
+
 export default async function PublicTrackPage({
   params,
 }: {
@@ -13,27 +19,27 @@ export default async function PublicTrackPage({
 }) {
   const { token } = await params;
   const tracking = getTrackingByToken(token);
-  if (!tracking) {
-    notFound();
-  }
+  if (!tracking) notFound();
 
-  const partnerUrl = partnerTrackUrl(
-    tracking.carrierName,
-    tracking.externalAwb,
-  );
+  const partnerUrl = partnerTrackUrl(tracking.carrierName, tracking.externalAwb);
 
   return (
     <div className="shell-sky min-h-dvh px-6 py-16 sm:px-10">
       <div className="mx-auto w-full max-w-2xl rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
-        <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">
-          Hulakico
-        </p>
-        <h1 className="mt-4 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
+        <p className="font-display text-lg font-bold text-[var(--off-white)]">Hulakico</p>
+        <h1 className="font-display mt-4 text-3xl font-bold text-[var(--off-white)]">
           Track shipment
         </h1>
-        <p className="mt-3 text-sm font-semibold text-[var(--gold)]">
-          {tracking.statusNote}
-        </p>
+        <p className="mt-3 text-sm font-semibold text-[var(--gold)]">{tracking.statusNote}</p>
+
+        {tracking.holdInfo ? (
+          <div className="mt-6 rounded-md border border-[var(--danger)]/50 bg-[color-mix(in_srgb,var(--danger)_12%,transparent)] p-4">
+            <p className="text-xs uppercase tracking-wide text-[var(--danger)]">On hold</p>
+            <p className="mt-2 text-sm text-[var(--off-white)]">{tracking.holdInfo.reason}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{tracking.holdInfo.contactHint}</p>
+          </div>
+        ) : null}
+
         <dl className="mt-6 grid gap-3 text-sm text-[var(--muted)] sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase tracking-wide">Hulakico AWB</dt>
@@ -41,13 +47,7 @@ export default async function PublicTrackPage({
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Status</dt>
-            <dd className="text-[var(--off-white)]">
-              {tracking.status === "HANDOVER_PENDING"
-                ? "Handed over / picked up"
-                : tracking.status === "EXCEPTION"
-                  ? "Hold"
-                  : tracking.status.replaceAll("_", " ")}
-            </dd>
+            <dd className="text-[var(--off-white)]">{statusLabel(tracking.status)}</dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Route</dt>
@@ -57,9 +57,7 @@ export default async function PublicTrackPage({
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Carrier</dt>
-            <dd className="text-[var(--off-white)]">
-              {tracking.carrierName ?? "Pending"}
-            </dd>
+            <dd className="text-[var(--off-white)]">{tracking.carrierName ?? "Pending"}</dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs uppercase tracking-wide">Partner AWB</dt>
@@ -99,27 +97,21 @@ export default async function PublicTrackPage({
             Status history
           </p>
           {tracking.events.map((event) => {
-            const atDestination =
+            const atDest =
               event.status === "OUT_FOR_DELIVERY" || event.status === "DELIVERED";
-            const location = atDestination
+            const location = atDest
               ? tracking.destinationCity
               : event.location || tracking.originCity;
-            const title =
-              event.status === "HANDOVER_PENDING"
-                ? "Handed over / picked up"
-                : event.status === "EXCEPTION" || event.status === "HOLD"
-                  ? "Hold"
-                  : event.status.replaceAll("_", " ");
             const description =
               event.status === "HANDOVER_PENDING" &&
               event.description.toLowerCase().includes("awaiting")
                 ? "Handed over / picked up by partner."
-                : event.status === "EXCEPTION"
-                  ? event.description.replace(/^Exception opened:\s*/i, "On hold: ")
-                  : event.description;
+                : event.description;
             return (
               <li key={event.id}>
-                <p className="text-sm font-semibold text-[var(--off-white)]">{title}</p>
+                <p className="text-sm font-semibold text-[var(--off-white)]">
+                  {statusLabel(event.status)}
+                </p>
                 <p className="text-sm text-[var(--muted)]">{description}</p>
                 <p className="text-xs text-[var(--muted)]">
                   {location} · {new Date(event.occurredAt).toLocaleString()}

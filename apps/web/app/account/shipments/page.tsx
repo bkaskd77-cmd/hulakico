@@ -1,22 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { copyShipmentAction } from "@/app/account/copy-actions";
+import { ShipmentListCard } from "@/app/account/ShipmentListCard";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import {
   listMyShipments,
   SHIPMENTS_MAX_PAGE_BUTTONS,
   SHIPMENTS_PAGE_SIZE,
-  type MyShipmentRow,
 } from "@/lib/data/my-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
-
-function shipmentHref(row: MyShipmentRow) {
-  if (row.status === "DRAFT" || row.status === "QUOTED") return `/book/draft/${row.id}`;
-  if (row.trackingToken) return `/track/${row.trackingToken}`;
-  return `/book/draft/${row.id}`;
-}
 
 function pageHref(n: number) {
   return n === 1 ? "/account/shipments" : `/account/shipments?page=${n}`;
@@ -41,85 +34,85 @@ export default async function AccountShipmentsPage({
   );
 
   return (
-    <div className="shell-sky min-h-dvh px-6 py-16 sm:px-10">
-      <div className="mx-auto max-w-lg rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Account</p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
-          All shipments
-        </h1>
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          {SHIPMENTS_PAGE_SIZE} per page · pages 1–{SHIPMENTS_MAX_PAGE_BUTTONS}. Finished stay 3 months.
-        </p>
+    <div className="min-h-dvh bg-[#eef5f8] px-4 py-10 text-slate-900 sm:px-8">
+      <div className="mx-auto max-w-4xl">
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">
+              Your control tower
+            </p>
+            <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight">
+              All shipments
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              {SHIPMENTS_PAGE_SIZE} per page · finished stay 3 months
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 text-sm">
+            <Link href="/account" className="font-semibold text-slate-700 underline-offset-2 hover:underline">
+              Account
+            </Link>
+            <Link
+              href="/book"
+              className="rounded-md bg-[var(--gold)] px-4 py-2 font-semibold text-[var(--navy)]"
+            >
+              Book a shipment
+            </Link>
+          </div>
+        </header>
+
         {copyError ? (
-          <p className="mt-3 text-sm text-[var(--danger)]">{decodeURIComponent(copyError)}</p>
+          <p className="mt-4 text-sm text-[var(--danger)]">{decodeURIComponent(copyError)}</p>
         ) : null}
 
         {list.total === 0 ? (
-          <div className="mt-8 space-y-4">
-            <p className="text-sm text-[var(--muted)]">
+          <div className="mt-10 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
+            <p className="text-sm text-slate-600">
               No shipments yet. Book your first send — drafts and bookings appear here.
             </p>
-            <Link href="/book"
-              className="inline-block rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]">
+            <Link
+              href="/book"
+              className="mt-5 inline-block rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]"
+            >
               Book a shipment
             </Link>
           </div>
         ) : (
           <>
-            <ul className="mt-6 space-y-3">
+            <p className="mt-6 text-sm text-slate-600">
+              Showing {(list.page - 1) * list.pageSize + 1}–
+              {Math.min(list.page * list.pageSize, list.total)} of {list.total}
+            </p>
+            <ul className="mt-4 space-y-4">
               {list.rows.map((row) => (
-                <li key={row.id}
-                  className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-3 py-3 text-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-semibold text-[var(--off-white)]">
-                      {row.originCity} → {row.destinationCity}
-                    </p>
-                    <span className="text-xs uppercase tracking-wide text-[var(--teal)]">{row.status}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-[var(--muted)]">
-                    {row.lane}{row.hulakicoAwb ? ` · ${row.hulakicoAwb}` : ""} ·{" "}
-                    {row.settleShort} · {new Date(row.updatedAt).toLocaleString()}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-3">
-                    <Link href={`/account/shipments/${row.id}`}
-                      className="text-xs font-semibold text-[var(--off-white)] underline">Open shipment</Link>
-                    <Link href={shipmentHref(row)} className="text-xs text-[var(--gold)] underline">
-                      {row.status === "DRAFT" || row.status === "QUOTED" ? "Open draft" : "Track"}
-                    </Link>
-                    <form action={copyShipmentAction}>
-                      <input type="hidden" name="shipmentId" value={row.id} />
-                      <button type="submit" className="text-xs font-semibold text-[var(--teal)] underline">
-                        Copy / rebook
-                      </button>
-                    </form>
-                  </div>
-                </li>
+                <ShipmentListCard key={row.id} row={row} />
               ))}
             </ul>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-[var(--muted)]">
-                Page {list.page} of {list.pageCount} · {list.total} total
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-600">
+                Page {list.page} of {list.pageCount}
               </span>
               {pageNumbers.map((n) => (
-                <Link key={n} href={pageHref(n)}
-                  className={`rounded px-2 py-1 text-xs font-semibold ${
+                <Link
+                  key={n}
+                  href={pageHref(n)}
+                  className={`rounded px-2.5 py-1 text-xs font-semibold ${
                     n === list.page
                       ? "bg-[var(--gold)] text-[var(--navy)]"
-                      : "border border-[var(--teal)] text-[var(--teal)]"
-                  }`}>{n}</Link>
+                      : "border border-slate-300 text-slate-700 hover:border-[var(--teal)]"
+                  }`}
+                >
+                  {n}
+                </Link>
               ))}
               {list.page < list.pageCount ? (
-                <Link href={pageHref(list.page + 1)}
-                  className="text-xs font-semibold text-[var(--gold)] underline">View more</Link>
+                <Link href={pageHref(list.page + 1)} className="text-xs font-semibold text-[var(--teal)] underline">
+                  View more
+                </Link>
               ) : null}
             </div>
           </>
         )}
-
-        <div className="mt-8 flex flex-wrap gap-4 text-sm">
-          <Link href="/account" className="text-[var(--teal)] underline">Back to account</Link>
-          <Link href="/book" className="text-[var(--gold)] underline">Book another</Link>
-        </div>
       </div>
     </div>
   );

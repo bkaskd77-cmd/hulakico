@@ -30,7 +30,7 @@ export function WizardNav({
         </button>
       ) : (
         <button type="submit" disabled={pending} className={`${BTN} disabled:opacity-60`}>
-          {pending ? "Saving…" : "Save draft & get quotes"}
+          {pending ? "Booking…" : "Book the shipment"}
         </button>
       )}
       <Link href="/account" className={`${OUTLINE} ml-auto`}>

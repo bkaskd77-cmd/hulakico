@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* Brand palette — refined final combination */
-  --navy: #0f2744;
-  --navy-elevated: #163556;
-  --teal: #0a8f8c;
-  --gold: #d4a84b;
-  --off-white: #f7f8fa;
+  /* Brighter sky-blue shell — keeps light text readable */
+  --navy: #1a4d6e;
+  --navy-elevated: #246387;
+  --teal: #0ea5a0;
+  --gold: #e0b35a;
+  --off-white: #f7fbfd;
 
   --background: var(--navy);
   --foreground: var(--off-white);
-  --muted: color-mix(in srgb, var(--off-white) 72%, var(--navy));
+  --muted: color-mix(in srgb, var(--off-white) 88%, var(--navy));
   --accent: var(--gold);
   --accent-soft: color-mix(in srgb, var(--gold) 22%, transparent);
   --ring: var(--teal);
@@ -20,16 +20,17 @@
   --font-body: var(--font-inter), system-ui, sans-serif;
 
   --gradient-sky: linear-gradient(
-    165deg,
-    #0a1c30 0%,
-    var(--navy) 42%,
-    #143d55 78%,
-    color-mix(in srgb, var(--teal) 45%, var(--navy)) 100%
+    158deg,
+    #2a7a9a 0%,
+    #1f6b8c 28%,
+    #1a5f82 52%,
+    #178a86 78%,
+    color-mix(in srgb, var(--teal) 55%, #1a4d6e) 100%
   );
   --gradient-glow: radial-gradient(
-    ellipse 80% 50% at 72% 18%,
-    color-mix(in srgb, var(--teal) 32%, transparent),
-    transparent 70%
+    ellipse 75% 55% at 78% 12%,
+    color-mix(in srgb, #7ec8c4 45%, transparent),
+    transparent 68%
   );
 }
 
@@ -50,7 +51,7 @@
 @keyframes hush-rise {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
@@ -61,31 +62,69 @@
 @keyframes route-pulse {
   0%,
   100% {
-    opacity: 0.35;
+    opacity: 0.3;
   }
   50% {
-    opacity: 0.85;
+    opacity: 0.95;
   }
 }
 
-@keyframes home-dot-glow {
+@keyframes home-lane-draw {
+  0% {
+    stroke-dashoffset: 1400;
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 0.95;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+}
+
+@keyframes home-node-pulse {
   0%,
   100% {
-    box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 50%, transparent);
+    opacity: 0.55;
+    transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 22px color-mix(in srgb, var(--teal) 55%, transparent);
+    opacity: 1;
+    transform: scale(1.45);
+  }
+}
+
+@keyframes home-aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(-3%, 2%, 0) scale(1.06);
+    opacity: 0.85;
   }
 }
 
 @keyframes home-section-in {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(32px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes home-beam {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
   }
 }
 
@@ -106,31 +145,70 @@ body {
 }
 
 .shell-rise {
-  animation: hush-rise 0.9s ease-out both;
+  animation: hush-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .shell-rise-delay {
-  animation: hush-rise 1s ease-out 0.15s both;
+  animation: hush-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
 }
 
 .shell-route {
   animation: route-pulse 3.2s ease-in-out infinite;
 }
 
-.home-dot {
-  animation: home-dot-glow 3.6s ease-in-out infinite;
+.home-section {
+  animation: home-section-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.home-section {
-  animation: home-section-in 0.9s ease-out both;
+.home-hero-aurora {
+  background:
+    radial-gradient(ellipse 55% 40% at 18% 72%, color-mix(in srgb, var(--gold) 28%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 88% 28%, color-mix(in srgb, #9fe0dc 42%, transparent), transparent 65%);
+  animation: home-aurora-drift 14s ease-in-out infinite;
+}
+
+.home-lane {
+  stroke-dasharray: 1400;
+  animation: home-lane-draw 4.5s ease-out both, route-pulse 5s ease-in-out 4.5s infinite;
+}
+
+.home-lane-slow {
+  animation-duration: 6s, 7s;
+  animation-delay: 0.4s, 6.4s;
+}
+
+.home-node {
+  animation: home-node-pulse 3.2s ease-in-out infinite;
+}
+
+.home-node-delay {
+  animation-delay: 0.8s;
+}
+
+.home-services-glow {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 0%,
+    color-mix(in srgb, var(--teal) 16%, transparent),
+    transparent 70%
+  );
+}
+
+.home-footer-beam {
+  background: linear-gradient(90deg, transparent, var(--teal), var(--gold), transparent);
+  animation: home-beam 4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .shell-rise,
   .shell-rise-delay,
   .shell-route,
-  .home-dot,
-  .home-section {
+  .home-section,
+  .home-hero-aurora,
+  .home-lane,
+  .home-lane-slow,
+  .home-node,
+  .home-node-delay,
+  .home-footer-beam {
     animation: none;
   }
 }

@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <div className="shell-sky">
-      <HomeHero bookHref={bookHref} showOps={Boolean(user)} />
+      <HomeHero bookHref={bookHref} signedIn={Boolean(user)} />
       <HomeSections bookHref={bookHref} />
     </div>
   );
