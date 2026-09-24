@@ -169,7 +169,9 @@ Full accounting, multi-currency settlement ledger, marketing campaigns.
 | 1 | Notify stub: write outbound notification log on book + Hold | **DONE** |
 | 2 | Ops view of notification log (`/ops/notifications`) | **DONE** |
 | 3 | Notify stub on handed over, delivered, info-request Hold | **DONE** |
-| 4 | Pay / settle status on account + open shipment | NEXT |
+| 4 | Pay / settle status on open shipment | **DONE** |
+| 5 | Pay / settle short badge on All shipments list | **DONE** |
+| 6 | Card/transfer pay provider (env) | NEXT |
 
 - Customer sees their shipments from account without tracking URLs alone.
 - One-click copy creates a new draft prefilled from a past shipment.

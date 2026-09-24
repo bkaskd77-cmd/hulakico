@@ -78,7 +78,7 @@ export default async function AccountShipmentsPage({
                   </div>
                   <p className="mt-1 text-xs text-[var(--muted)]">
                     {row.lane}{row.hulakicoAwb ? ` · ${row.hulakicoAwb}` : ""} ·{" "}
-                    {new Date(row.updatedAt).toLocaleString()}
+                    {row.settleShort} · {new Date(row.updatedAt).toLocaleString()}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-3">
                     <Link href={`/account/shipments/${row.id}`}

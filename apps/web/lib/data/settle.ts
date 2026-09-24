@@ -80,3 +80,10 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
     };
   }
 }
+
+/** Short badge for shipment lists. */
+export function settleShortLabel(summary: SettleSummary): string {
+  if (summary.mode === "COD" && summary.status === "COLLECTED") return "COD collected";
+  if (summary.mode === "COD") return "COD pending";
+  return "No COD";
+}

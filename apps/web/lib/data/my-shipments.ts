@@ -4,6 +4,7 @@ import {
   purgeExpiredFinishedShipments,
   retentionCutoffIso,
 } from "@/lib/data/shipment-purge";
+import { getSettleSummary, settleShortLabel } from "@/lib/data/settle";
 
 /** Customer hub: fixed page size; UI shows at most page buttons 1–10. */
 export const SHIPMENTS_PAGE_SIZE = 15;
@@ -17,6 +18,7 @@ export type MyShipmentRow = {
   destinationCity: string;
   hulakicoAwb: string | null;
   trackingToken: string | null;
+  settleShort: string;
   updatedAt: string;
   createdAt: string;
 };
@@ -80,6 +82,7 @@ export function listMyShipments(userId: string, page = 1): MyShipmentsPage {
         destinationCity: row.destination_city,
         hulakicoAwb: row.hulakico_awb,
         trackingToken: row.tracking_token,
+        settleShort: settleShortLabel(getSettleSummary(row.id)),
         updatedAt: row.updated_at,
         createdAt: row.created_at,
       })),
