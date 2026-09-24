@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -12,6 +11,8 @@ from pydantic import BaseModel, Field
 
 from doc_qc import run_document_qc
 from eta_risk import assess_eta_risk
+from eta_risk_batch_route import router as eta_risk_batch_router
+from main_auth import require_service_token
 from places_provider import get_places_provider
 from ranker import rank_quote_options
 
@@ -22,6 +23,7 @@ app = FastAPI(
     description="AI/ML and algorithm engine for Hulakico logistics.",
     version="0.1.0",
 )
+app.include_router(eta_risk_batch_router)
 
 
 class RankOptionIn(BaseModel):
@@ -63,14 +65,6 @@ class PlaceSuggestRequest(BaseModel):
     countryHint: str | None = None
 
 
-def _require_service_token(authorization: str | None) -> None:
-    expected = os.getenv("INTELLIGENCE_SERVICE_TOKEN", "")
-    if not expected:
-        raise HTTPException(status_code=500, detail="Service token not configured.")
-    if not authorization or authorization != f"Bearer {expected}":
-        raise HTTPException(status_code=401, detail="Unauthorized.")
-
-
 @app.get("/health")
 def health() -> JSONResponse:
     try:
@@ -86,12 +80,13 @@ def health() -> JSONResponse:
         print(f"[main.py:health] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"status": "error"}, status_code=500)
 
+
 @app.post("/v1/rank-quotes")
 def rank_quotes(
     body: RankRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
-        _require_service_token(authorization)
+        require_service_token(authorization)
         ranked = rank_quote_options(
             [option.model_dump() for option in body.options], wants_cod=body.wantsCod,
         )
@@ -102,12 +97,13 @@ def rank_quotes(
         print(f"[main.py:rank_quotes] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "Ranking failed."}, status_code=500)
 
+
 @app.post("/v1/eta-risk")
 def eta_risk(
     body: EtaRiskRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
-        _require_service_token(authorization)
+        require_service_token(authorization)
         return JSONResponse(content=assess_eta_risk(body.model_dump()))
     except HTTPException:
         raise
@@ -115,12 +111,13 @@ def eta_risk(
         print(f"[main.py:eta_risk] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "ETA risk failed."}, status_code=500)
 
+
 @app.post("/v1/document-qc")
 def document_qc(
     body: DocQcRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
-        _require_service_token(authorization)
+        require_service_token(authorization)
         return JSONResponse(content=run_document_qc(body.model_dump()))
     except HTTPException:
         raise
@@ -128,12 +125,13 @@ def document_qc(
         print(f"[main.py:document_qc] {type(exc).__name__}: {exc}")
         return JSONResponse(content={"error": "Document QC failed."}, status_code=500)
 
+
 @app.post("/v1/suggest-places")
 def suggest_places_route(
     body: PlaceSuggestRequest, authorization: str | None = Header(default=None),
 ) -> JSONResponse:
     try:
-        _require_service_token(authorization)
+        require_service_token(authorization)
         provider = get_places_provider()
         return JSONResponse(
             content={

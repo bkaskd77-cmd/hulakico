@@ -27,7 +27,7 @@ async function signOutAction() {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ops?: string; copy?: string }>;
+  searchParams: Promise<{ ops?: string; admin?: string; copy?: string }>;
 }) {
   const token = await readSessionToken();
   if (!token) redirect("/signin");
@@ -36,6 +36,7 @@ export default async function AccountPage({
 
   const params = await searchParams;
   const opsDenied = params.ops === "denied";
+  const adminDenied = params.admin === "denied";
   const copyError =
     params.copy && params.copy !== "missing" ? params.copy : null;
   const list = listMyShipments(user.id, 1);
@@ -49,7 +50,12 @@ export default async function AccountPage({
           </p>
           {opsDenied ? (
             <p className="mt-3 text-sm text-[var(--danger)]">
-              Ops tower is limited to OPS/ADMIN accounts.
+              Ops moved to Admin. Sign in at /admin/signin with a staff account.
+            </p>
+          ) : null}
+          {adminDenied ? (
+            <p className="mt-3 text-sm text-[var(--danger)]">
+              Admin requires a separate staff account at /admin/signin.
             </p>
           ) : null}
           {copyError ? (
@@ -80,12 +86,6 @@ export default async function AccountPage({
             >
               All shipments
               {list.total > 0 ? ` (${list.total})` : ""}
-            </Link>
-            <Link
-              href="/ops"
-              className="rounded-md border border-[var(--muted)] px-4 py-2 text-sm text-[var(--off-white)]"
-            >
-              Ops tower
             </Link>
             <form action={signOutAction}>
               <button

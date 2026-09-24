@@ -1,6 +1,6 @@
 import { requestExceptionInfo } from "@/lib/data/exception-info";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
-import { readSessionToken } from "@/lib/http/session-cookie";
+import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -10,7 +10,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const access = resolveOpsAccess(await readSessionToken());
+    const access = resolveOpsAccess(await readStaffSessionToken());
     if (!access.ok) {
       return NextResponse.json(
         { error: access.error },

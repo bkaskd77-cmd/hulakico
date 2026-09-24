@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phases 1–7 complete. Phase 8 — Ops settle confirm (mark transfer paid).
+**Status:** Phase 10 complete — separate Admin staff vs customer users.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -161,26 +161,52 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 
 ---
 
-## Phase 8 — NEXT (Ops settle confirm)
+## Phase 8 — COMPLETE (Ops settle confirm; Step 4 deferred)
 
 **Goal:** Ops can close the stub transfer loop the same way COD is collected — see awaiting payments and mark them paid so the customer open shipment shows **Paid**.
 
-### In
-- List `payment_intents` with status `AWAITING_PAYMENT` (Ops desk).
-- One-click **Mark paid** (note required) → intent `PAID`; settle UI flips.
-- Stub notify when marked paid.
-- Link from Ops nav (alongside COD ledger).
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 0–3 | List/mark paid API + `/ops/payments` desk + stub notify | **DONE** |
+| 4 | Ops nav link + COD/payments cross-links | **DEFERRED** (after Admin foundation) |
 
-### Out (later)
-Live card checkout, real bank webhook reconciliation, multi-currency ledger, customer self-confirm.
+---
+
+## Phase 9 — COMPLETE (Admin AI control tower; shared-role model superseded)
+
+Shared `users.platform_role` Admin/Ops is superseded by Phase 10 staff accounts.
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 0 | Phase 8 scope in `PLAN.md` | **DONE** |
-| 1 | `listAwaitingTransferPayments` + `markTransferPaid` + Ops API | **DONE** |
-| 2 | Ops `/ops/payments` desk + Mark paid form | **DONE** |
-| 3 | Stub notify on transfer marked paid | **DONE** |
-| 4 | Ops nav link + COD/payments cross-links | — |
+| 0–6 | Admin gate, AI tower board, eta-risk-batch, account CTA | **DONE** |
+
+---
+
+## Phase 10 — NEXT (Separate Admin staff vs customer)
+
+**Goal:** Customer book/track accounts and Admin/staff control accounts are completely separate systems. Ops lives under `/admin`.
+
+### In
+- `staff_users` + `staff_sessions` + `hulakico_staff_session` cookie.
+- Staff bootstrap via `STAFF_BOOTSTRAP_EMAIL` + `STAFF_BOOTSTRAP_PASSWORD`.
+- `/admin/signin` uses staff auth only.
+- Staff gate for AI tower + Ops desks under `/admin/*`.
+- `/ops/*` redirects to `/admin/*`; customer account has no Ops/Admin CTAs.
+- Retire promoting customers with OPS/ADMIN_BOOTSTRAP_EMAIL.
+
+### Out (later)
+Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 0 | Phase 10 scope in `PLAN.md` | **DONE** |
+| 1 | `staff_users` + `staff_sessions` + STAFF_BOOTSTRAP seed | **DONE** |
+| 2 | `staff-auth` + staff session cookie | **DONE** |
+| 3 | `POST /api/admin/auth/signin` + Admin signin page | **DONE** |
+| 4 | Guards use staff session only | **DONE** |
+| 5 | Ops desks under `/admin/*` + staff nav | **DONE** |
+| 6 | Redirect `/ops/*`; remove customer Ops/Admin CTAs | **DONE** |
+| 7 | Retire user role bootstrap; document STAFF_BOOTSTRAP | **DONE** |
 
 ---
 

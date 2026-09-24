@@ -1,4 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
+import { randomBytes } from "node:crypto";
+import bcrypt from "bcryptjs";
 
 export function ensureSchema(database: DatabaseSync): void {
   database.exec(`
@@ -223,7 +225,9 @@ export function ensureSchema(database: DatabaseSync): void {
   migrateUserPlatformRole(database);
   migrateExceptionInfoRequired(database);
   migrateInvoiceLineWeight(database);
-  bootstrapOpsRole(database);
+  ensureStaffTables(database);
+  migrateStaffRoles(database);
+  bootstrapStaffAdmin(database);
 }
 
 function migrateInvoiceLineWeight(database: DatabaseSync): void {
@@ -298,19 +302,87 @@ function migrateUserPlatformRole(database: DatabaseSync): void {
   }
 }
 
-function bootstrapOpsRole(database: DatabaseSync): void {
+function ensureStaffTables(database: DatabaseSync): void {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS staff_users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      password_hash TEXT NOT NULL,
+      name TEXT NOT NULL,
+      role TEXT NOT NULL CHECK (role IN ('ADMIN', 'EDITOR', 'SUB_ADMIN')),
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS staff_sessions (
+      id TEXT PRIMARY KEY,
+      staff_user_id TEXT NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (staff_user_id) REFERENCES staff_users(id)
+    );
+  `);
+}
+
+/** Expand staff roles: OPS → EDITOR; allow ADMIN | EDITOR | SUB_ADMIN. */
+function migrateStaffRoles(database: DatabaseSync): void {
   try {
-    const email = process.env.OPS_BOOTSTRAP_EMAIL?.trim().toLowerCase();
-    if (!email) return;
-    database
+    const row = database
       .prepare(
-        `UPDATE users SET platform_role = 'OPS'
-         WHERE email = ? AND platform_role = 'CUSTOMER'`,
+        `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'staff_users'`,
       )
-      .run(email);
+      .get() as { sql: string } | undefined;
+    if (!row?.sql) return;
+    if (row.sql.includes("SUB_ADMIN")) return;
+
+    database.exec(`
+      CREATE TABLE staff_users_v2 (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        password_hash TEXT NOT NULL,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'EDITOR', 'SUB_ADMIN')),
+        created_at TEXT NOT NULL
+      );
+      INSERT INTO staff_users_v2 (id, email, password_hash, name, role, created_at)
+      SELECT id, email, password_hash, name,
+             CASE WHEN role = 'OPS' THEN 'EDITOR' ELSE role END,
+             created_at
+      FROM staff_users;
+      DROP TABLE staff_users;
+      ALTER TABLE staff_users_v2 RENAME TO staff_users;
+    `);
   } catch (error) {
     console.error(
-      "[db-schema.ts:bootstrapOpsRole]",
+      "[db-schema.ts:migrateStaffRoles]",
+      error instanceof Error ? error.message : error,
+    );
+  }
+}
+
+function bootstrapStaffAdmin(database: DatabaseSync): void {
+  try {
+    const email = process.env.STAFF_BOOTSTRAP_EMAIL?.trim().toLowerCase();
+    const password = process.env.STAFF_BOOTSTRAP_PASSWORD?.trim();
+    if (!email || !password || password.length < 8) return;
+
+    const count = database
+      .prepare(`SELECT COUNT(*) as c FROM staff_users`)
+      .get() as { c: number };
+    if (count.c > 0) return;
+
+    const id = `stf_${randomBytes(12).toString("hex")}`;
+    const now = new Date().toISOString();
+    const passwordHash = bcrypt.hashSync(password, 12);
+    database
+      .prepare(
+        `INSERT INTO staff_users (id, email, password_hash, name, role, created_at)
+         VALUES (?, ?, ?, ?, 'ADMIN', ?)`,
+      )
+      .run(id, email, passwordHash, "Hulakico Admin", now);
+  } catch (error) {
+    console.error(
+      "[db-schema.ts:bootstrapStaffAdmin]",
       error instanceof Error ? error.message : error,
     );
   }

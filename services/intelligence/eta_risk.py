@@ -70,3 +70,22 @@ def assess_eta_risk(payload: dict) -> dict:
     except Exception as exc:
         print(f"[eta_risk.py:assess_eta_risk] {type(exc).__name__}: {exc}")
         raise
+
+
+def assess_eta_risk_batch(items: list[dict]) -> list[dict]:
+    """Score many shipments; each item may include an opaque id for join-back."""
+    try:
+        results: list[dict] = []
+        for item in items:
+            scored = assess_eta_risk(item)
+            row = {
+                "id": item.get("id"),
+                "level": scored["level"],
+                "score": scored["score"],
+                "factors": scored["factors"],
+            }
+            results.append(row)
+        return results
+    except Exception as exc:
+        print(f"[eta_risk.py:assess_eta_risk_batch] {type(exc).__name__}: {exc}")
+        raise

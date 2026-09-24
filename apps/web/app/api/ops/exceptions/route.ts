@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { openException } from "@/lib/data/exceptions";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
-import { readSessionToken } from "@/lib/http/session-cookie";
+import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const access = resolveOpsAccess(await readSessionToken());
+    const access = resolveOpsAccess(await readStaffSessionToken());
     if (!access.ok) {
       return NextResponse.json(
         { error: access.error },
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = openException(access.user.id, body.shipmentId, body.reason);
+    const result = openException(access.staff.id, body.shipmentId, body.reason);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error(

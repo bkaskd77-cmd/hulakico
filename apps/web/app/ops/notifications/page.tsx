@@ -2,12 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { listRecentNotifications } from "@/lib/data/notifications";
-import { readSessionToken } from "@/lib/http/session-cookie";
+import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
 
 export default async function OpsNotificationsPage() {
-  const token = await readSessionToken();
+  const token = await readStaffSessionToken();
   const access = resolveOpsAccess(token);
   if (!access.ok) {
     redirect(access.status === 401 ? "/signin" : "/account?ops=denied");
