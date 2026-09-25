@@ -1,4 +1,5 @@
 import { HomeHero } from "@/app/home/HomeHero";
+import { HomeQuoteForm } from "@/app/home/HomeQuoteForm";
 import { HomeSections } from "@/app/home/HomeSections";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getHomepageContent } from "@/lib/data/homepage-content";
@@ -16,6 +17,7 @@ export default async function Home() {
     <div className="shell-sky">
       <HomeHero bookHref={bookHref} signedIn={Boolean(user)} content={content} />
       <HomeSections bookHref={bookHref} content={content} />
+      <HomeQuoteForm bookHref={bookHref} />
     </div>
   );
 }

@@ -14,6 +14,8 @@ type RankedOption = {
   etaDaysMin: number;
   etaDaysMax: number;
   rank: number;
+  rankScore?: number;
+  rankReason?: string;
 };
 
 export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
@@ -116,7 +118,10 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
                     <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">
                       #{o.rank} {o.carrierName}
                     </p>
-                    <p className="text-sm text-[var(--muted)]">{o.serviceName} · ETA {o.etaDaysMin}–{o.etaDaysMax}d</p>
+                    <p className="text-sm text-[var(--muted)]">
+                      {o.serviceName} · ETA {o.etaDaysMin}–{o.etaDaysMax}d
+                      {o.rankReason ? ` · ${o.rankReason}` : ""}
+                    </p>
                   </div>
                   <p className="text-sm font-semibold text-[var(--gold)]">{o.currency} {o.amount.toFixed(2)}</p>
                 </li>
