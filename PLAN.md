@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 12 started — live Nepal wallet HMAC seam (Step 1). Stub remains default (`PAY_PROVIDER=stub`).
+**Status:** Phase 11 complete · Admin filters done. Phase 12 (live eSewa/Khalti/Connect IPS) **parked** until merchant API keys exist — keep `PAY_PROVIDER=stub`.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -217,19 +217,21 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 ---
 
-## Phase 12 — IN PROGRESS (Live Nepal wallets)
+## Phase 12 — PARKED (Live Nepal wallets)
 
 **Goal:** Replace stub checkout with real eSewa / Khalti / Connect IPS redirects + signed callbacks. Secrets only in `.env`. Default stays `PAY_PROVIDER=stub`.
 
+**Parked:** No merchant API keys yet — do not build HMAC/callback adapters until keys are available. Step 1 seam (live mode + env detection + fail-closed) stays in place.
+
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 1 | `PAY_PROVIDER=live` mode + env key detection + fail-closed resolveCheckout | **DONE** |
-| 2 | eSewa HMAC redirect + success/failure callback routes | pending |
-| 3 | Khalti initiate + verification callback | pending |
-| 4 | Connect IPS signed form post + callback | pending |
-| 5 | Mark intent PAID only after verified callback; book confirm unchanged | pending |
+| 1 | `PAY_PROVIDER=live` mode + env key detection + fail-closed resolveCheckout | **DONE** (seam only) |
+| 2 | eSewa HMAC redirect + success/failure callback routes | **PARKED** |
+| 3 | Khalti initiate + verification callback | **PARKED** |
+| 4 | Connect IPS signed form post + callback | **PARKED** |
+| 5 | Mark intent PAID only after verified callback; book confirm unchanged | **PARKED**
 
-**Env (live, never commit values):**  
+**Env (when unparked, never commit values):**  
 `PAY_PROVIDER=live` · `ESEWA_MERCHANT_CODE` · `ESEWA_SECRET_KEY` · `KHALTI_SECRET_KEY` · `CONNECT_IPS_MERCHANT_ID` · `CONNECT_IPS_APP_ID` · `CONNECT_IPS_APP_NAME` · `CONNECT_IPS_SECRET_KEY` · public `APP_BASE_URL` for callbacks.
 
 ---
