@@ -2,9 +2,9 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 13 complete — Admin homepage CMS. Phase 12 live wallets remain parked (`PAY_PROVIDER=stub`).
+**Status:** Deploy pipeline active — push `main` to GitHub; Vercel builds `apps/web`. SQLite uses `/tmp` on Vercel (ephemeral); Neon/Postgres still the production DB target. Phase 12 wallets parked.
 
-**Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
+**Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. On Vercel, DB defaults to `/tmp/hulakico.db` (resets on cold start). Production target remains PostgreSQL.
 
 ---
 

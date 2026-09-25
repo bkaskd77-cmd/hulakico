@@ -3,7 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { ensureSchema } from "@/lib/db-schema";
 
-const DEFAULT_DB = path.join(process.cwd(), "data", "hulakico.db");
+const DEFAULT_DB = process.env.VERCEL
+  ? path.join("/tmp", "hulakico.db")
+  : path.join(process.cwd(), "data", "hulakico.db");
 
 let db: DatabaseSync | null = null;
 let schemaReady = false;

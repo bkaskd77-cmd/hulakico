@@ -12,6 +12,10 @@ apps/web/.next/
 apps/web/out/
 apps/web/data/
 
+# Vercel / Cursor local
+.vercel/
+.cursor/
+
 # Python
 __pycache__/
 *.py[cod]
