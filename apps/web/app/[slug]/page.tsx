@@ -6,7 +6,7 @@ import { INFO_GROUPS, INFO_PAGES, getInfoPage } from "@/lib/data/info-pages";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return INFO_PAGES.map((page) => ({ slug: page.slug }));
+  return INFO_PAGES.filter((page) => !page.standalone).map((page) => ({ slug: page.slug }));
 }
 
 export async function generateMetadata({

@@ -229,6 +229,23 @@ export function ensureSchema(database: DatabaseSync): void {
   migrateStaffRoles(database);
   bootstrapStaffAdmin(database);
   ensureSiteContentTable(database);
+  ensureContactMessagesTable(database);
+}
+
+function ensureContactMessagesTable(database: DatabaseSync): void {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT,
+      topic TEXT NOT NULL,
+      reference TEXT,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'NEW',
+      created_at TEXT NOT NULL
+    );
+  `);
 }
 
 function ensureSiteContentTable(database: DatabaseSync): void {

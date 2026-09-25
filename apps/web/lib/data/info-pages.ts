@@ -8,10 +8,23 @@ export type InfoPage = {
   title: string;
   intro: string;
   updated?: string;
+  standalone?: boolean;
   sections: InfoSection[];
 };
 
 export const INFO_GROUPS: InfoGroup[] = ["Company", "Support", "Legal"];
+
+export const COMPANY_CONTACT = {
+  name: "Hulakico",
+  phones: [
+    { label: "Mobile", display: "+977 985-1012358", href: "tel:+9779851012358" },
+    { label: "Office", display: "+977-1-4517579", href: "tel:+97714517579" },
+  ],
+  email: "info@hulakico.com",
+  address: ["Keshar Mahal Marga, Thamel", "Kathmandu, Nepal"],
+  mapsHref:
+    "https://www.google.com/maps/search/?api=1&query=Keshar+Mahal+Marga%2C+Thamel%2C+Kathmandu",
+};
 
 export const INFO_PAGES: InfoPage[] = [
   {
@@ -38,17 +51,9 @@ export const INFO_PAGES: InfoPage[] = [
     slug: "contact",
     group: "Company",
     title: "Contact",
-    intro: "Reach the Hulakico team through the channel that fits your request.",
-    sections: [
-      { heading: "About an existing shipment", body: [
-        "Open your tracking link. If a shipment is on hold and we need information, the track page shows an Action needed box where you can reply directly to our operations team.",
-        "Signed-in customers can see every shipment, its status, and its documents in the customer portal.",
-      ] },
-      { heading: "New bookings and business accounts", body: [
-        "Create a free account and choose Business to register your organisation, then book and manage shipments from one place.",
-      ] },
-      { heading: "Office", body: ["Hulakico, Kathmandu, Nepal."] },
-    ],
+    intro: "Talk to the Hulakico team — bookings, shipments, business accounts, and partnerships.",
+    standalone: true,
+    sections: [],
   },
   {
     slug: "help",
