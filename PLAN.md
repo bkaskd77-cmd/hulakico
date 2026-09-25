@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 11 complete — booking prepay + stub Nepal wallets. Next: live wallet HMAC (Phase 12) or admin list filters (in-progress vs delivered).
+**Status:** Phase 11 complete. Admin shipment filters (in progress / delivered / finished) in progress. Next after that: live wallet HMAC (Phase 12).
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 

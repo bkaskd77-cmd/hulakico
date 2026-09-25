@@ -15,10 +15,81 @@ export type OpsShipmentRow = {
   openExceptionId: string | null;
 };
 
-export function listOpsShipments(): OpsShipmentRow[] {
+export type OpsShipmentFilter = "all" | "running" | "delivered" | "finished";
+
+const FINISHED = ["DELIVERED", "CANCELLED", "RTO"] as const;
+
+export function resolveOpsFilter(raw: string | undefined): OpsShipmentFilter {
+  if (raw === "running" || raw === "delivered" || raw === "finished") return raw;
+  return "all";
+}
+
+function statusWhere(filter: OpsShipmentFilter): { sql: string; params: string[] } {
+  if (filter === "delivered") {
+    return { sql: "s.status = ?", params: ["DELIVERED"] };
+  }
+  if (filter === "finished") {
+    return {
+      sql: `s.status IN (${FINISHED.map(() => "?").join(",")})`,
+      params: [...FINISHED],
+    };
+  }
+  if (filter === "running") {
+    return {
+      sql: `s.status NOT IN (${FINISHED.map(() => "?").join(",")})`,
+      params: [...FINISHED],
+    };
+  }
+  return { sql: "1=1", params: [] };
+}
+
+export type OpsShipmentCounts = {
+  all: number;
+  running: number;
+  delivered: number;
+  finished: number;
+};
+
+/** Counts for Admin shipment filter tabs. */
+export function countOpsShipments(): OpsShipmentCounts {
   try {
     const db = getDb();
     const rows = db
+      .prepare(`SELECT status, COUNT(*) as count FROM shipments GROUP BY status`)
+      .all() as Array<{ status: string; count: number }>;
+    const counts: OpsShipmentCounts = {
+      all: 0,
+      running: 0,
+      delivered: 0,
+      finished: 0,
+    };
+    for (const row of rows) {
+      counts.all += row.count;
+      if (row.status === "DELIVERED") {
+        counts.delivered += row.count;
+        counts.finished += row.count;
+      } else if (FINISHED.includes(row.status as (typeof FINISHED)[number])) {
+        counts.finished += row.count;
+      } else {
+        counts.running += row.count;
+      }
+    }
+    return counts;
+  } catch (error) {
+    console.error(
+      "[ops-shipments.ts:countOpsShipments]",
+      error instanceof Error ? error.message : error,
+    );
+    return { all: 0, running: 0, delivered: 0, finished: 0 };
+  }
+}
+
+export function listOpsShipments(
+  filter: OpsShipmentFilter = "all",
+): OpsShipmentRow[] {
+  try {
+    const where = statusWhere(filter);
+    const rows = getDb()
       .prepare(
         `SELECT s.id, s.status, s.lane, s.origin_city, s.destination_city,
                 s.hulakico_awb, s.external_awb, s.partner_label, s.updated_at, u.email, u.name,
@@ -29,10 +100,11 @@ export function listOpsShipments(): OpsShipmentRow[] {
                 ) as open_exception_id
          FROM shipments s
          JOIN users u ON u.id = s.user_id
+         WHERE ${where.sql}
          ORDER BY s.updated_at DESC
          LIMIT 100`,
       )
-      .all() as Array<{
+      .all(...where.params) as Array<{
       id: string;
       status: string;
       lane: string;
