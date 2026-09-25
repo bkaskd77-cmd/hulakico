@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { HomepageContent } from "@/lib/data/homepage-content";
+import { INFO_GROUPS, INFO_PAGES } from "@/lib/data/info-pages";
 
 const FEATURE_IMAGES = [
   "/home/feature-1.jpg",
@@ -12,7 +13,6 @@ const FEATURE_IMAGES = [
 ];
 
 export function HomeSections({
-  bookHref,
   content,
 }: {
   bookHref: string;
@@ -113,10 +113,6 @@ export function HomeSections({
                 </li>
               ))}
             </ul>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link href={bookHref} className="rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold text-[var(--navy)]">{content.servicesCta}</Link>
-              <button type="button" data-open-quote className="rounded-md border border-[var(--off-white)] px-7 py-3.5 text-sm font-semibold text-[var(--off-white)]">{content.ctaQuote}</button>
-            </div>
           </div>
         </div>
       </section>
@@ -125,23 +121,26 @@ export function HomeSections({
         <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: "url(/home/footer.jpg)" }} />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[var(--navy)] via-[color-mix(in_srgb,var(--navy)_88%,transparent)] to-[color-mix(in_srgb,var(--navy)_70%,transparent)]" />
         <div aria-hidden className="home-footer-beam pointer-events-none absolute inset-x-0 top-0 h-px" />
-        <div className="relative mx-auto grid max-w-5xl gap-10 px-6 py-16 sm:grid-cols-[1.4fr_1fr_1fr] sm:px-12">
+        <div className="relative mx-auto grid max-w-5xl gap-10 px-6 pb-10 pt-16 sm:grid-cols-[1.6fr_1fr_1fr_1fr] sm:px-12">
           <div>
             <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)]">Hulakico</p>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[var(--off-white)]/90">{content.footerTagline}</p>
           </div>
-          <div className="flex flex-col gap-2 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Ship</p>
-            <a href="#track" className="text-[var(--gold)] hover:brightness-110">Track a shipment</a>
-            <Link href={bookHref} className="text-[var(--off-white)] hover:text-[var(--gold)]">{content.ctaBook}</Link>
-            <button type="button" data-open-quote className="text-left text-[var(--off-white)] hover:text-[var(--gold)]">{content.ctaQuote}</button>
-          </div>
-          <div className="flex flex-col gap-2 text-sm sm:items-end sm:text-right">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Account</p>
-            <Link href="/signin" className="text-[var(--off-white)] hover:text-[var(--gold)]">Sign in</Link>
-            <Link href="/account" className="text-[var(--off-white)] hover:text-[var(--gold)]">Customer portal</Link>
-            <p className="mt-6 text-xs text-[var(--off-white)]/75">© {new Date().getFullYear()} Hulakico · Kathmandu</p>
-          </div>
+          {INFO_GROUPS.map((group) => (
+            <div key={group} className="flex flex-col gap-2 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold)]">{group}</p>
+              {INFO_PAGES.filter((page) => page.group === group).map((page) => (
+                <Link key={page.slug} href={`/${page.slug}`} className="text-[var(--off-white)]/85 hover:text-[var(--gold)]">
+                  {page.title}
+                </Link>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="relative border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-6 py-5 sm:px-12">
+          <p className="mx-auto max-w-5xl text-xs text-[var(--off-white)]/70">
+            © {new Date().getFullYear()} Hulakico · Kathmandu, Nepal
+          </p>
         </div>
       </footer>
     </>
