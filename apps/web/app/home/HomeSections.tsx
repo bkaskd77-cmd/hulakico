@@ -6,13 +6,10 @@ import { useRouter } from "next/navigation";
 import type { HomepageContent } from "@/lib/data/homepage-content";
 
 const FEATURE_IMAGES = [
-  "https://images.unsplash.com/photo-1566576912321-d44bfc73a0f7?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1578574577315-52ac8753d2d6?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80",
+  "/home/feature-1.jpg",
+  "/home/feature-2.jpg",
+  "/home/feature-3.jpg",
 ];
-
-const SERVICE_IMAGE =
-  "https://images.unsplash.com/photo-1605745341112-85968b19335b?auto=format&fit=crop&w=1400&q=80";
 
 export function HomeSections({
   bookHref,
@@ -82,17 +79,13 @@ export function HomeSections({
       <section id="features" className="home-section px-6 py-24 sm:px-12">
         <div className="mx-auto max-w-5xl">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">{content.featuresEyebrow}</p>
-          <h2 className="mt-3 max-w-xl font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-5xl">
-            {content.featuresTitle}
-          </h2>
+          <h2 className="mt-3 max-w-xl font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-5xl">{content.featuresTitle}</h2>
           <p className="mt-4 max-w-lg text-base text-[var(--off-white)]/90">{content.featuresIntro}</p>
           <ul className="mt-14 grid gap-8 sm:grid-cols-3">
             {content.features.map((item, i) => (
               <li key={item.title} className="overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)]">
-                <div
-                  className="h-36 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${FEATURE_IMAGES[i % FEATURE_IMAGES.length]})` }}
-                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={FEATURE_IMAGES[i % FEATURE_IMAGES.length]} alt="" className="h-40 w-full object-cover" />
                 <div className="p-5">
                   <p className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">{item.title}</p>
                   <p className="mt-2 text-sm text-[var(--off-white)]/85">{item.body}</p>
@@ -104,15 +97,15 @@ export function HomeSections({
       </section>
 
       <section id="services" className="home-section relative border-y border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-6 py-24 sm:px-12">
-        <div className="relative mx-auto grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-center">
-          <div
-            className="min-h-64 rounded-lg bg-cover bg-center lg:min-h-[22rem]"
-            style={{ backgroundImage: `url(${SERVICE_IMAGE})` }}
-          />
-          <div>
+        <div className="relative mx-auto grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-stretch">
+          <div className="relative min-h-64 overflow-hidden rounded-lg lg:min-h-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/home/services.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
+          </div>
+          <div className="flex flex-col">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">{content.servicesEyebrow}</p>
             <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)]">{content.servicesTitle}</h2>
-            <ul className="mt-8 divide-y divide-[color-mix(in_srgb,var(--off-white)_12%,transparent)]">
+            <ul className="mt-8 flex-1 divide-y divide-[color-mix(in_srgb,var(--off-white)_12%,transparent)]">
               {content.services.map((svc) => (
                 <li key={svc.name} className="py-4">
                   <p className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">{svc.name}</p>
@@ -128,17 +121,26 @@ export function HomeSections({
         </div>
       </section>
 
-      <footer className="home-footer px-6 pb-12 pt-20 sm:px-12">
-        <div className="mx-auto flex max-w-5xl flex-col gap-8 sm:flex-row sm:justify-between">
+      <footer className="home-footer relative overflow-hidden border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">
+        <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: "url(/home/footer.jpg)" }} />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[var(--navy)] via-[color-mix(in_srgb,var(--navy)_88%,transparent)] to-[color-mix(in_srgb,var(--navy)_70%,transparent)]" />
+        <div aria-hidden className="home-footer-beam pointer-events-none absolute inset-x-0 top-0 h-px" />
+        <div className="relative mx-auto grid max-w-5xl gap-10 px-6 py-16 sm:grid-cols-[1.4fr_1fr_1fr] sm:px-12">
           <div>
             <p className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)]">Hulakico</p>
-            <p className="mt-4 max-w-sm text-sm text-[var(--off-white)]/90">{content.footerTagline}</p>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-[var(--off-white)]/90">{content.footerTagline}</p>
           </div>
-          <div className="flex flex-col gap-2 text-sm sm:items-end">
+          <div className="flex flex-col gap-2 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Ship</p>
             <a href="#track" className="text-[var(--gold)] hover:brightness-110">Track a shipment</a>
             <Link href={bookHref} className="text-[var(--off-white)] hover:text-[var(--gold)]">{content.ctaBook}</Link>
+            <button type="button" data-open-quote className="text-left text-[var(--off-white)] hover:text-[var(--gold)]">{content.ctaQuote}</button>
+          </div>
+          <div className="flex flex-col gap-2 text-sm sm:items-end sm:text-right">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Account</p>
             <Link href="/signin" className="text-[var(--off-white)] hover:text-[var(--gold)]">Sign in</Link>
-            <p className="mt-4 text-xs text-[var(--off-white)]/80">© {new Date().getFullYear()} Hulakico · Kathmandu</p>
+            <Link href="/account" className="text-[var(--off-white)] hover:text-[var(--gold)]">Customer portal</Link>
+            <p className="mt-6 text-xs text-[var(--off-white)]/75">© {new Date().getFullYear()} Hulakico · Kathmandu</p>
           </div>
         </div>
       </footer>
