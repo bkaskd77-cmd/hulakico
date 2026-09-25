@@ -9,7 +9,7 @@ import {
 import {
   isWalletProvider,
   payProviderMode,
-  stubCheckoutUrl,
+  resolveCheckoutUrl,
   walletLabel,
   type WalletProviderId,
 } from "@/lib/payments/providers";
@@ -33,6 +33,12 @@ export function createWalletPaymentIntent(
       return { error: "No quote amount available. Generate quotes first." };
     }
 
+    const mode = payProviderMode();
+    if (mode === "live") {
+      const preflight = resolveCheckoutUrl("preflight", provider);
+      if ("error" in preflight) return { error: preflight.error };
+    }
+
     const db = getDb();
     db.prepare(
       `UPDATE payment_intents SET status = 'CANCELLED'
@@ -43,8 +49,15 @@ export function createWalletPaymentIntent(
     const now = new Date().toISOString();
     const label = walletLabel(provider);
     const instructions =
-      `Stub ${label}: pay ${quote.currency} ${quote.amount.toFixed(2)}. ` +
-      `Live ${label} keys will replace this checkout when the product goes live.`;
+      mode === "live"
+        ? `Live ${label}: pay ${quote.currency} ${quote.amount.toFixed(2)}.`
+        : `Stub ${label}: pay ${quote.currency} ${quote.amount.toFixed(2)}. ` +
+          `Live ${label} keys will replace this checkout when the product goes live.`;
+
+    const resolved = resolveCheckoutUrl(id, provider);
+    if ("error" in resolved) {
+      return { error: resolved.error };
+    }
 
     db.prepare(
       `INSERT INTO payment_intents
@@ -63,7 +76,7 @@ export function createWalletPaymentIntent(
       instructions,
       createdAt: now,
     };
-    return { intent, checkoutUrl: stubCheckoutUrl(id) };
+    return { intent, checkoutUrl: resolved.checkoutUrl };
   } catch (error) {
     console.error(
       "[payment-wallet.ts:createWalletPaymentIntent]",

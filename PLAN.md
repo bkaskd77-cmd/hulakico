@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 11 complete · Admin shipment filters done. Next: live wallet HMAC (Phase 12) when merchant keys are ready.
+**Status:** Phase 12 started — live Nepal wallet HMAC seam (Step 1). Stub remains default (`PAY_PROVIDER=stub`).
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -203,7 +203,7 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 ---
 
-## Phase 11 — IN PROGRESS (Booking prepay gate + stub Nepal wallets)
+## Phase 11 — COMPLETE (Booking prepay gate + stub Nepal wallets)
 
 **Goal:** After Review, customers must pay freight before BOOKED unless domestic COD. Stub eSewa / Khalti / Connect IPS until live merchant keys.
 
@@ -215,7 +215,22 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 | 4 | Draft page payment gate + settle ops list | **DONE** |
 | 5 | PLAN.md note | **DONE** |
 
-**Later:** Live eSewa/Khalti/Connect IPS HMAC, merchant IDs, production callbacks.
+---
+
+## Phase 12 — IN PROGRESS (Live Nepal wallets)
+
+**Goal:** Replace stub checkout with real eSewa / Khalti / Connect IPS redirects + signed callbacks. Secrets only in `.env`. Default stays `PAY_PROVIDER=stub`.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | `PAY_PROVIDER=live` mode + env key detection + fail-closed resolveCheckout | **DONE** |
+| 2 | eSewa HMAC redirect + success/failure callback routes | pending |
+| 3 | Khalti initiate + verification callback | pending |
+| 4 | Connect IPS signed form post + callback | pending |
+| 5 | Mark intent PAID only after verified callback; book confirm unchanged | pending |
+
+**Env (live, never commit values):**  
+`PAY_PROVIDER=live` · `ESEWA_MERCHANT_CODE` · `ESEWA_SECRET_KEY` · `KHALTI_SECRET_KEY` · `CONNECT_IPS_MERCHANT_ID` · `CONNECT_IPS_APP_ID` · `CONNECT_IPS_APP_NAME` · `CONNECT_IPS_SECRET_KEY` · public `APP_BASE_URL` for callbacks.
 
 ---
 
