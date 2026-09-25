@@ -62,28 +62,25 @@ export default function SignupPage() {
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setAccountType("INDIVIDUAL")}
-            className={`rounded-md px-3 py-2 text-sm font-medium ${
-              accountType === "INDIVIDUAL"
-                ? "bg-[var(--teal)] text-[var(--off-white)]"
-                : "bg-[var(--navy)] text-[var(--muted)]"
-            }`}
-          >
-            Individual
-          </button>
-          <button
-            type="button"
-            onClick={() => setAccountType("BUSINESS")}
-            className={`rounded-md px-3 py-2 text-sm font-medium ${
-              accountType === "BUSINESS"
-                ? "bg-[var(--teal)] text-[var(--off-white)]"
-                : "bg-[var(--navy)] text-[var(--muted)]"
-            }`}
-          >
-            Business
-          </button>
+          {(
+            [
+              ["INDIVIDUAL", "Individual"],
+              ["BUSINESS", "Business"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAccountType(value)}
+              className={`rounded-md px-3 py-2 text-sm font-medium ${
+                accountType === value
+                  ? "bg-[var(--teal)] text-[var(--off-white)]"
+                  : "bg-[var(--navy)] text-[var(--muted)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         <label className="mt-5 block text-sm text-[var(--muted)]">
@@ -135,11 +132,15 @@ export default function SignupPage() {
         >
           {pending ? "Creating…" : "Create account"}
         </button>
+        <Link
+          href="/"
+          className="mt-3 block w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_20%,transparent)] px-4 py-3 text-center text-sm font-medium text-[var(--off-white)] hover:bg-[var(--navy)]"
+        >
+          Cancel
+        </Link>
         <p className="mt-4 text-center text-sm text-[var(--muted)]">
           Already have an account?{" "}
-          <Link href="/signin" className="text-[var(--teal)] underline">
-            Sign in
-          </Link>
+          <Link href="/signin" className="text-[var(--teal)] underline">Sign in</Link>
         </p>
       </form>
     </div>

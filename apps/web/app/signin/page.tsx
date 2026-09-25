@@ -44,9 +44,14 @@ export default function SigninPage() {
         onSubmit={onSubmit}
         className="w-full max-w-md rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8"
       >
-        <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
-          Sign in
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
+            Sign in
+          </p>
+          <Link href="/" className="shrink-0 text-sm text-[var(--muted)] underline hover:text-[var(--off-white)]">
+            Cancel
+          </Link>
+        </div>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Access your Hulakico shipments and bookings.
         </p>
@@ -83,6 +88,10 @@ export default function SigninPage() {
           {pending ? "Signing in…" : "Sign in"}
         </button>
         <p className="mt-4 text-center text-sm text-[var(--muted)]">
+          <Link href="/" className="text-[var(--off-white)] underline">
+            Cancel
+          </Link>
+          {" · "}
           New here?{" "}
           <Link href="/signup" className="text-[var(--teal)] underline">
             Create account
