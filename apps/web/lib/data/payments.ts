@@ -62,7 +62,7 @@ export function quoteAmount(
       .get(shipmentId) as
       | { id: string; amount: number; currency: string }
       | undefined;
-    if (selected?.amount > 0) {
+    if (selected && selected.amount > 0) {
       return {
         amount: selected.amount,
         currency: selected.currency,

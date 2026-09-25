@@ -24,11 +24,10 @@ export default async function DigitalInvoicePage({
   if (!user && !isAuthority) redirect("/signin");
 
   const { id } = await params;
-  const { print } = await searchParams;
+  await searchParams;
   const loaded = getInvoiceDocument(user?.id ?? "staff", id, isAuthority);
   if ("error" in loaded) notFound();
   const { shipment: s, invoice } = loaded;
-  const autoPrint = print === "1" && !!invoice;
   const backHref =
     s.status === "DRAFT" || s.status === "QUOTED"
       ? `/book/draft/${s.id}`
@@ -50,11 +49,17 @@ export default async function DigitalInvoicePage({
             </Link>
           ) : null}
         </div>
-        <InvoiceDocumentBody
-          shipment={s}
-          invoice={invoice}
-          autoPrint={autoPrint}
-        />
+        {invoice ? (
+          <InvoiceDocumentBody
+            shipment={s}
+            invoice={invoice}
+            isAuthority={isAuthority}
+          />
+        ) : (
+          <p className="rounded-lg bg-white/10 p-6 text-sm text-white">
+            No commercial invoice has been saved for this shipment yet.
+          </p>
+        )}
       </div>
     </div>
   );

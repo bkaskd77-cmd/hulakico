@@ -73,7 +73,8 @@ export function listMyShipments(
     for (const row of statusRows) {
       allCount += row.count;
       for (const group of HUB_STATUS_FILTERS) {
-        if (group.statuses?.includes(row.status)) filterCounts[group.key] += row.count;
+        const statuses = group.statuses as readonly string[] | null;
+        if (statuses?.includes(row.status)) filterCounts[group.key] += row.count;
       }
     }
     filterCounts.all = allCount;
