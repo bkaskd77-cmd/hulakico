@@ -228,6 +228,17 @@ export function ensureSchema(database: DatabaseSync): void {
   ensureStaffTables(database);
   migrateStaffRoles(database);
   bootstrapStaffAdmin(database);
+  ensureSiteContentTable(database);
+}
+
+function ensureSiteContentTable(database: DatabaseSync): void {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS site_content (
+      slug TEXT PRIMARY KEY,
+      content_json TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
 }
 
 function migrateInvoiceLineWeight(database: DatabaseSync): void {

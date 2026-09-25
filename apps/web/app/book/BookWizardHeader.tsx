@@ -1,19 +1,22 @@
 "use client";
 
-const STEP_LABELS = ["Route", "Package", "Review", "Payment"] as const;
-
 /** Lane toggle + step progress for the booking wizard. */
 export function BookWizardHeader({
   lane,
   step,
   rebookHint,
   onLane,
+  wantsCod = false,
 }: {
   lane: "DOMESTIC" | "INTERNATIONAL";
   step: 1 | 2 | 3 | 4;
   rebookHint?: string | null;
   onLane: (mode: "DOMESTIC" | "INTERNATIONAL") => void;
+  wantsCod?: boolean;
 }) {
+  const step4 = wantsCod && lane === "DOMESTIC" ? "Book" : "Payment";
+  const labels = ["Route", "Package", "Review", step4] as const;
+
   return (
     <>
       <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Hulakico booking</p>
@@ -49,7 +52,7 @@ export function BookWizardHeader({
                   : "bg-[var(--navy)] text-[var(--muted)]"
             }`}
           >
-            {n}. {STEP_LABELS[n - 1]}
+            {n}. {labels[n - 1]}
           </li>
         ))}
       </ol>

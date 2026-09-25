@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { HomeQuoteForm } from "@/app/home/HomeQuoteForm";
+import type { HomepageContent } from "@/lib/data/homepage-content";
 
 export function HomeHero({
   bookHref,
   signedIn,
+  content,
 }: {
   bookHref: string;
   signedIn: boolean;
+  content: HomepageContent;
 }) {
   return (
     <>
@@ -59,12 +62,8 @@ export function HomeHero({
             <a href="#services" className="hidden text-[var(--off-white)]/90 hover:text-[var(--off-white)] sm:inline">
               Services
             </a>
-            <button
-              type="button"
-              data-open-quote
-              className="hidden text-[var(--off-white)]/90 hover:text-[var(--off-white)] sm:inline"
-            >
-              Get the Quote
+            <button type="button" data-open-quote className="hidden text-[var(--off-white)]/90 hover:text-[var(--off-white)] sm:inline">
+              {content.ctaQuote}
             </button>
             {signedIn ? (
               <Link href="/account" className="rounded-md bg-[var(--teal)] px-3.5 py-1.5 font-medium text-[var(--off-white)]">
@@ -88,24 +87,24 @@ export function HomeHero({
             Hulakico
           </p>
           <h1 className="shell-rise-delay mt-6 max-w-2xl font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-[var(--off-white)] sm:text-3xl">
-            AI logistics control tower for Nepal — and beyond.
+            {content.heroHeadline}
           </h1>
           <p className="shell-rise-delay mt-4 max-w-md text-base leading-relaxed text-[var(--off-white)]/90">
-            Book once. We orchestrate every carrier and keep one intelligent timeline from Kathmandu to the world.
+            {content.heroSubhead}
           </p>
           <div className="shell-rise-delay mt-10 flex flex-wrap items-center gap-4">
             <Link
               href={bookHref}
               className="inline-flex rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold text-[var(--navy)] transition hover:brightness-110"
             >
-              Book a shipment
+              {content.ctaBook}
             </Link>
             <button
               type="button"
               data-open-quote
               className="inline-flex rounded-md border border-[var(--off-white)] px-7 py-3.5 text-sm font-semibold text-[var(--off-white)] transition hover:bg-[color-mix(in_srgb,var(--off-white)_14%,transparent)]"
             >
-              Get the Quote
+              {content.ctaQuote}
             </button>
           </div>
         </div>

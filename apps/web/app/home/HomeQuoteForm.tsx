@@ -97,9 +97,6 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
             <h2 id="quote-title" className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold text-[var(--off-white)]">
               Get the quote
             </h2>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Country first, then From / To with address intelligence, then package size.
-            </p>
           </div>
           <button type="button" onClick={dismiss} className="text-sm text-[var(--muted)] hover:text-[var(--off-white)]">
             Close

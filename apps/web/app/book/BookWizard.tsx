@@ -111,6 +111,7 @@ export function BookWizard({
         lane={lane}
         step={step}
         rebookHint={rebookHint}
+        wantsCod={form.wantsCod}
         onLane={(mode) => setForm((prev) => applyLaneMode(prev, mode))}
       />
       <RevealRouteErrors.Provider value={revealRouteErrors}>
@@ -139,7 +140,13 @@ export function BookWizard({
       <WizardNav step={step} pending={pending}
         onBack={() => { setError(null); setStep((s) => (s - 1) as Step); }}
         onContinue={goNext}
-        continueLabel={step === 3 ? "Continue to payment" : "Continue"}
+        continueLabel={
+          step === 3
+            ? form.wantsCod && lane === "DOMESTIC"
+              ? "Continue to book"
+              : "Continue to payment"
+            : "Continue"
+        }
         hideContinue={step === 4} />
     </div>
   );

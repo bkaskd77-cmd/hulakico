@@ -6,6 +6,7 @@ import { useTransition } from "react";
 
 const LINKS = [
   { href: "/admin", label: "AI tower" },
+  { href: "/admin/homepage", label: "Homepage" },
   { href: "/admin/shipments", label: "Shipments" },
   { href: "/admin/exceptions", label: "Exceptions" },
   { href: "/admin/cod", label: "COD" },

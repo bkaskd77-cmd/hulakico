@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BOOKING_COUNTRIES } from "@/app/book/countries";
+import { contentsHint, contentsPlaceholder } from "@/app/book/contents-hint";
 import { PlaceSuggestControls } from "@/app/book/PlaceSuggestControls";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
 
@@ -78,6 +79,7 @@ export function HomeQuoteFields({
 }) {
   const [origin, setOrigin] = useState<QuoteRouteSide>(EMPTY);
   const [destination, setDestination] = useState<QuoteRouteSide>({ ...EMPTY, country: "NP" });
+  const [packageType, setPackageType] = useState("PARCEL");
 
   return (
     <form
@@ -93,7 +95,7 @@ export function HomeQuoteFields({
           widthCm: Number(form.get("widthCm")),
           heightCm: Number(form.get("heightCm")),
           serviceClass: String(form.get("serviceClass") ?? "EXPRESS"),
-          packageType: String(form.get("packageType") ?? "PARCEL"),
+          packageType,
           contents: String(form.get("contents") ?? ""),
         });
       }}
@@ -129,12 +131,25 @@ export function HomeQuoteFields({
             <option value="STANDARD">Standard</option>
           </select></label>
         <label className="text-xs text-[var(--muted)]">Package
-          <select name="packageType" defaultValue="PARCEL" className={QUOTE_FIELD}>
+          <select
+            name="packageType"
+            value={packageType}
+            onChange={(e) => setPackageType(e.target.value)}
+            className={QUOTE_FIELD}
+          >
             <option value="PARCEL">Parcel</option>
             <option value="DOCUMENT">Document</option>
           </select></label>
         <label className="text-xs text-[var(--muted)] sm:col-span-2">Specs / contents
-          <input name="contents" placeholder="e.g. clothing, electronics" className={QUOTE_FIELD} /></label>
+          <input
+            name="contents"
+            placeholder={contentsPlaceholder(packageType)}
+            className={QUOTE_FIELD}
+          />
+          <span className="mt-1.5 block text-xs text-[var(--teal)]">
+            {contentsHint(packageType)}
+          </span>
+        </label>
       </div>
       <button type="submit" disabled={pending} className="rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold text-[var(--navy)] disabled:opacity-60">
         {pending ? "Ranking carriers…" : "Get the Quote"}

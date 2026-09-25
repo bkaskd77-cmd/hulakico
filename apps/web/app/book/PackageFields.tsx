@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormState, FormUpdate } from "./form-types";
+import { contentsHint, contentsPlaceholder } from "./contents-hint";
 import { codCue, currencyCue } from "./country-defaults";
 
 export function PackageFields({
@@ -120,8 +121,11 @@ export function PackageFields({
             value={form.contents}
             onChange={(e) => update("contents", e.target.value)}
             required
-            placeholder="e.g. clothing, electronics, documents"
+            placeholder={contentsPlaceholder(form.packageType)}
           />
+          <span className="mt-1.5 block text-xs text-[var(--teal)]">
+            {contentsHint(form.packageType)}
+          </span>
         </label>
         {lane === "DOMESTIC" ? (
           <label className="sm:col-span-2 flex items-start gap-2 text-sm text-[var(--off-white)]">
@@ -134,7 +138,8 @@ export function PackageFields({
             <span>
               Cash on delivery (COD)
               <span className="mt-0.5 block text-xs text-[var(--muted)]">
-                {codCue(lane)} Receiver pays declared value on delivery.
+                {codCue(lane)} Receiver pays the goods value on delivery.
+                You do not prepay freight by wallet — next step is book, not pay.
               </span>
             </span>
           </label>

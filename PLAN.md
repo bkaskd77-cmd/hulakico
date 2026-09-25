@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 11 complete · Admin filters done. Phase 12 (live eSewa/Khalti/Connect IPS) **parked** until merchant API keys exist — keep `PAY_PROVIDER=stub`.
+**Status:** Phase 13 complete — Admin homepage CMS. Phase 12 live wallets remain parked (`PAY_PROVIDER=stub`).
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -229,10 +229,23 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 | 2 | eSewa HMAC redirect + success/failure callback routes | **PARKED** |
 | 3 | Khalti initiate + verification callback | **PARKED** |
 | 4 | Connect IPS signed form post + callback | **PARKED** |
-| 5 | Mark intent PAID only after verified callback; book confirm unchanged | **PARKED**
+| 5 | Mark intent PAID only after verified callback; book confirm unchanged | **PARKED** |
 
 **Env (when unparked, never commit values):**  
 `PAY_PROVIDER=live` · `ESEWA_MERCHANT_CODE` · `ESEWA_SECRET_KEY` · `KHALTI_SECRET_KEY` · `CONNECT_IPS_MERCHANT_ID` · `CONNECT_IPS_APP_ID` · `CONNECT_IPS_APP_NAME` · `CONNECT_IPS_SECRET_KEY` · public `APP_BASE_URL` for callbacks.
+
+---
+
+## Phase 13 — COMPLETE (Admin homepage CMS)
+
+**Goal:** Staff can change, edit, and add homepage (`/`) copy from Admin — hero, features, services, footer — without code deploys.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | `site_content` table + get/save homepage JSON + defaults | **DONE** |
+| 2 | Admin nav + `/admin/homepage` editor | **DONE** |
+| 3 | Wire `HomeHero` / `HomeSections` to DB content | **DONE** |
+| 4 | Add/remove feature & service rows in Admin | **DONE** |
 
 ---
 
