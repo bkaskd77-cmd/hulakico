@@ -218,6 +218,107 @@ body {
   animation: home-beam 4s ease-in-out infinite;
 }
 
+@keyframes hub-enter {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hub-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes hub-scan {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 0 color-mix(in srgb, var(--teal) 0%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 0 24px 0 color-mix(in srgb, var(--teal) 35%, transparent);
+  }
+}
+
+@keyframes hub-rank-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hub-ai-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes track-rail {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.hub-enter {
+  animation: hub-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.hub-panel {
+  animation: hub-panel-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hub-scanning {
+  animation: hub-scan 1.2s ease-in-out infinite;
+}
+
+.hub-rank-item {
+  animation: hub-rank-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hub-ai-pulse {
+  animation: hub-ai-pulse 2.2s ease-in-out infinite;
+}
+
+.track-timeline-item {
+  position: relative;
+  animation: hub-rank-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.track-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform-origin: top;
+  background: linear-gradient(var(--teal), var(--gold));
+  animation: track-rail 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shell-rise,
   .shell-rise-delay,
@@ -228,7 +329,14 @@ body {
   .home-lane-slow,
   .home-node,
   .home-node-delay,
-  .home-footer-beam {
+  .home-footer-beam,
+  .hub-enter,
+  .hub-panel,
+  .hub-scanning,
+  .hub-rank-item,
+  .hub-ai-pulse,
+  .track-timeline-item,
+  .track-timeline-item::before {
     animation: none;
   }
 }

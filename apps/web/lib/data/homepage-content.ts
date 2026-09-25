@@ -9,6 +9,11 @@ export type HomepageContent = {
   heroSubhead: string;
   ctaBook: string;
   ctaQuote: string;
+  hubTrackLabel: string;
+  hubBookLabel: string;
+  hubQuoteLabel: string;
+  hubTrackPlaceholder: string;
+  towerAlerts: string[];
   featuresEyebrow: string;
   featuresTitle: string;
   featuresIntro: string;
@@ -26,6 +31,14 @@ export const DEFAULT_HOMEPAGE: HomepageContent = {
     "Book once. We orchestrate every carrier and keep one intelligent timeline from Kathmandu to the world.",
   ctaBook: "Book a shipment",
   ctaQuote: "Get the Quote",
+  hubTrackLabel: "Track",
+  hubBookLabel: "Book",
+  hubQuoteLabel: "Quote",
+  hubTrackPlaceholder: "Hulakico AWB or tracking code",
+  towerAlerts: [
+    "One Hulakico AWB spans every partner lane — domestic Nepal and international.",
+    "AI ranks carriers on price, ETA risk, and service fit before you book.",
+  ],
   featuresEyebrow: "Platform",
   featuresTitle: "Built like a control tower, not a form.",
   featuresIntro:
@@ -76,12 +89,29 @@ const SLUG = "homepage";
 
 function parseContent(raw: string): HomepageContent | null {
   try {
-    const data = JSON.parse(raw) as HomepageContent;
+    const data = JSON.parse(raw) as Partial<HomepageContent>;
     if (!data?.heroHeadline || !Array.isArray(data.features)) return null;
-    return { ...DEFAULT_HOMEPAGE, ...data, features: data.features, services: data.services };
+    return {
+      ...DEFAULT_HOMEPAGE,
+      ...data,
+      features: data.features as HomeFeature[],
+      services: (data.services as HomeService[]) ?? DEFAULT_HOMEPAGE.services,
+      towerAlerts: Array.isArray(data.towerAlerts)
+        ? data.towerAlerts
+        : DEFAULT_HOMEPAGE.towerAlerts,
+    };
   } catch {
     return null;
   }
+}
+
+function cloneDefault(): HomepageContent {
+  return {
+    ...DEFAULT_HOMEPAGE,
+    features: [...DEFAULT_HOMEPAGE.features],
+    services: [...DEFAULT_HOMEPAGE.services],
+    towerAlerts: [...DEFAULT_HOMEPAGE.towerAlerts],
+  };
 }
 
 /** Public homepage copy — DB override or built-in defaults. */
@@ -90,18 +120,14 @@ export function getHomepageContent(): HomepageContent {
     const row = getDb()
       .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
       .get(SLUG) as { content_json: string } | undefined;
-    if (!row) return { ...DEFAULT_HOMEPAGE, features: [...DEFAULT_HOMEPAGE.features], services: [...DEFAULT_HOMEPAGE.services] };
-    return parseContent(row.content_json) ?? {
-      ...DEFAULT_HOMEPAGE,
-      features: [...DEFAULT_HOMEPAGE.features],
-      services: [...DEFAULT_HOMEPAGE.services],
-    };
+    if (!row) return cloneDefault();
+    return parseContent(row.content_json) ?? cloneDefault();
   } catch (error) {
     console.error(
       "[homepage-content.ts:getHomepageContent]",
       error instanceof Error ? error.message : error,
     );
-    return { ...DEFAULT_HOMEPAGE, features: [...DEFAULT_HOMEPAGE.features], services: [...DEFAULT_HOMEPAGE.services] };
+    return cloneDefault();
   }
 }
 
@@ -114,7 +140,6 @@ export function saveHomepageContent(
       return { error: "Hero headline and subhead are required." };
     }
     const now = new Date().toISOString();
-    const json = JSON.stringify(content);
     getDb()
       .prepare(
         `INSERT INTO site_content (slug, content_json, updated_at)
@@ -123,7 +148,7 @@ export function saveHomepageContent(
            content_json = excluded.content_json,
            updated_at = excluded.updated_at`,
       )
-      .run(SLUG, json, now);
+      .run(SLUG, JSON.stringify(content), now);
     return { ok: true };
   } catch (error) {
     console.error(

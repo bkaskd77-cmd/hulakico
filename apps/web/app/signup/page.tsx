@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
@@ -12,33 +12,37 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  useEffect(() => {
+    const type = new URLSearchParams(window.location.search).get("type");
+    if (type === "business") setAccountType("BUSINESS");
+  }, []);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setPending(true);
     try {
       const form = new FormData(event.currentTarget);
-      const payload = {
-        name: String(form.get("name") || ""),
-        email: String(form.get("email") || ""),
-        password: String(form.get("password") || ""),
-        accountType,
-        organizationName:
-          accountType === "BUSINESS"
-            ? String(form.get("organizationName") || "")
-            : undefined,
-      };
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          name: String(form.get("name") || ""),
+          email: String(form.get("email") || ""),
+          password: String(form.get("password") || ""),
+          accountType,
+          organizationName:
+            accountType === "BUSINESS"
+              ? String(form.get("organizationName") || "")
+              : undefined,
+        }),
       });
       const data = await response.json();
       if (!response.ok) {
         setError(data.error || "Signup failed.");
         return;
       }
-      router.push("/account");
+      router.push("/book");
       router.refresh();
     } catch (err) {
       console.error("[signup/page.tsx:onSubmit]", err);
@@ -132,10 +136,7 @@ export default function SignupPage() {
         >
           {pending ? "Creating…" : "Create account"}
         </button>
-        <Link
-          href="/"
-          className="mt-3 block w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_20%,transparent)] px-4 py-3 text-center text-sm font-medium text-[var(--off-white)] hover:bg-[var(--navy)]"
-        >
+        <Link href="/" className="mt-3 block w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_20%,transparent)] px-4 py-3 text-center text-sm font-medium text-[var(--off-white)] hover:bg-[var(--navy)]">
           Cancel
         </Link>
         <p className="mt-4 text-center text-sm text-[var(--muted)]">

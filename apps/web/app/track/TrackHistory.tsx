@@ -45,7 +45,8 @@ export function TrackHistory({
           return (
             <li
               key={event.id}
-              className="grid gap-1 px-5 py-4 sm:grid-cols-[1.2fr_1fr_auto]"
+              className="track-timeline-item grid gap-1 px-5 py-4 pl-7 sm:grid-cols-[1.2fr_1fr_auto]"
+              style={{ animationDelay: `${index * 60}ms` }}
             >
               <div>
                 <p className="text-sm font-semibold text-[var(--off-white)]">

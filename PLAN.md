@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Deploy pipeline active — push `main` to GitHub; Vercel builds `apps/web`. SQLite uses `/tmp` on Vercel (ephemeral); Neon/Postgres still the production DB target. Phase 12 wallets parked.
+**Status:** Phase 14 control-tower homepage live. Deploy pipeline active — push `main` to GitHub; Vercel builds `apps/web`. SQLite uses `/tmp` on Vercel (ephemeral); Neon/Postgres still the production DB target. Phase 12 wallets parked.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. On Vercel, DB defaults to `/tmp/hulakico.db` (resets on cold start). Production target remains PostgreSQL.
 
@@ -246,6 +246,21 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 | 2 | Admin nav + `/admin/homepage` editor | **DONE** |
 | 3 | Wire `HomeHero` / `HomeSections` to DB content | **DONE** |
 | 4 | Add/remove feature & service rows in Admin | **DONE** |
+
+---
+
+## Phase 14 — COMPLETE (Control-tower homepage & intelligence UX)
+
+**Goal:** Carrier-grade task hub (Track / Book / Quote), tower alerts, motion, and real AI rank signals — dark navy/teal/gold control-tower look.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Hero TaskHub + job nav + CMS hub labels | **DONE** |
+| 2 | `POST /api/track/resolve` (AWB or token) | **DONE** |
+| 3 | Inline Quote tab + AI rank reveal motion | **DONE** |
+| 4 | Book tab Individual/Business → signup/book | **DONE** |
+| 5 | Tower alerts strip, footer IA, scroll motion | **DONE** |
+| 6 | Rank reason/score on quotes; track timeline polish | **DONE** |
 
 ---
 

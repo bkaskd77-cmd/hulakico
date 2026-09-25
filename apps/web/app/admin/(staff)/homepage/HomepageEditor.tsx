@@ -95,7 +95,24 @@ export function HomepageEditor({
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Primary CTA" value={content.ctaBook} onChange={(v) => patch({ ctaBook: v })} />
               <Field label="Quote CTA" value={content.ctaQuote} onChange={(v) => patch({ ctaQuote: v })} />
+              <Field label="Hub Track" value={content.hubTrackLabel} onChange={(v) => patch({ hubTrackLabel: v })} />
+              <Field label="Hub Book" value={content.hubBookLabel} onChange={(v) => patch({ hubBookLabel: v })} />
+              <Field label="Hub Quote" value={content.hubQuoteLabel} onChange={(v) => patch({ hubQuoteLabel: v })} />
+              <Field label="Track placeholder" value={content.hubTrackPlaceholder} onChange={(v) => patch({ hubTrackPlaceholder: v })} />
             </div>
+            <Field
+              label="Tower alerts (one per line)"
+              value={content.towerAlerts.join("\n")}
+              onChange={(v) =>
+                patch({
+                  towerAlerts: v
+                    .split("\n")
+                    .map((line) => line.trim())
+                    .filter(Boolean),
+                })
+              }
+              rows={3}
+            />
           </>
         ) : null}
         {tab === "Features" || tab === "Services" ? (

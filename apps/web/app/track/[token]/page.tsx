@@ -45,8 +45,14 @@ export default async function PublicTrackPage({
           <TrackBackNav />
         </header>
 
-        <section className="mt-6 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5 sm:p-6">
-          <p className="text-sm font-semibold text-[var(--teal)]">{statusLabel(tracking.status)}</p>
+        <section className="hub-enter mt-6 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5 sm:p-6">
+          <p className={`text-sm font-semibold ${
+            tracking.status === "EXCEPTION" || tracking.holdInfo
+              ? "text-[var(--danger)]"
+              : "text-[var(--teal)]"
+          }`}>
+            {statusLabel(tracking.status)}
+          </p>
           <p className="mt-2 text-lg font-semibold text-[var(--off-white)]">{tracking.statusNote}</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
             <span className="font-semibold text-[var(--off-white)]">Next step: </span>
