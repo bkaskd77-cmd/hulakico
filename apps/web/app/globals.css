@@ -1,20 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  /* Brighter sky-blue shell — keeps light text readable */
-  --navy: #1a4d6e;
-  --navy-elevated: #246387;
-  --teal: #0ea5a0;
-  --gold: #e0b35a;
+  /* Brighter sky shell — high-contrast text tokens · Manrope + Inter */
+  --navy: #153a52;
+  --navy-elevated: #1f5470;
+  /* Default accent: light mint — readable on navy + sky shell */
+  --teal: #9ff5ec;
+  /* Fills / solid buttons (paired with off-white label text) */
+  --teal-fill: #0f766e;
+  /* Text / links on white or pale cards only */
+  --teal-ink: #0f766e;
+  --gold: #f0c45c;
   --off-white: #f7fbfd;
 
   --background: var(--navy);
   --foreground: var(--off-white);
-  --muted: color-mix(in srgb, var(--off-white) 88%, var(--navy));
+  --muted: #d4e6f0;
   --accent: var(--gold);
   --accent-soft: color-mix(in srgb, var(--gold) 22%, transparent);
   --ring: var(--teal);
-  --danger: #c45c4a;
+  --danger: #f07160;
 
   --font-display: var(--font-manrope), system-ui, sans-serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
@@ -25,11 +30,11 @@
     #1f6b8c 28%,
     #1a5f82 52%,
     #178a86 78%,
-    color-mix(in srgb, var(--teal) 55%, #1a4d6e) 100%
+    color-mix(in srgb, var(--teal-fill) 45%, #153a52) 100%
   );
   --gradient-glow: radial-gradient(
     ellipse 75% 55% at 78% 12%,
-    color-mix(in srgb, #7ec8c4 45%, transparent),
+    color-mix(in srgb, #9ff5ec 38%, transparent),
     transparent 68%
   );
 }
@@ -42,6 +47,8 @@
   --color-navy: var(--navy);
   --color-navy-elevated: var(--navy-elevated);
   --color-teal: var(--teal);
+  --color-teal-fill: var(--teal-fill);
+  --color-teal-ink: var(--teal-ink);
   --color-gold: var(--gold);
   --color-off-white: var(--off-white);
   --font-sans: var(--font-body);
@@ -129,9 +136,23 @@
 }
 
 body {
-  background: var(--background);
+  min-height: 100dvh;
+  background-color: var(--navy);
+  background-image: var(--gradient-glow), var(--gradient-sky);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-body);
+}
+
+/* Filled teal buttons: keep deep fill + light label (not the glow token). */
+[class*="bg-[var(--teal)]"] {
+  background-color: var(--teal-fill) !important;
+}
+
+/* Teal labels/links on white cards need ink, not glow. */
+.bg-white [class*="text-[var(--teal)]"],
+[class*="bg-white"] [class*="text-[var(--teal)]"] {
+  color: var(--teal-ink) !important;
 }
 
 .font-display {
@@ -140,8 +161,7 @@ body {
 
 .shell-sky {
   min-height: 100dvh;
-  background-image: var(--gradient-glow), var(--gradient-sky);
-  background-attachment: fixed;
+  background: transparent;
 }
 
 .shell-rise {

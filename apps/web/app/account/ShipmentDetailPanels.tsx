@@ -1,6 +1,6 @@
 import { countryName } from "@/app/book/countries";
 import type { ShipmentParty, ShipmentSummary } from "@/lib/data/shipment-summary";
-import { partnerTrackUrl } from "@/lib/domain/partner-track-url";
+import { effectivePartnerTrackUrl } from "@/lib/domain/partner-track-url";
 
 function PartyBlock({ title, party }: { title: string; party: ShipmentParty }) {
   return (
@@ -23,7 +23,12 @@ function PartyBlock({ title, party }: { title: string; party: ShipmentParty }) {
 
 /** Detail panels for customer shipment overview. */
 export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
-  const partnerUrl = partnerTrackUrl(s.carrierName, s.externalAwb);
+  const partnerUrl = effectivePartnerTrackUrl({
+    partnerLabel: s.partnerLabel,
+    awb: s.externalAwb,
+    storedUrl: s.partnerTrackUrl,
+  });
+  const carrierDisplay = s.partnerLabel ?? s.carrierName;
   const dims =
     s.lengthCm && s.widthCm && s.heightCm
       ? `${s.lengthCm} × ${s.widthCm} × ${s.heightCm} cm`
@@ -54,7 +59,7 @@ export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dates</p>
           <p className="mt-1 text-slate-800">Created {new Date(s.createdAt).toLocaleString()}</p>
           <p className="text-slate-800">Updated {new Date(s.updatedAt).toLocaleString()}</p>
-          {s.carrierName ? <p className="mt-2 text-slate-600">Carrier · {s.carrierName}</p> : null}
+          {carrierDisplay ? <p className="mt-2 text-slate-600">Carrier · {carrierDisplay}</p> : null}
         </div>
       </div>
 

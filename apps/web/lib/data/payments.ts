@@ -1,5 +1,4 @@
 import { getDb } from "@/lib/db";
-import { newId } from "@/lib/domain/auth";
 
 export type PaymentIntent = {
   id: string;
@@ -13,12 +12,7 @@ export type PaymentIntent = {
   createdAt: string;
 };
 
-function payProviderMode(): "stub" | "off" {
-  const mode = (process.env.PAY_PROVIDER || "stub").trim().toLowerCase();
-  return mode === "off" ? "off" : "stub";
-}
-
-function ensurePaymentsTable(): void {
+export function ensurePaymentsTable(): void {
   getDb().exec(`
     CREATE TABLE IF NOT EXISTS payment_intents (
       id TEXT PRIMARY KEY,
@@ -35,83 +29,84 @@ function ensurePaymentsTable(): void {
   `);
 }
 
-function quoteAmount(shipmentId: string): { amount: number; currency: string } | null {
-  const row = getDb()
-    .prepare(
-      `SELECT qo.amount, s.currency FROM shipments s
-       LEFT JOIN quote_options qo ON qo.id = s.selected_quote_option_id
-       WHERE s.id = ?`,
-    )
-    .get(shipmentId) as { amount: number | null; currency: string } | undefined;
-  if (!row || row.amount == null || !(row.amount > 0)) return null;
-  return { amount: row.amount, currency: row.currency };
+export function mapPaymentRow(row: {
+  id: string; shipment_id: string; provider: string; method: string;
+  status: string; amount: number; currency: string; instructions: string;
+  created_at: string;
+}): PaymentIntent {
+  return {
+    id: row.id,
+    shipmentId: row.shipment_id,
+    provider: row.provider,
+    method: row.method as "TRANSFER" | "CARD",
+    status: row.status as PaymentIntent["status"],
+    amount: row.amount,
+    currency: row.currency,
+    instructions: row.instructions,
+    createdAt: row.created_at,
+  };
 }
 
-/** Stub bank-transfer intent for non-COD booked freight (no live card yet). */
-export function ensureTransferPaymentIntent(
+/** Freight amount from selected quote, else cheapest option on latest quote. */
+export function quoteAmount(
   shipmentId: string,
-): PaymentIntent | null {
+): { amount: number; currency: string; quoteOptionId: string | null } | null {
   try {
-    if (payProviderMode() === "off") return null;
-    ensurePaymentsTable();
     const db = getDb();
-    const existing = db
+    const selected = db
       .prepare(
-        `SELECT id, shipment_id, provider, method, status, amount, currency, instructions, created_at
-         FROM payment_intents WHERE shipment_id = ? AND status != 'CANCELLED'
-         ORDER BY created_at DESC LIMIT 1`,
+        `SELECT qo.id, qo.amount, s.currency FROM shipments s
+         JOIN quote_options qo ON qo.id = s.selected_quote_option_id
+         WHERE s.id = ?`,
       )
       .get(shipmentId) as
-      | {
-          id: string; shipment_id: string; provider: string; method: string;
-          status: string; amount: number; currency: string; instructions: string;
-          created_at: string;
-        }
+      | { id: string; amount: number; currency: string }
       | undefined;
-    if (existing) {
+    if (selected?.amount > 0) {
       return {
-        id: existing.id,
-        shipmentId: existing.shipment_id,
-        provider: existing.provider,
-        method: existing.method as "TRANSFER" | "CARD",
-        status: existing.status as PaymentIntent["status"],
-        amount: existing.amount,
-        currency: existing.currency,
-        instructions: existing.instructions,
-        createdAt: existing.created_at,
+        amount: selected.amount,
+        currency: selected.currency,
+        quoteOptionId: selected.id,
       };
     }
-
-    const quote = quoteAmount(shipmentId);
-    if (!quote) return null;
-    const id = newId("pay");
-    const now = new Date().toISOString();
-    const ref = shipmentId.slice(-8).toUpperCase();
-    const instructions =
-      `Stub bank transfer: pay ${quote.currency} ${quote.amount.toFixed(2)} ` +
-      `to Hulakico Ops (A/C 0123456789 / Nepal Bank). Reference ${ref}. ` +
-      `Card checkout comes later when PAY_PROVIDER is live.`;
-
-    db.prepare(
-      `INSERT INTO payment_intents
-       (id, shipment_id, provider, method, status, amount, currency, instructions, created_at)
-       VALUES (?, ?, 'stub', 'TRANSFER', 'AWAITING_PAYMENT', ?, ?, ?, ?)`,
-    ).run(id, shipmentId, quote.amount, quote.currency, instructions, now);
-
+    const top = db
+      .prepare(
+        `SELECT qo.id, qo.amount, qo.currency FROM quote_options qo
+         JOIN quotes q ON q.id = qo.quote_id
+         WHERE q.shipment_id = ?
+         ORDER BY q.created_at DESC, qo.amount ASC LIMIT 1`,
+      )
+      .get(shipmentId) as
+      | { id: string; amount: number; currency: string }
+      | undefined;
+    if (!top || !(top.amount > 0)) return null;
     return {
-      id,
-      shipmentId,
-      provider: "stub",
-      method: "TRANSFER",
-      status: "AWAITING_PAYMENT",
-      amount: quote.amount,
-      currency: quote.currency,
-      instructions,
-      createdAt: now,
+      amount: top.amount,
+      currency: top.currency,
+      quoteOptionId: top.id,
     };
   } catch (error) {
     console.error(
-      "[payments.ts:ensureTransferPaymentIntent]",
+      "[payments.ts:quoteAmount]",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
+export function getPaymentIntent(intentId: string): PaymentIntent | null {
+  try {
+    ensurePaymentsTable();
+    const row = getDb()
+      .prepare(
+        `SELECT id, shipment_id, provider, method, status, amount, currency, instructions, created_at
+         FROM payment_intents WHERE id = ?`,
+      )
+      .get(intentId) as Parameters<typeof mapPaymentRow>[0] | undefined;
+    return row ? mapPaymentRow(row) : null;
+  } catch (error) {
+    console.error(
+      "[payments.ts:getPaymentIntent]",
       error instanceof Error ? error.message : error,
     );
     return null;

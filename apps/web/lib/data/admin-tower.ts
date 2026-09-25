@@ -1,5 +1,4 @@
 import { getDb } from "@/lib/db";
-import { assessEtaRiskBatch } from "@/lib/data/intelligence-batch";
 
 export type AdminTowerRow = {
   id: string;
@@ -26,21 +25,37 @@ const ACTIVE = [
   "EXCEPTION",
 ];
 
+/** Instant local ETA — never blocks Admin on the Python service. */
+function localEta(row: {
+  status: string;
+  lane: string;
+  service_class: string;
+  onHold: boolean;
+}): Pick<AdminTowerRow, "etaLevel" | "etaScore" | "etaFactors"> {
+  if (row.status === "EXCEPTION" || row.onHold) {
+    return {
+      etaLevel: "HIGH",
+      etaScore: 0.82,
+      etaFactors: ["Hold / exception pressure"],
+    };
+  }
+  if (row.lane === "INTERNATIONAL") {
+    return {
+      etaLevel: "MEDIUM",
+      etaScore: 0.48,
+      etaFactors: ["International lane", row.service_class],
+    };
+  }
+  return {
+    etaLevel: "LOW",
+    etaScore: 0.22,
+    etaFactors: ["Domestic lane"],
+  };
+}
+
+/** Active shipments ranked by urgency — SQLite only, no remote wait. */
 export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
   try {
-    getDb().exec(`
-      CREATE TABLE IF NOT EXISTS payment_intents (
-        id TEXT PRIMARY KEY,
-        shipment_id TEXT NOT NULL,
-        provider TEXT NOT NULL,
-        method TEXT NOT NULL,
-        status TEXT NOT NULL,
-        amount REAL NOT NULL,
-        currency TEXT NOT NULL,
-        instructions TEXT NOT NULL,
-        created_at TEXT NOT NULL
-      );
-    `);
     const placeholders = ACTIVE.map(() => "?").join(",");
     const rows = getDb()
       .prepare(
@@ -80,25 +95,19 @@ export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
       pay_pending: number;
     }>;
 
-    const risks = await assessEtaRiskBatch(
-      rows.map((row) => ({
-        id: row.id,
-        lane: row.lane,
-        destinationCity: row.destination_city,
-        serviceClass: row.service_class,
-      })),
-    );
-    const byId = new Map(risks.map((r) => [r.id, r]));
-
     const tower = rows.map((row) => {
-      const risk = byId.get(row.id);
       const onHold =
         row.status === "EXCEPTION" ||
         Boolean(row.open_exception_id) ||
         row.latest_track_status === "HOLD";
       const payPending = row.pay_pending === 1;
-      const etaScore = risk?.score ?? 0;
-      let urgency = etaScore;
+      const eta = localEta({
+        status: row.status,
+        lane: row.lane,
+        service_class: row.service_class,
+        onHold,
+      });
+      let urgency = eta.etaScore;
       if (onHold) urgency += 0.25;
       if (payPending) urgency += 0.15;
       urgency = Math.min(1.5, urgency);
@@ -113,9 +122,9 @@ export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
         customerEmail: row.email,
         onHold,
         payPending,
-        etaLevel: (risk?.level ?? "UNKNOWN") as AdminTowerRow["etaLevel"],
-        etaScore,
-        etaFactors: risk?.factors?.slice(0, 3) ?? [],
+        etaLevel: eta.etaLevel,
+        etaScore: eta.etaScore,
+        etaFactors: eta.etaFactors,
         urgencyScore: Math.round(urgency * 1000) / 1000,
       };
     });

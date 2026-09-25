@@ -1,15 +1,18 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SavedAddress } from "@/lib/data/addresses";
 import { applyCountryDefaults } from "./country-defaults";
 import {
   applyLaneMode,
+  confirmBookingWithQuote,
   postBookingDraft,
-  quoteAndConfirmBooking,
+  prepareQuotesForPayment,
 } from "./post-draft";
 import { pickPlaceForLane, pickSavedForLane } from "./lane-pick";
+import { BookWizardHeader } from "./BookWizardHeader";
+import { PaymentStep } from "./PaymentStep";
 import { ReviewSummary } from "./ReviewSummary";
 import { RouteFields } from "./RouteFields";
 import { BOOK_FIELD, INITIAL_BOOK_FORM, type FormState } from "./form-types";
@@ -21,7 +24,8 @@ import {
 } from "./validate-route";
 import { WizardNav } from "./WizardNav";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
+type QuoteSummary = { amount: number; currency: string; quoteOptionId: string };
 
 export function BookWizard({
   initialAddresses,
@@ -41,6 +45,8 @@ export function BookWizard({
   const [form, setForm] = useState<FormState>(initialForm ?? INITIAL_BOOK_FORM);
   const [addresses, setAddresses] = useState(initialAddresses);
   const [revealRouteErrors, setRevealRouteErrors] = useState(false);
+  const [shipmentId, setShipmentId] = useState<string | null>(null);
+  const [quote, setQuote] = useState<QuoteSummary | null>(null);
   const lane = detectFormLane(form);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -51,31 +57,18 @@ export function BookWizard({
     });
   }
 
-  function blockIfRouteInvalid(): boolean {
-    const result = validateRouteForm(form);
-    if (!result.ok) {
-      setRevealRouteErrors(true);
-      setError(result.summary);
+  async function goNext() {
+    setError(null);
+    if (step === 1) {
+      const result = validateRouteForm(form);
+      if (!result.ok) {
+        setRevealRouteErrors(true);
+        setError(result.summary);
+        return;
+      }
     }
-    return !result.ok;
-  }
-
-  function goNext() {
-    setError(null);
-    if (step === 1 && blockIfRouteInvalid()) return;
-    setStep((s) => (s + 1) as Step);
-  }
-
-  function goBack() {
-    setError(null);
-    setStep((s) => (s - 1) as Step);
-  }
-
-  async function bookShipment(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    if (blockIfRouteInvalid()) {
-      setStep(1);
+    if (step !== 3) {
+      setStep((s) => (s + 1) as Step);
       return;
     }
     setPending(true);
@@ -85,57 +78,45 @@ export function BookWizard({
       setError(draft.error);
       return;
     }
-    const booked = await quoteAndConfirmBooking(draft.id);
+    const prepared = await prepareQuotesForPayment(draft.id);
+    setPending(false);
+    if ("error" in prepared) {
+      setError(prepared.error);
+      return;
+    }
+    setShipmentId(draft.id);
+    setQuote(prepared);
+    setStep(4);
+  }
+
+  async function bookAfterPayment() {
+    if (!shipmentId || !quote) {
+      setError("Missing quote. Go back to Review and continue again.");
+      return;
+    }
+    setPending(true);
+    const booked = await confirmBookingWithQuote(shipmentId, quote.quoteOptionId);
     setPending(false);
     if ("error" in booked) {
       setError(booked.error);
       return;
     }
-    router.push(`/book/booked/${draft.id}`);
+    router.push(`/book/booked/${shipmentId}`);
     router.refresh();
   }
 
   return (
-    <form
-      onSubmit={bookShipment}
-      noValidate
-      className="shell-rise mx-auto w-full max-w-2xl rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-6 sm:p-8"
-    >
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Hulakico booking</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">Book a shipment</h1>
-      {rebookHint ? <p className="mt-2 text-sm text-[var(--gold)]">{rebookHint}</p> : null}
-      <div className="mt-5 flex gap-2">
-        {(["DOMESTIC", "INTERNATIONAL"] as const).map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setForm((prev) => applyLaneMode(prev, mode))}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-              lane === mode ? "bg-[var(--gold)] text-[var(--navy)]" : "border border-[var(--teal)] text-[var(--teal)]"
-            }`}
-          >
-            {mode === "DOMESTIC" ? "Nepal domestic" : "International"}
-          </button>
-        ))}
-      </div>
-      <ol className="mt-6 flex gap-2">
-        {([1, 2, 3] as Step[]).map((n) => (
-          <li key={n} className={`flex-1 rounded-md px-2 py-2 text-center text-xs font-semibold ${
-            step === n ? "bg-[var(--teal)] text-[var(--off-white)]"
-              : step > n ? "bg-[color-mix(in_srgb,var(--teal)_35%,transparent)] text-[var(--off-white)]"
-              : "bg-[var(--navy)] text-[var(--muted)]"
-          }`}>{n}. {n === 1 ? "Route" : n === 2 ? "Package" : "Review"}</li>
-        ))}
-      </ol>
-      {/* Keep all steps mounted so Back preserves entered values. */}
+    <div className="shell-rise mx-auto w-full max-w-2xl rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-6 sm:p-8">
+      <BookWizardHeader
+        lane={lane}
+        step={step}
+        rebookHint={rebookHint}
+        onLane={(mode) => setForm((prev) => applyLaneMode(prev, mode))}
+      />
       <RevealRouteErrors.Provider value={revealRouteErrors}>
         <div className={step === 1 ? "block" : "hidden"} aria-hidden={step !== 1}>
           <RouteFields
-            form={form}
-            update={update}
-            field={BOOK_FIELD}
-            lane={lane}
-            addresses={addresses}
+            form={form} update={update} field={BOOK_FIELD} lane={lane} addresses={addresses}
             onPickOrigin={(a) => setForm((p) => pickSavedForLane(p, "origin", a, lane))}
             onPickDestination={(a) => setForm((p) => pickSavedForLane(p, "destination", a, lane))}
             onSaved={(a) => setAddresses((prev) => [a, ...prev])}
@@ -150,8 +131,16 @@ export function BookWizard({
       <div className={step === 3 ? "block" : "hidden"} aria-hidden={step !== 3}>
         <ReviewSummary form={form} lane={lane} />
       </div>
+      {step === 4 && shipmentId ? (
+        <PaymentStep shipmentId={shipmentId} wantsCod={form.wantsCod} lane={lane}
+          quote={quote} onBookCod={bookAfterPayment} pending={pending} />
+      ) : null}
       {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
-      <WizardNav step={step} pending={pending} onBack={goBack} onContinue={goNext} />
-    </form>
+      <WizardNav step={step} pending={pending}
+        onBack={() => { setError(null); setStep((s) => (s - 1) as Step); }}
+        onContinue={goNext}
+        continueLabel={step === 3 ? "Continue to payment" : "Continue"}
+        hideContinue={step === 4} />
+    </div>
   );
 }

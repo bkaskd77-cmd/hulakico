@@ -6,7 +6,7 @@ function statusEdge(status: string): string {
   if (status === "EXCEPTION") return "bg-[var(--danger)]";
   if (status === "DELIVERED") return "bg-emerald-500";
   if (status === "IN_TRANSIT" || status === "OUT_FOR_DELIVERY") return "bg-[var(--gold)]";
-  if (status === "BOOKED" || status === "HANDOVER_PENDING") return "bg-[var(--teal)]";
+    if (status === "BOOKED" || status === "HANDOVER_PENDING") return "bg-[var(--teal-fill)]";
   if (status === "CANCELLED" || status === "RTO") return "bg-slate-400";
   return "bg-sky-500";
 }
@@ -33,7 +33,7 @@ export function ShipmentListCard({ row }: { row: MyShipmentRow }) {
               <p className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-900">
                 {row.hulakicoAwb ?? "Draft shipment"}
               </p>
-              <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">
+              <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-[var(--teal-ink)]">
                 {row.status.replaceAll("_", " ")}
               </p>
             </div>
@@ -72,7 +72,7 @@ export function ShipmentListCard({ row }: { row: MyShipmentRow }) {
             <Link href={`/account/shipments/${row.id}`} className="text-slate-900 underline-offset-2 hover:underline">
               Open
             </Link>
-            <Link href={trackOrDraftHref(row)} className="text-[var(--teal)] underline-offset-2 hover:underline">
+            <Link href={trackOrDraftHref(row)} className="text-[var(--teal-ink)] underline-offset-2 hover:underline">
               {isDraft ? "Continue draft" : "Track"}
             </Link>
             <form action={copyShipmentAction}>

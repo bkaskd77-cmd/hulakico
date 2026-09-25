@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 10 complete — separate Admin staff vs customer users.
+**Status:** Phase 11 complete — booking prepay + stub Nepal wallets. Next: live wallet HMAC (Phase 12) or admin list filters (in-progress vs delivered).
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. Production target remains PostgreSQL.
 
@@ -182,7 +182,7 @@ Shared `users.platform_role` Admin/Ops is superseded by Phase 10 staff accounts.
 
 ---
 
-## Phase 10 — NEXT (Separate Admin staff vs customer)
+## Phase 10 — COMPLETE (Separate Admin staff vs customer)
 
 **Goal:** Customer book/track accounts and Admin/staff control accounts are completely separate systems. Ops lives under `/admin`.
 
@@ -199,14 +199,23 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 0 | Phase 10 scope in `PLAN.md` | **DONE** |
-| 1 | `staff_users` + `staff_sessions` + STAFF_BOOTSTRAP seed | **DONE** |
-| 2 | `staff-auth` + staff session cookie | **DONE** |
-| 3 | `POST /api/admin/auth/signin` + Admin signin page | **DONE** |
-| 4 | Guards use staff session only | **DONE** |
-| 5 | Ops desks under `/admin/*` + staff nav | **DONE** |
-| 6 | Redirect `/ops/*`; remove customer Ops/Admin CTAs | **DONE** |
-| 7 | Retire user role bootstrap; document STAFF_BOOTSTRAP | **DONE** |
+| 0–7 | Staff auth, gates, Ops under Admin, redirects | **DONE** |
+
+---
+
+## Phase 11 — IN PROGRESS (Booking prepay gate + stub Nepal wallets)
+
+**Goal:** After Review, customers must pay freight before BOOKED unless domestic COD. Stub eSewa / Khalti / Connect IPS until live merchant keys.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Payment domain + wallet provider seam | **DONE** |
+| 2 | Pay API + stub checkout + confirm gate | **DONE** |
+| 3 | Wizard Payment step | **DONE** |
+| 4 | Draft page payment gate + settle ops list | **DONE** |
+| 5 | PLAN.md note | **DONE** |
+
+**Later:** Live eSewa/Khalti/Connect IPS HMAC, merchant IDs, production callbacks.
 
 ---
 

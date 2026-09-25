@@ -1,5 +1,4 @@
 import { getDb } from "@/lib/db";
-import { ensureTransferPaymentIntent } from "@/lib/data/payments";
 
 export type SettleSummary = {
   mode: "COD" | "TRANSFER" | "NONE";
@@ -76,7 +75,21 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
 
     const booked = !["DRAFT", "QUOTED", "CANCELLED"].includes(shipment.status);
     if (booked) {
-      const pay = ensureTransferPaymentIntent(shipmentId);
+      // Read-only: never INSERT payment intents from settle/list views.
+      const pay = db
+        .prepare(
+          `SELECT amount, currency, status, instructions FROM payment_intents
+           WHERE shipment_id = ? AND status != 'CANCELLED'
+           ORDER BY created_at DESC LIMIT 1`,
+        )
+        .get(shipmentId) as
+        | {
+            amount: number;
+            currency: string;
+            status: string;
+            instructions: string | null;
+          }
+        | undefined;
       if (pay) {
         if (pay.status === "PAID") {
           return {

@@ -24,22 +24,24 @@ export default async function AccountPage({
   const attention = listAttentionItems(user.id);
   const latest = list.rows[0] ?? null;
   const recent = list.rows.slice(0, 3);
+  const panel =
+    "rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5";
 
   return (
-    <div className="min-h-dvh bg-[#eef5f8] px-4 py-10 text-slate-900 sm:px-8">
+    <div className="shell-sky px-4 py-10 sm:px-8">
       <div className="mx-auto max-w-4xl">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6">
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pb-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">Your control tower</p>
-            <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight sm:text-4xl">
+            <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-[var(--off-white)] sm:text-4xl">
               Welcome, {user.name}
             </h1>
-            <p className="mt-1 text-sm text-slate-600">Book, track, and settle from one Hulakico account.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">Book, track, and settle from one Hulakico account.</p>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
-            <Link href="/" className="font-semibold text-slate-700 underline-offset-2 hover:underline">Home</Link>
+            <Link href="/" className="font-semibold text-[var(--off-white)] underline-offset-2 hover:underline">Home</Link>
             <form action={signOutAction}>
-              <button type="submit" className="font-semibold text-slate-700 underline-offset-2 hover:underline">Sign out</button>
+              <button type="submit" className="font-semibold text-[var(--off-white)] underline-offset-2 hover:underline">Sign out</button>
             </form>
           </div>
         </header>
@@ -52,22 +54,22 @@ export default async function AccountPage({
         ) : null}
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <Link href="/book" className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[var(--gold)]">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Book</p>
-            <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-slate-900">New shipment</p>
-            <p className="mt-1 text-sm text-slate-600">Start a domestic or international send.</p>
+          <Link href="/book" className={`${panel} transition hover:border-[var(--gold)]`}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Book</p>
+            <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">New shipment</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">Start a domestic or international send.</p>
           </Link>
-          <Link href="/account/shipments" className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[var(--teal)]">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Hub</p>
-            <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-slate-900">All shipments</p>
-            <p className="mt-1 text-sm text-slate-600">
+          <Link href="/account/shipments" className={`${panel} transition hover:border-[var(--teal)]`}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Hub</p>
+            <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">All shipments</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
               {list.total > 0 ? `${list.total} in your tower` : "No shipments yet"}
             </p>
           </Link>
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Profile</p>
-            <p className="mt-2 break-all text-sm font-semibold text-slate-900">{user.email}</p>
-            <p className="mt-1 text-sm uppercase tracking-wide text-slate-600">{user.accountType}</p>
+          <div className={panel}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Profile</p>
+            <p className="mt-2 break-all text-sm font-semibold text-[var(--off-white)]">{user.email}</p>
+            <p className="mt-1 text-sm uppercase tracking-wide text-[var(--muted)]">{user.accountType}</p>
           </div>
         </div>
 
@@ -75,7 +77,7 @@ export default async function AccountPage({
 
         <section className="mt-8">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-900">Recent activity</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">Recent activity</h2>
             {list.total > 0 ? (
               <Link href="/account/shipments" className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
                 View all
@@ -83,8 +85,8 @@ export default async function AccountPage({
             ) : null}
           </div>
           {recent.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center">
-              <p className="text-sm text-slate-600">No shipments yet — book your first send.</p>
+            <div className={`mt-4 ${panel} border-dashed text-center`}>
+              <p className="text-sm text-[var(--muted)]">No shipments yet — book your first send.</p>
               <Link href="/book" className="mt-4 inline-block rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]">
                 Book a shipment
               </Link>
@@ -94,10 +96,10 @@ export default async function AccountPage({
               {recent.map((row) => (
                 <li key={row.id}>
                   <Link href={`/account/shipments/${row.id}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-[var(--teal)]">
+                    className={`flex flex-wrap items-center justify-between gap-2 ${panel} py-3 transition hover:border-[var(--teal)]`}>
                     <div>
-                      <p className="font-semibold text-slate-900">{row.originCity} → {row.destinationCity}</p>
-                      <p className="text-xs text-slate-600">
+                      <p className="font-semibold text-[var(--off-white)]">{row.originCity} → {row.destinationCity}</p>
+                      <p className="text-xs text-[var(--muted)]">
                         {row.hulakicoAwb ?? "Draft"} · {row.status.replaceAll("_", " ")}
                       </p>
                     </div>
@@ -109,7 +111,7 @@ export default async function AccountPage({
           )}
           {latest?.trackingToken ? (
             <Link href={`/track/${latest.trackingToken}`}
-              className="mt-4 inline-flex text-sm font-semibold text-slate-700 underline-offset-2 hover:underline">
+              className="mt-4 inline-flex text-sm font-semibold text-[var(--off-white)] underline-offset-2 hover:underline">
               Track latest shipment →
             </Link>
           ) : null}

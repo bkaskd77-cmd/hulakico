@@ -21,10 +21,31 @@ export async function POST(
     const { id } = await context.params;
     const result = generateQuotesForShipment(user.id, id);
     const shipment = getDraftShipmentForUser(user.id, id);
-    const ranked = await rankQuoteOptions({
-      options: result.options,
-      wantsCod: shipment?.wants_cod === 1,
-    });
+    let ranked = result.options.map((option, index) => ({
+      ...option,
+      rankScore: 1 / (index + 1),
+      rankReason: "Price order (intelligence unavailable)",
+      rank: index + 1,
+    }));
+    try {
+      ranked = await rankQuoteOptions({
+        options: result.options,
+        wantsCod: shipment?.wants_cod === 1,
+      });
+    } catch (rankError) {
+      console.error(
+        "[bookings/[id]/quotes/route.ts:POST] rank fallback",
+        rankError instanceof Error ? rankError.message : rankError,
+      );
+      ranked = [...result.options]
+        .sort((a, b) => a.amount - b.amount)
+        .map((option, index) => ({
+          ...option,
+          rankScore: 1 / (index + 1),
+          rankReason: "Lowest price (ranker offline)",
+          rank: index + 1,
+        }));
+    }
 
     return NextResponse.json({
       quoteId: result.quoteId,

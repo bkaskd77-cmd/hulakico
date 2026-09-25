@@ -6,6 +6,7 @@ import { ensureSchema } from "@/lib/db-schema";
 const DEFAULT_DB = path.join(process.cwd(), "data", "hulakico.db");
 
 let db: DatabaseSync | null = null;
+let schemaReady = false;
 
 export function getDb(): DatabaseSync {
   try {
@@ -14,7 +15,10 @@ export function getDb(): DatabaseSync {
       fs.mkdirSync(path.dirname(dbPath), { recursive: true });
       db = new DatabaseSync(dbPath);
     }
-    ensureSchema(db);
+    if (!schemaReady) {
+      ensureSchema(db);
+      schemaReady = true;
+    }
     return db;
   } catch (error) {
     console.error(

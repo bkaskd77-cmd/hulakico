@@ -8,7 +8,7 @@ function riskTone(level: AdminTowerRow["etaLevel"]): string {
   if (level === "HIGH") return "text-[var(--danger)]";
   if (level === "MEDIUM") return "text-[var(--gold)]";
   if (level === "LOW") return "text-[var(--teal)]";
-  return "text-[var(--muted)]";
+  return "text-[color-mix(in_srgb,var(--off-white)_70%,transparent)]";
 }
 
 export async function AdminTowerBoard() {
@@ -17,24 +17,35 @@ export async function AdminTowerBoard() {
   try {
     rows = await listAdminTowerShipments();
   } catch (err) {
-    console.error(
+    console.warn(
       "[AdminTowerBoard.tsx]",
       err instanceof Error ? err.message : err,
     );
-    error = "Could not load control tower. Is the intelligence service up?";
+    error = "Could not load control tower shipments.";
   }
+
+  const etaOffline =
+    !error &&
+    rows.length > 0 &&
+    rows.every((row) => row.etaLevel === "UNKNOWN");
 
   return (
     <>
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
         AI control tower
       </h1>
-      <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">
+      <p className="mt-1 max-w-xl text-sm text-[color-mix(in_srgb,var(--off-white)_78%,transparent)]">
         Active shipments ranked by ETA risk, Hold/exception pressure, and
         pay-pending urgency.
       </p>
 
       {error ? <p className="mt-8 text-[var(--danger)]">{error}</p> : null}
+      {etaOffline ? (
+        <p className="mt-4 text-sm text-[var(--gold)]">
+          Intelligence service is offline — showing hold/pay urgency only (ETA
+          marked UNKNOWN). Start the Python API to restore AI scores.
+        </p>
+      ) : null}
 
       <ul className="mt-8 space-y-3">
         {rows.map((row) => (
@@ -47,12 +58,12 @@ export async function AdminTowerBoard() {
                 <p className="font-semibold text-[var(--off-white)]">
                   {row.originCity} → {row.destinationCity}
                 </p>
-                <p className="text-xs text-[var(--muted)]">
+                <p className="text-xs text-[color-mix(in_srgb,var(--off-white)_75%,transparent)]">
                   {row.hulakicoAwb ?? "No AWB"} · {row.status} · {row.lane} ·{" "}
                   {row.customerEmail}
                 </p>
                 {row.etaFactors.length > 0 ? (
-                  <p className="mt-2 text-xs text-[var(--muted)]">
+                  <p className="mt-2 text-xs text-[color-mix(in_srgb,var(--off-white)_75%,transparent)]">
                     {row.etaFactors.join(" · ")}
                   </p>
                 ) : null}

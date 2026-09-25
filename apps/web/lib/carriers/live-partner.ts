@@ -28,6 +28,21 @@ function modeOf(envName: string): "sandbox" | "live" {
     : "sandbox";
 }
 
+const LIVE_FETCH_MS = 8000;
+
+async function fetchLive(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), LIVE_FETCH_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /** Shared sandbox/live HTTP partner adapter factory (FedEx, domestic, etc.). */
 export function createEnvPartnerAdapter(env: PartnerEnv): CarrierAdapter {
   return {
@@ -38,7 +53,7 @@ export function createEnvPartnerAdapter(env: PartnerEnv): CarrierAdapter {
         if (modeOf(env.modeEnv) === "live") {
           const base = (process.env[env.baseUrlEnv] || "").replace(/\/$/, "");
           if (!base) throw new Error(`${env.baseUrlEnv} required for live mode.`);
-          const response = await fetch(`${base}/shipments`, {
+          const response = await fetchLive(`${base}/shipments`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${apiKey}`,
@@ -78,7 +93,7 @@ export function createEnvPartnerAdapter(env: PartnerEnv): CarrierAdapter {
         if (modeOf(env.modeEnv) === "live") {
           const base = (process.env[env.baseUrlEnv] || "").replace(/\/$/, "");
           if (!base) throw new Error(`${env.baseUrlEnv} required for live mode.`);
-          const response = await fetch(
+          const response = await fetchLive(
             `${base}/tracking/${encodeURIComponent(externalAwb)}`,
             { headers: { Authorization: `Bearer ${apiKey}` } },
           );

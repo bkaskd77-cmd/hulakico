@@ -37,7 +37,7 @@ export function listAwaitingTransferPayments(): AwaitingTransferPayment[] {
                 s.hulakico_awb, s.origin_city, s.destination_city
          FROM payment_intents p
          JOIN shipments s ON s.id = p.shipment_id
-         WHERE p.status = 'AWAITING_PAYMENT' AND p.method = 'TRANSFER'
+         WHERE p.status = 'AWAITING_PAYMENT'
          ORDER BY p.created_at DESC`,
       )
       .all() as Array<{

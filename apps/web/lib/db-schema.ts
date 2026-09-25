@@ -414,6 +414,8 @@ function migrateShipmentColumns(database: DatabaseSync): void {
     ["destination_line1", "TEXT"],
     ["destination_line2", "TEXT"],
     ["destination_postal_code", "TEXT"],
+    ["partner_label", "TEXT"],
+    ["partner_track_url", "TEXT"],
   ];
   for (const [name, type] of additions) {
     if (!names.has(name)) {

@@ -11,28 +11,33 @@ export function WizardNav({
   pending,
   onBack,
   onContinue,
+  continueLabel = "Continue",
+  hideContinue = false,
 }: {
-  step: 1 | 2 | 3;
+  step: 1 | 2 | 3 | 4;
   pending: boolean;
   onBack: () => void;
   onContinue: () => void;
+  continueLabel?: string;
+  hideContinue?: boolean;
 }) {
   return (
     <div className="mt-8 flex flex-wrap items-center gap-3">
       {step > 1 ? (
-        <button type="button" onClick={onBack} className={OUTLINE}>
+        <button type="button" onClick={onBack} className={OUTLINE} disabled={pending}>
           Back
         </button>
       ) : null}
-      {step < 3 ? (
-        <button type="button" onClick={onContinue} className={BTN}>
-          Continue
+      {!hideContinue ? (
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={pending}
+          className={`${BTN} disabled:opacity-60`}
+        >
+          {pending ? "Working…" : continueLabel}
         </button>
-      ) : (
-        <button type="submit" disabled={pending} className={`${BTN} disabled:opacity-60`}>
-          {pending ? "Booking…" : "Book the shipment"}
-        </button>
-      )}
+      ) : null}
       <Link href="/account" className={`${OUTLINE} ml-auto`}>
         Cancel
       </Link>

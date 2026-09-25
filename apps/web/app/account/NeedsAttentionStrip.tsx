@@ -12,12 +12,12 @@ export function NeedsAttentionStrip({ items }: { items: AttentionItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="mt-6 rounded-lg border border-[var(--teal)]/40 bg-white p-4 shadow-sm">
+    <section className="mt-6 rounded-lg border border-[var(--teal-ink)]/35 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-900">
           Needs your attention
         </h2>
-        <p className="text-xs font-semibold text-[var(--teal)]">{items.length} open</p>
+        <p className="text-xs font-semibold text-[var(--teal-ink)]">{items.length} open</p>
       </div>
       <ul className="mt-3 space-y-2">
         {items.map((item) => (

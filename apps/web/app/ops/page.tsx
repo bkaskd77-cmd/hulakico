@@ -79,6 +79,7 @@ export default async function OpsShipmentsPage() {
                 <AttachPartnerAwbForm
                   shipmentId={shipment.id}
                   currentAwb={shipment.externalAwb}
+                  currentPartnerLabel={shipment.partnerLabel}
                   currentStatus={shipment.status}
                 />
               ) : null}

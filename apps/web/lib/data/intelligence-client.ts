@@ -18,15 +18,22 @@ export type DocQcResult = {
   warnings: Array<{ code: string; message: string }>;
 };
 
+let circuitOpenUntil = 0; // skip remote for 30s after failure
+const FETCH_MS = 1500;
+const CIRCUIT_MS = 30_000;
+
 async function intelligenceFetch<T>(path: string, body: unknown): Promise<T> {
   const baseUrl = process.env.INTELLIGENCE_API_URL;
   const token = process.env.INTELLIGENCE_SERVICE_TOKEN;
   if (!baseUrl || !token) {
     throw new Error("Intelligence service env is not configured.");
   }
+  if (Date.now() < circuitOpenUntil) {
+    throw new Error("Intelligence circuit open (recent failure).");
+  }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), FETCH_MS);
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       method: "POST",
@@ -45,6 +52,9 @@ async function intelligenceFetch<T>(path: string, body: unknown): Promise<T> {
     }
 
     return (await response.json()) as T;
+  } catch (error) {
+    circuitOpenUntil = Date.now() + CIRCUIT_MS;
+    throw error;
   } finally {
     clearTimeout(timeout);
   }

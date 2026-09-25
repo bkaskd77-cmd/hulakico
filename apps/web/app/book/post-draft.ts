@@ -47,10 +47,13 @@ export async function postBookingDraft(
   }
 }
 
-/** Generate quotes then confirm with the top-ranked option. */
-export async function quoteAndConfirmBooking(
+/** Generate quotes then return the top-ranked option (no confirm). */
+export async function prepareQuotesForPayment(
   shipmentId: string,
-): Promise<{ ok: true } | { error: string }> {
+): Promise<
+  | { quoteOptionId: string; amount: number; currency: string }
+  | { error: string }
+> {
   try {
     const quotesRes = await fetch(`/api/bookings/${shipmentId}/quotes`, {
       method: "POST",
@@ -59,14 +62,37 @@ export async function quoteAndConfirmBooking(
     if (!quotesRes.ok) {
       return { error: quotesData.error || "Could not generate quotes." };
     }
-    const options = quotesData.options as Array<{ id: string }> | undefined;
+    const options = quotesData.options as
+      | Array<{ id: string; amount: number; currency: string }>
+      | undefined;
     if (!options?.length) {
       return { error: "No carrier quotes available." };
     }
+    const top = options[0];
+    return {
+      quoteOptionId: top.id,
+      amount: top.amount,
+      currency: top.currency,
+    };
+  } catch (error) {
+    console.error(
+      "[post-draft.ts:prepareQuotesForPayment]",
+      error instanceof Error ? error.message : error,
+    );
+    return { error: "Could not generate quotes. Please try again." };
+  }
+}
+
+/** Confirm booking with a known quote option (requires COD or PAID intent). */
+export async function confirmBookingWithQuote(
+  shipmentId: string,
+  quoteOptionId: string,
+): Promise<{ ok: true } | { error: string }> {
+  try {
     const confirmRes = await fetch(`/api/bookings/${shipmentId}/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quoteOptionId: options[0].id }),
+      body: JSON.stringify({ quoteOptionId }),
     });
     const confirmData = await confirmRes.json();
     if (!confirmRes.ok) {
@@ -75,11 +101,20 @@ export async function quoteAndConfirmBooking(
     return { ok: true };
   } catch (error) {
     console.error(
-      "[post-draft.ts:quoteAndConfirmBooking]",
+      "[post-draft.ts:confirmBookingWithQuote]",
       error instanceof Error ? error.message : error,
     );
     return { error: "Booking failed. Please try again." };
   }
+}
+
+/** Generate quotes then confirm with the top-ranked option (COD or paid only). */
+export async function quoteAndConfirmBooking(
+  shipmentId: string,
+): Promise<{ ok: true } | { error: string }> {
+  const prepared = await prepareQuotesForPayment(shipmentId);
+  if ("error" in prepared) return prepared;
+  return confirmBookingWithQuote(shipmentId, prepared.quoteOptionId);
 }
 
 export function applyLaneMode(

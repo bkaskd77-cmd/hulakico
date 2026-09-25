@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { getCarrierAdapter } from "@/lib/carriers/adapter";
 import { createCodCollection } from "@/lib/data/cod";
 import { logCustomerNotification } from "@/lib/data/notifications";
+import { canConfirmBooking } from "@/lib/data/payment-wallet";
 import { getDb } from "@/lib/db";
 import { newId } from "@/lib/domain/auth";
 
@@ -38,6 +39,11 @@ export async function confirmShipmentBooking(
     if (!shipment) throw new Error("Shipment not found.");
     if (shipment.status !== "QUOTED" && shipment.status !== "DRAFT") {
       throw new Error("Shipment is already booked.");
+    }
+    if (!canConfirmBooking(shipmentId)) {
+      throw new Error(
+        "Payment required before booking unless this is a domestic COD shipment.",
+      );
     }
 
     const option = db

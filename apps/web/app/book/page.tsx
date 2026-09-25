@@ -17,7 +17,7 @@ export default async function BookPage({
   let addresses: ReturnType<typeof listSavedAddresses> = [];
   let initialForm: FormState | undefined;
   let rebookHint: string | null = null;
-  let initialStep: 1 | 2 | 3 = 1;
+  let initialStep: 1 | 2 | 3 | 4 = 1;
 
   const params = await searchParams;
   const copyFrom = params.copyFrom?.trim();

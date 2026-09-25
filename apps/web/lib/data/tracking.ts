@@ -17,7 +17,8 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
     const shipment = db
       .prepare(
         `SELECT s.id, s.hulakico_awb, s.external_awb, s.status, s.origin_city,
-                s.destination_city, s.lane, s.updated_at, c.name as carrier_name
+                s.destination_city, s.lane, s.updated_at, s.partner_label,
+                s.partner_track_url, c.name as carrier_name
          FROM shipments s LEFT JOIN carriers c ON c.id = s.carrier_id
          WHERE s.tracking_token = ?`,
       )
@@ -31,6 +32,8 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
           destination_city: string;
           lane: string;
           updated_at: string;
+          partner_label: string | null;
+          partner_track_url: string | null;
           carrier_name: string | null;
         }
       | undefined;
@@ -90,6 +93,8 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
       destinationCity: shipment.destination_city,
       lane: shipment.lane,
       carrierName: shipment.carrier_name,
+      partnerLabel: shipment.partner_label,
+      partnerTrackUrl: shipment.partner_track_url,
       trackingToken: token,
       holdInfo: holdReason
         ? { reason: holdReason, contactHint: CONTACT_HINT }
