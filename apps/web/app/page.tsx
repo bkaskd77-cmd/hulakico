@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 export default async function Home() {
   const token = await readSessionToken();
-  const user = token ? getUserBySessionToken(token) : null;
+  const user = token ? await getUserBySessionToken(token) : null;
   const bookHref = user ? "/book" : "/signup";
   const content = getHomepageContent();
 

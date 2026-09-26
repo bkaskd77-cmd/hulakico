@@ -19,7 +19,7 @@ export default async function DigitalInvoicePage({
 }) {
   const customerToken = await readSessionToken();
   const staffToken = await readStaffSessionToken();
-  const user = customerToken ? getUserBySessionToken(customerToken) : null;
+  const user = customerToken ? await getUserBySessionToken(customerToken) : null;
   const isAuthority = resolveOpsAccess(staffToken).ok;
   if (!user && !isAuthority) redirect("/signin");
 

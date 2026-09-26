@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 export default async function OpsCodPage() {
   const token = await readSessionToken();
-  if (!token || !getUserBySessionToken(token)) {
+  if (!token || !(await getUserBySessionToken(token))) {
     redirect("/signin");
   }
 

@@ -13,7 +13,7 @@ export default async function BookPage({
   searchParams: Promise<{ copyFrom?: string; editDraft?: string }>;
 }) {
   const token = await readSessionToken();
-  const user = token ? getUserBySessionToken(token) : null;
+  const user = token ? await getUserBySessionToken(token) : null;
   let addresses: ReturnType<typeof listSavedAddresses> = [];
   let initialForm: FormState | undefined;
   let rebookHint: string | null = null;

@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 14 control-tower homepage live. Deploy pipeline active — push `main` to GitHub; Vercel builds `apps/web`. SQLite uses `/tmp` on Vercel (ephemeral); Neon/Postgres still the production DB target. Phase 12 wallets parked.
+**Status:** Phase 15 active — moving live data to Turso (hosted SQLite). Deploy pipeline active — push `main` to GitHub; Vercel builds `apps/web`. Until each area is migrated, it still uses per-instance `/tmp` SQLite on Vercel. Phase 12 wallets parked.
 
 **Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. On Vercel, DB defaults to `/tmp/hulakico.db` (resets on cold start). Production target remains PostgreSQL.
 
@@ -261,6 +261,20 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 | 4 | Book tab Individual/Business → signup/book | **DONE** |
 | 5 | Tower alerts strip, footer IA, scroll motion | **DONE** |
 | 6 | Rank reason/score on quotes; track timeline polish | **DONE** |
+
+---
+
+## Phase 15 — Active (Shared production database: Turso)
+
+**Why:** On Vercel each function instance has its own `/tmp/hulakico.db`, so data written by one route (e.g. signup) is invisible to others (e.g. `/account`). Human chose Turso over Neon (keeps SQLite SQL).
+
+**How:** `lib/turso.ts` exposes an async `SqlClient`. With `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` set it talks to Turso over HTTPS (`@libsql/client/web`, no native binary — Windows ARM64 safe); without them it wraps the local `node:sqlite` file.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Customer auth (users, orgs, memberships, sessions) on `SqlClient`; session lookup async | **DONE** (awaiting Turso env vars on Vercel) |
+| 2 | Bookings, quotes, invoices, payments, addresses, tracking | Pending |
+| 3 | Staff auth, homepage CMS, contact messages, notifications, ops/admin queries | Pending |
 
 ---
 

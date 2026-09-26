@@ -19,7 +19,7 @@ const OPS_TRACK_STATUSES = new Set([
 
 export default async function OpsShipmentsPage() {
   const token = await readSessionToken();
-  if (!token || !getUserBySessionToken(token)) redirect("/signin");
+  if (!token || !(await getUserBySessionToken(token))) redirect("/signin");
 
   let shipments: ReturnType<typeof listOpsShipments> = [];
   let error: string | null = null;

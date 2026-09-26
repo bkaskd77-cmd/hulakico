@@ -42,7 +42,7 @@ export default function SignupPage() {
         setError(data.error || "Signup failed.");
         return;
       }
-      router.push("/book");
+      router.push("/account?welcome=1");
       router.refresh();
     } catch (err) {
       console.error("[signup/page.tsx:onSubmit]", err);

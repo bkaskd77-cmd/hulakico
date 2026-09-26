@@ -10,7 +10,7 @@ export async function GET() {
     if (!token) {
       return NextResponse.json({ user: null }, { status: 401 });
     }
-    const user = getUserBySessionToken(token);
+    const user = await getUserBySessionToken(token);
     if (!user) {
       return NextResponse.json({ user: null }, { status: 401 });
     }

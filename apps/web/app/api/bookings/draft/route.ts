@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const token = await readSessionToken();
-    const user = token ? getUserBySessionToken(token) : null;
+    const user = token ? await getUserBySessionToken(token) : null;
     if (!user) {
       return NextResponse.json({ error: "Sign in required." }, { status: 401 });
     }

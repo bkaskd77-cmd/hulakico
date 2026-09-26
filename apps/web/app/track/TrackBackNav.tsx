@@ -20,7 +20,7 @@ export async function TrackBackNav() {
     }
 
     const userToken = await readSessionToken();
-    const user = userToken ? getUserBySessionToken(userToken) : null;
+    const user = userToken ? await getUserBySessionToken(userToken) : null;
     if (user) {
       return (
         <Link

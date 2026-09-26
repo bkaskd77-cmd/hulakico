@@ -30,7 +30,7 @@ export default async function AccountShipmentsPage({
 }) {
   const token = await readSessionToken();
   if (!token) redirect("/signin");
-  const user = getUserBySessionToken(token);
+  const user = await getUserBySessionToken(token);
   if (!user) redirect("/signin");
 
   const params = await searchParams;

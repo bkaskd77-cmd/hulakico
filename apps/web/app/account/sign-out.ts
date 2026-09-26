@@ -10,7 +10,7 @@ import {
 export async function signOutAction() {
   try {
     const token = await readSessionToken();
-    if (token) destroySession(token);
+    if (token) await destroySession(token);
     await clearSessionCookie();
   } catch (error) {
     console.error(

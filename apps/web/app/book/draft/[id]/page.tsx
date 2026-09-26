@@ -16,7 +16,7 @@ export default async function DraftSavedPage({
   params: Promise<{ id: string }>;
 }) {
   const token = await readSessionToken();
-  const user = token ? getUserBySessionToken(token) : null;
+  const user = token ? await getUserBySessionToken(token) : null;
   if (!user) redirect("/signin");
 
   const { id } = await params;

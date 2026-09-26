@@ -10,7 +10,7 @@ export default async function BookLayout({
   children: React.ReactNode;
 }) {
   const token = await readSessionToken();
-  const user = token ? getUserBySessionToken(token) : null;
+  const user = token ? await getUserBySessionToken(token) : null;
   if (!user) {
     redirect("/signin");
   }

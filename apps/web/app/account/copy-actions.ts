@@ -9,7 +9,7 @@ import { readSessionToken } from "@/lib/http/session-cookie";
 export async function copyShipmentAction(formData: FormData) {
   try {
     const token = await readSessionToken();
-    const user = token ? getUserBySessionToken(token) : null;
+    const user = token ? await getUserBySessionToken(token) : null;
     if (!user) redirect("/signin");
 
     const shipmentId = String(formData.get("shipmentId") ?? "").trim();

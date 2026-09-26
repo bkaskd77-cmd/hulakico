@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 async function requireOwner(shipmentId: string) {
   const token = await readSessionToken();
-  const user = token ? getUserBySessionToken(token) : null;
+  const user = token ? await getUserBySessionToken(token) : null;
   if (!user) return { error: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   const shipment = getDraftShipmentForUser(user.id, shipmentId);
   if (!shipment) {
