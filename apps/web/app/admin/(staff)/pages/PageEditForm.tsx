@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FIELD, Field, SectionNote } from "@/app/admin/(staff)/homepage/AdminFields";
 import { PageSectionEditor } from "@/app/admin/(staff)/pages/PageSectionEditor";
 import { PAGE_GROUPS, type SitePage } from "@/lib/domain/page-catalogue";
@@ -8,20 +9,18 @@ import { PAGE_GROUPS, type SitePage } from "@/lib/domain/page-catalogue";
 export function PageEditForm({
   item,
   onChange,
-  onBack,
   onRemove,
 }: {
   item: SitePage;
   onChange: (item: SitePage) => void;
-  onBack: () => void;
   onRemove: () => void;
 }) {
   return (
     <div className="mt-8 max-w-2xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <button type="button" onClick={onBack} className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
-          ← All pages
-        </button>
+        <Link href="/admin/homepage" className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+          ← Back to homepage
+        </Link>
         {item.standalone ? null : (
           <button type="button" onClick={onRemove} className="text-sm font-semibold text-[var(--danger)]">
             Remove this page

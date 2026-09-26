@@ -79,7 +79,6 @@ export function ServicesEditor({
         <ServiceEditForm
           item={current}
           canRemove={items.length > 1}
-          onBack={() => setOpen(null)}
           onChange={(item) => update(items.map((row, i) => (i === open ? item : row)))}
           onRemove={() => {
             update(items.filter((_, i) => i !== open));
@@ -87,7 +86,12 @@ export function ServicesEditor({
           }}
         />
       ) : (
-        <ServicesCardGrid items={items} onOpen={setOpen} onChange={update} onAdd={add} />
+        <>
+          <Link href="/admin/homepage" className="mt-6 inline-flex text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+            ← Back to homepage
+          </Link>
+          <ServicesCardGrid items={items} onOpen={setOpen} onChange={update} onAdd={add} />
+        </>
       )}
     </div>
   );

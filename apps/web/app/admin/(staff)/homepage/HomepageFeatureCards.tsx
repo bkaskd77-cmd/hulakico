@@ -36,7 +36,7 @@ export function HomepageFeatureCards({
     return (
       <div className="space-y-4">
         <button type="button" onClick={() => setOpen(null)} className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
-          ← All features
+          ← Back to features
         </button>
         <Field label="Title" value={current.title} onChange={(title) => update(items.map((row, i) => (i === open ? { ...row, title } : row)))} />
         <Field label="Body" value={current.body} rows={3} onChange={(body) => update(items.map((row, i) => (i === open ? { ...row, body } : row)))} />

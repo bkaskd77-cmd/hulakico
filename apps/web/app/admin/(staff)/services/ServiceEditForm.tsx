@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Field } from "@/app/admin/(staff)/homepage/AdminFields";
 import { EditableList } from "@/app/admin/(staff)/homepage/EditableList";
 import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
@@ -9,26 +10,20 @@ import { SERVICE_LIMITS, type ServiceItem } from "@/lib/domain/service-catalogue
 export function ServiceEditForm({
   item,
   onChange,
-  onBack,
   onRemove,
   canRemove,
 }: {
   item: ServiceItem;
   onChange: (item: ServiceItem) => void;
-  onBack: () => void;
   onRemove: () => void;
   canRemove: boolean;
 }) {
   return (
     <div className="mt-8 max-w-2xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline"
-        >
-          ← All services
-        </button>
+        <Link href="/admin/homepage" className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+          ← Back to homepage
+        </Link>
         <button
           type="button"
           disabled={!canRemove}

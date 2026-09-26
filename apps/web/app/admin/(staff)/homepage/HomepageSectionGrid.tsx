@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { HomepageContent } from "@/lib/domain/homepage-types";
 
 export type HomeEditSection = "hero" | "highlights" | "services" | "features" | "footer" | "layout";
@@ -11,6 +12,11 @@ const CARDS: { id: HomeEditSection; title: string; blurb: (content: HomepageCont
   { id: "features", title: "Features", blurb: (c) => `${c.features.length} cards` },
   { id: "footer", title: "Footer", blurb: (c) => c.footerTagline },
   { id: "layout", title: "Order and visibility", blurb: () => "Reorder or hide the blocks under the hero" },
+];
+
+const LINKS = [
+  { href: "/admin/services", title: "Services", blurb: "Service cards, photos, and detail pages" },
+  { href: "/admin/pages", title: "Pages", blurb: "About, Help, Terms, Privacy, and new pages" },
 ];
 
 const CARD =
@@ -37,6 +43,15 @@ export function HomepageSectionGrid({
           >
             View
           </button>
+        </li>
+      ))}
+      {LINKS.map((card) => (
+        <li key={card.href} className={CARD}>
+          <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">{card.title}</p>
+          <p className="mt-2 min-h-10 flex-1 text-sm leading-relaxed text-[var(--off-white)]/80">{card.blurb}</p>
+          <Link href={card.href} className="mt-5 w-fit rounded-md bg-[var(--gold)] px-4 py-2 text-xs font-semibold text-[var(--navy)] transition hover:brightness-110">
+            View
+          </Link>
         </li>
       ))}
     </ul>
