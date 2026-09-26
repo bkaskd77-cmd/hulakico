@@ -14,9 +14,6 @@ export async function uploadSiteImage(file: File): Promise<{ url: string } | { e
     const extension = ALLOWED_TYPES[file.type];
     if (!extension) return { error: "Use a JPG, PNG, WebP or AVIF image." };
     if (file.size > MAX_IMAGE_BYTES) return { error: "Images must be 4 MB or smaller." };
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return { error: "Image uploads are not configured on this server (Vercel Blob token missing)." };
-    }
     const blob = await put(`site/image.${extension}`, file, {
       access: "public",
       addRandomSuffix: true,
@@ -28,6 +25,10 @@ export async function uploadSiteImage(file: File): Promise<{ url: string } | { e
       "[site-images.ts:uploadSiteImage]",
       error instanceof Error ? error.message : error,
     );
+    const message = error instanceof Error ? error.message : "";
+    if (/token|auth|oidc|unauthorized/i.test(message)) {
+      return { error: "Image uploads are not configured on this server (Vercel Blob token missing)." };
+    }
     return { error: "Could not upload the image. Please try again." };
   }
 }
