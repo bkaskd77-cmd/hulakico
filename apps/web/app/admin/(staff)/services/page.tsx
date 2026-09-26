@@ -46,7 +46,7 @@ export default async function AdminServicesPage() {
         Services
       </h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-        Edit cards and detail pages. Add, remove, or reorder. Nothing goes live on the public site until the next wiring step — Save stores the catalogue now.
+        Open a card to edit it. Add more services when you need them. Save stores the catalogue; public pages still use the seed until they are wired.
       </p>
       <ServicesEditor initial={items} saveAction={saveServicesAction} />
     </>

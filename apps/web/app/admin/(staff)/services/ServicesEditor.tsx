@@ -2,18 +2,13 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { Field } from "@/app/admin/(staff)/homepage/AdminFields";
-import { EditableList } from "@/app/admin/(staff)/homepage/EditableList";
-import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
-import {
-  SERVICE_LIMITS,
-  blankService,
-  type ServiceItem,
-} from "@/lib/domain/service-catalogue";
+import { ServiceEditForm } from "@/app/admin/(staff)/services/ServiceEditForm";
+import { ServicesCardGrid } from "@/app/admin/(staff)/services/ServicesCardGrid";
+import { blankService, type ServiceItem } from "@/lib/domain/service-catalogue";
 
 type SaveAction = (items: ServiceItem[]) => Promise<{ ok: true } | { error: string }>;
 
-/** Add, remove, reorder, and edit service cards plus their detail-page copy. */
+/** Card grid first; View opens one service for editing. */
 export function ServicesEditor({
   initial,
   saveAction,
@@ -22,6 +17,7 @@ export function ServicesEditor({
   saveAction: SaveAction;
 }) {
   const [items, setItems] = useState(initial);
+  const [open, setOpen] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +36,12 @@ export function ServicesEditor({
     setMessage(null);
   }
 
+  function add() {
+    const next = [...items, blankService()];
+    update(next);
+    setOpen(next.length - 1);
+  }
+
   function save() {
     setError(null);
     setMessage(null);
@@ -54,6 +56,7 @@ export function ServicesEditor({
     });
   }
 
+  const current = open !== null ? items[open] : null;
   return (
     <div className="mt-8">
       <div className="flex flex-wrap items-center justify-end gap-3 border-b border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pb-5">
@@ -72,28 +75,20 @@ export function ServicesEditor({
       </div>
       {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
       {message ? <p className="mt-4 text-sm text-[var(--gold)]">{message}</p> : null}
-      <div className="mt-8 max-w-2xl">
-        <EditableList
-          itemLabel="Service"
-          items={items}
-          max={SERVICE_LIMITS.items}
-          blank={blankService}
-          onChange={update}
-          renderItem={(item, patch) => (
-            <div className="space-y-3">
-              <Field label="Title" value={item.title} onChange={(title) => patch({ ...item, title })} />
-              <Field label="URL slug" value={item.slug} placeholder="domestic" onChange={(slug) => patch({ ...item, slug })} />
-              <Field label="Tag (optional)" value={item.tag} placeholder="Popular" onChange={(tag) => patch({ ...item, tag })} />
-              <ImageField label="Photo" frame="card" value={item.image} defaultValue={item.image} onChange={(image) => patch({ ...item, image })} />
-              <Field label="Card summary" value={item.summary} rows={2} onChange={(summary) => patch({ ...item, summary })} />
-              <Field label="Page intro" value={item.intro} rows={3} onChange={(intro) => patch({ ...item, intro })} />
-              <EditableList itemLabel="Highlight" items={item.highlights} max={SERVICE_LIMITS.highlights} blank={() => ""} onChange={(highlights) => patch({ ...item, highlights })} renderItem={(line, setLine) => <Field label="Text" value={line} onChange={setLine} />} />
-              <EditableList itemLabel="Need" items={item.needs} max={SERVICE_LIMITS.needs} blank={() => ""} onChange={(needs) => patch({ ...item, needs })} renderItem={(line, setLine) => <Field label="Text" value={line} onChange={setLine} />} />
-              <EditableList itemLabel="Step" items={item.howItWorks} max={SERVICE_LIMITS.howItWorks} blank={() => ""} onChange={(howItWorks) => patch({ ...item, howItWorks })} renderItem={(line, setLine) => <Field label="Text" value={line} onChange={setLine} />} />
-            </div>
-          )}
+      {current && open !== null ? (
+        <ServiceEditForm
+          item={current}
+          canRemove={items.length > 1}
+          onBack={() => setOpen(null)}
+          onChange={(item) => update(items.map((row, i) => (i === open ? item : row)))}
+          onRemove={() => {
+            update(items.filter((_, i) => i !== open));
+            setOpen(null);
+          }}
         />
-      </div>
+      ) : (
+        <ServicesCardGrid items={items} onOpen={setOpen} onChange={update} onAdd={add} />
+      )}
     </div>
   );
 }
