@@ -31,7 +31,7 @@ export function PageSectionEditor({
     return (
       <div className="space-y-4">
         <button type="button" onClick={() => setOpen(null)} className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
-          ← Back to this page
+          ← All sections
         </button>
         <Field label="Heading" value={current.heading} onChange={(heading) => onChange(sections.map((row, i) => (i === open ? { ...row, heading } : row)))} />
         <EditableList

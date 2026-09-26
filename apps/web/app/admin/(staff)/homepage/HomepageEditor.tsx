@@ -77,7 +77,7 @@ export function HomepageEditor({
       {open ? (
         <div className="mt-8 max-w-2xl space-y-5">
           <button type="button" onClick={() => setOpen(null)} className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
-            ← Back to homepage
+            ← All sections
           </button>
           {open === "hero" ? <HomepageHeroPanel {...panel} /> : null}
           {open === "highlights" ? <HomepageHighlightsPanel {...panel} /> : null}

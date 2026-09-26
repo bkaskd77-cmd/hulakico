@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
 import { PageEditForm } from "@/app/admin/(staff)/pages/PageEditForm";
 import { PagesCardGrid } from "@/app/admin/(staff)/pages/PagesCardGrid";
 import { blankPage, type SitePage } from "@/lib/domain/page-catalogue";
@@ -58,6 +57,7 @@ export function PagesEditor({ initial, saveAction }: { initial: SitePage[]; save
       {current && open !== null ? (
         <PageEditForm
           item={current}
+          onBack={() => setOpen(null)}
           onChange={(item) => update(items.map((row, i) => (i === open ? item : row)))}
           onRemove={() => {
             update(items.filter((_, i) => i !== open));
@@ -65,10 +65,6 @@ export function PagesEditor({ initial, saveAction }: { initial: SitePage[]; save
           }}
         />
       ) : (
-        <>
-        <Link href="/admin/homepage" className="mt-6 inline-flex text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
-          ← Back to homepage
-        </Link>
         <PagesCardGrid
           items={items}
           onOpen={setOpen}
@@ -78,7 +74,6 @@ export function PagesEditor({ initial, saveAction }: { initial: SitePage[]; save
             setOpen(items.length);
           }}
         />
-        </>
       )}
     </div>
   );
