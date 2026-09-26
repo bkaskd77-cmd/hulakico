@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/sql";
+import { runOnce } from "@/lib/sql/once";
 import { newId } from "@/lib/domain/auth";
 
 export type NotifyKind =
@@ -23,7 +24,7 @@ export type NotificationRow = {
 };
 
 async function ensureNotificationsTable(): Promise<void> {
-  await (await getSql()).exec(`
+  await runOnce("outbound_notifications", async () => (await getSql()).exec(`
     CREATE TABLE IF NOT EXISTS outbound_notifications (
       id TEXT PRIMARY KEY,
       shipment_id TEXT NOT NULL,
@@ -39,7 +40,7 @@ async function ensureNotificationsTable(): Promise<void> {
       FOREIGN KEY (shipment_id) REFERENCES shipments(id),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
-  `);
+  `));
 }
 
 /** Stub outbound notify — logs only until EMAIL/SMS provider is wired. */

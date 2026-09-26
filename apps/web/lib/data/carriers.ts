@@ -1,8 +1,13 @@
 import { getSql } from "@/lib/sql";
+import { runOnce } from "@/lib/sql/once";
 import { newId } from "@/lib/domain/auth";
 import { CARRIER_SEED } from "@/lib/data/carrier-seed";
 
-export async function seedCarriers(): Promise<{ seeded: boolean; carrierCount: number }> {
+export function seedCarriers(): Promise<{ seeded: boolean; carrierCount: number }> {
+  return runOnce("seed_carriers", seedCarriersNow);
+}
+
+async function seedCarriersNow(): Promise<{ seeded: boolean; carrierCount: number }> {
   try {
     const db = await getSql();
     const existing = (await db.prepare("SELECT COUNT(*) AS c FROM carriers").get()) as {

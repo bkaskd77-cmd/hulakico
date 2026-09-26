@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/sql";
+import { runOnce } from "@/lib/sql/once";
 import { newId } from "@/lib/domain/auth";
 import {
   isPartnerKey,
@@ -16,6 +17,10 @@ const BOOKED_STATUSES = [
 ] as const;
 
 async function ensurePartnerTrackColumns(): Promise<void> {
+  await runOnce("partner_track_columns", addPartnerTrackColumns);
+}
+
+async function addPartnerTrackColumns(): Promise<void> {
   const db = await getSql();
   const columns = (await db.prepare("PRAGMA table_info(shipments)").all()) as Array<{
     name: string;

@@ -20,8 +20,10 @@ export default async function AccountPage({
   if (!user) redirect("/signin");
 
   const params = await searchParams;
-  const list = await listMyShipments(user.id, 1);
-  const attention = await listAttentionItems(user.id);
+  const [list, attention] = await Promise.all([
+    listMyShipments(user.id, 1),
+    listAttentionItems(user.id),
+  ]);
   const latest = list.rows[0] ?? null;
   const recent = list.rows.slice(0, 3);
   const panel =

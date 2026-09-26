@@ -1,5 +1,6 @@
 import { getSql } from "@/lib/sql";
 import { logCustomerNotification } from "@/lib/data/notifications";
+import { ensurePaymentsTable } from "@/lib/data/payments";
 
 export type AwaitingTransferPayment = {
   id: string;
@@ -10,23 +11,6 @@ export type AwaitingTransferPayment = {
   route: string;
   createdAt: string;
 };
-
-async function ensurePaymentsTable(): Promise<void> {
-  await (await getSql()).exec(`
-    CREATE TABLE IF NOT EXISTS payment_intents (
-      id TEXT PRIMARY KEY,
-      shipment_id TEXT NOT NULL,
-      provider TEXT NOT NULL,
-      method TEXT NOT NULL CHECK (method IN ('TRANSFER', 'CARD')),
-      status TEXT NOT NULL CHECK (status IN ('AWAITING_PAYMENT', 'PAID', 'CANCELLED')),
-      amount REAL NOT NULL,
-      currency TEXT NOT NULL,
-      instructions TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
-    );
-  `);
-}
 
 export async function listAwaitingTransferPayments(): Promise<AwaitingTransferPayment[]> {
   try {

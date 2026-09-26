@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/sql";
+import { runOnce } from "@/lib/sql/once";
 
 export type PaymentIntent = {
   id: string;
@@ -13,7 +14,7 @@ export type PaymentIntent = {
 };
 
 export async function ensurePaymentsTable(): Promise<void> {
-  await (await getSql()).exec(`
+  await runOnce("payment_intents", async () => (await getSql()).exec(`
     CREATE TABLE IF NOT EXISTS payment_intents (
       id TEXT PRIMARY KEY,
       shipment_id TEXT NOT NULL,
@@ -26,7 +27,7 @@ export async function ensurePaymentsTable(): Promise<void> {
       created_at TEXT NOT NULL,
       FOREIGN KEY (shipment_id) REFERENCES shipments(id)
     );
-  `);
+  `));
 }
 
 export function mapPaymentRow(row: {

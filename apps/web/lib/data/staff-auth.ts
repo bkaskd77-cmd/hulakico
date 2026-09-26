@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSql } from "@/lib/sql";
 import {
   createSessionToken,
@@ -71,7 +72,7 @@ export async function authenticateStaff(
   }
 }
 
-export async function getStaffBySessionToken(
+async function loadStaffBySessionToken(
   token: string,
 ): Promise<StaffUser | null> {
   try {
@@ -114,3 +115,5 @@ export async function destroyStaffSession(token: string): Promise<void> {
     );
   }
 }
+
+export const getStaffBySessionToken = cache(loadStaffBySessionToken);

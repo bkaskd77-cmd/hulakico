@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/sql";
+import { ensurePaymentsTable } from "@/lib/data/payments";
 
 export type AttentionItem = {
   shipmentId: string;
@@ -14,32 +15,33 @@ export type AttentionItem = {
 export async function listAttentionItems(userId: string): Promise<AttentionItem[]> {
   try {
     const db = await getSql();
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS payment_intents (
-        id TEXT PRIMARY KEY,
-        shipment_id TEXT NOT NULL,
-        provider TEXT NOT NULL,
-        method TEXT NOT NULL CHECK (method IN ('TRANSFER', 'CARD')),
-        status TEXT NOT NULL CHECK (status IN ('AWAITING_PAYMENT', 'PAID', 'CANCELLED')),
-        amount REAL NOT NULL,
-        currency TEXT NOT NULL,
-        instructions TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (shipment_id) REFERENCES shipments(id)
-      );
-    `);
+    await ensurePaymentsTable();
     const items: AttentionItem[] = [];
 
-    const holds = (await db
-      .prepare(
-        `SELECT s.id, s.hulakico_awb, s.origin_city, s.destination_city, s.tracking_token,
-                e.status as ex_status, e.reason, e.info_request_note
-         FROM exception_cases e
-         JOIN shipments s ON s.id = e.shipment_id
-         WHERE s.user_id = ? AND e.status IN ('OPEN', 'INFO_REQUIRED')
-         ORDER BY e.created_at DESC LIMIT 8`,
-      )
-      .all(userId)) as Array<{
+    const [holdRows, unpaidRows] = await Promise.all([
+      db
+        .prepare(
+          `SELECT s.id, s.hulakico_awb, s.origin_city, s.destination_city, s.tracking_token,
+                  e.status as ex_status, e.reason, e.info_request_note
+           FROM exception_cases e
+           JOIN shipments s ON s.id = e.shipment_id
+           WHERE s.user_id = ? AND e.status IN ('OPEN', 'INFO_REQUIRED')
+           ORDER BY e.created_at DESC LIMIT 8`,
+        )
+        .all(userId),
+      db
+        .prepare(
+          `SELECT s.id, s.hulakico_awb, s.origin_city, s.destination_city,
+                  p.amount, p.currency
+           FROM payment_intents p
+           JOIN shipments s ON s.id = p.shipment_id
+           WHERE s.user_id = ? AND p.status = 'AWAITING_PAYMENT' AND p.method = 'TRANSFER'
+           ORDER BY p.created_at DESC LIMIT 8`,
+        )
+        .all(userId),
+    ]);
+
+    const holds = holdRows as Array<{
       id: string;
       hulakico_awb: string | null;
       origin_city: string;
@@ -68,16 +70,7 @@ export async function listAttentionItems(userId: string): Promise<AttentionItem[
       });
     }
 
-    const unpaid = (await db
-      .prepare(
-        `SELECT s.id, s.hulakico_awb, s.origin_city, s.destination_city,
-                p.amount, p.currency
-         FROM payment_intents p
-         JOIN shipments s ON s.id = p.shipment_id
-         WHERE s.user_id = ? AND p.status = 'AWAITING_PAYMENT' AND p.method = 'TRANSFER'
-         ORDER BY p.created_at DESC LIMIT 8`,
-      )
-      .all(userId)) as Array<{
+    const unpaid = unpaidRows as Array<{
       id: string;
       hulakico_awb: string | null;
       origin_city: string;

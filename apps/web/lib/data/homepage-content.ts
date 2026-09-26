@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSql } from "@/lib/sql";
 
 export type HomeFeature = { title: string; body: string };
@@ -131,7 +132,7 @@ function cloneDefault(): HomepageContent {
 }
 
 /** Public homepage copy — DB override or built-in defaults. */
-export async function getHomepageContent(): Promise<HomepageContent> {
+async function loadHomepageContent(): Promise<HomepageContent> {
   try {
     const row = (await (await getSql())
       .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
@@ -180,3 +181,5 @@ export async function saveHomepageContent(
     return { error: "Could not save homepage content." };
   }
 }
+
+export const getHomepageContent = cache(loadHomepageContent);
