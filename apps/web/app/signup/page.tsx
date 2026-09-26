@@ -42,8 +42,7 @@ export default function SignupPage() {
         setError(data.error || "Signup failed.");
         return;
       }
-      router.push("/account?welcome=1");
-      router.refresh();
+      router.push("/signin?registered=1");
     } catch (err) {
       console.error("[signup/page.tsx:onSubmit]", err);
       setError("Signup failed. Please try again.");

@@ -15,9 +15,7 @@ import {
 export type { PublicUser } from "@/lib/data/auth-sessions";
 export { getUserBySessionToken, destroySession } from "@/lib/data/auth-sessions";
 
-export async function registerUser(
-  input: SignupInput,
-): Promise<{ user: PublicUser; sessionToken: string }> {
+export async function registerUser(input: SignupInput): Promise<PublicUser> {
   try {
     if (input.accountType === "BUSINESS" && !input.organizationName) {
       throw new Error("Organization name is required for business accounts.");
@@ -71,11 +69,7 @@ export async function registerUser(
       throw error;
     }
 
-    const sessionToken = await createSession(db, userId);
-    return {
-      sessionToken,
-      user: { id: userId, email, name: input.name, accountType: input.accountType, organization },
-    };
+    return { id: userId, email, name: input.name, accountType: input.accountType, organization };
   } catch (error) {
     console.error(
       "[auth-store.ts:registerUser]",

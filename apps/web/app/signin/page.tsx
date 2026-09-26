@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SigninPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [registered, setRegistered] = useState(false);
+
+  useEffect(() => {
+    setRegistered(new URLSearchParams(window.location.search).get("registered") === "1");
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,9 +57,15 @@ export default function SigninPage() {
             Cancel
           </Link>
         </div>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Access your Hulakico shipments and bookings.
-        </p>
+        {registered ? (
+          <p role="status" className="mt-4 rounded-md border border-[var(--teal)] bg-[color-mix(in_srgb,var(--teal)_14%,transparent)] px-4 py-3 text-sm text-[var(--off-white)]">
+            Sign up successful! Please sign in with your email and password to continue.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Access your Hulakico shipments and bookings.
+          </p>
+        )}
 
         <label className="mt-6 block text-sm text-[var(--muted)]">
           Email

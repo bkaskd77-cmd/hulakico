@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ops?: string; admin?: string; copy?: string; welcome?: string }>;
+  searchParams: Promise<{ ops?: string; admin?: string; copy?: string }>;
 }) {
   const token = await readSessionToken();
   if (!token) redirect("/signin");
@@ -46,11 +46,6 @@ export default async function AccountPage({
           </div>
         </header>
 
-        {params.welcome === "1" ? (
-          <p role="status" className="mt-4 rounded-md border border-[var(--teal)] bg-[color-mix(in_srgb,var(--teal)_14%,transparent)] px-4 py-3 text-sm text-[var(--off-white)]">
-            Account created — you’re signed in as {user.email}.
-          </p>
-        ) : null}
         {params.ops === "denied" || params.admin === "denied" ? (
           <p className="mt-4 text-sm text-[var(--danger)]">Staff tools live at /admin — use a staff account there.</p>
         ) : null}
