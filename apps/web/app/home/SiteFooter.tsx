@@ -2,7 +2,9 @@ import Link from "next/link";
 import { SOCIAL_ICON_PATHS, SOCIAL_LABELS, WHATSAPP_PATH } from "@/app/home/social-icons";
 import { getHomepageContent } from "@/lib/data/homepage-content";
 import { SOCIAL_NETWORKS } from "@/lib/domain/social";
-import { COMPANY_CONTACT, INFO_GROUPS, INFO_PAGES } from "@/lib/data/info-pages";
+import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getPages } from "@/lib/data/pages-content";
+import { PAGE_GROUPS } from "@/lib/domain/page-catalogue";
 import { getServices } from "@/lib/data/services-content";
 
 const headingClass = "text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold)]";
@@ -14,6 +16,7 @@ const iconClass =
 export async function SiteFooter() {
   const content = await getHomepageContent();
   const services = await getServices();
+  const pages = await getPages();
   const c = COMPANY_CONTACT;
   return (
     <footer className="home-footer relative overflow-hidden border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">
@@ -59,10 +62,10 @@ export async function SiteFooter() {
         </div>
 
         <div className="space-y-6 text-sm">
-          {INFO_GROUPS.map((group) => (
+          {PAGE_GROUPS.map((group) => (
             <div key={group} className="flex flex-col gap-2">
               <p className={headingClass}>{group}</p>
-              {INFO_PAGES.filter((page) => page.group === group).map((page) => (
+              {pages.filter((page) => page.group === group).map((page) => (
                 <Link key={page.slug} href={`/${page.slug}`} className={linkClass}>{page.title}</Link>
               ))}
             </div>

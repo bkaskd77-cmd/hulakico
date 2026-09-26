@@ -10,6 +10,7 @@ const LINKS: ReadonlyArray<{ href: string; label: string; area: StaffArea }> = [
   { href: "/admin", label: "AI tower", area: "operations" },
   { href: "/admin/homepage", label: "Homepage", area: "content" },
   { href: "/admin/services", label: "Services", area: "content" },
+  { href: "/admin/pages", label: "Pages", area: "content" },
   { href: "/admin/shipments", label: "Shipments", area: "operations" },
   { href: "/admin/exceptions", label: "Exceptions", area: "operations" },
   { href: "/admin/cod", label: "COD", area: "operations" },

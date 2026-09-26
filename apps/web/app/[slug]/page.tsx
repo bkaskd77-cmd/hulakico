@@ -4,13 +4,15 @@ import { notFound } from "next/navigation";
 import { SiteFooter } from "@/app/home/SiteFooter";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
-import { INFO_GROUPS, INFO_PAGES, getInfoPage } from "@/lib/data/info-pages";
+import { getPages } from "@/lib/data/pages-content";
+import { PAGE_GROUPS } from "@/lib/domain/page-catalogue";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 export const revalidate = 300;
 
-export function generateStaticParams() {
-  return INFO_PAGES.filter((page) => !page.standalone).map((page) => ({ slug: page.slug }));
+export async function generateStaticParams() {
+  const items = await getPages();
+  return items.filter((page) => !page.standalone).map((page) => ({ slug: page.slug }));
 }
 
 export async function generateMetadata({
@@ -19,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const page = getInfoPage(slug);
+  const page = (await getPages()).find((item) => item.slug === slug && !item.standalone);
   return page ? { title: `${page.title} · Hulakico`, description: page.intro } : {};
 }
 
@@ -30,7 +32,8 @@ export default async function InfoPageView({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = getInfoPage(slug);
+  const pages = await getPages();
+  const page = pages.find((item) => item.slug === slug && !item.standalone);
   if (!page) notFound();
 
   return (
@@ -66,11 +69,11 @@ export default async function InfoPageView({
         </article>
 
         <nav aria-label="More from Hulakico" className="space-y-8 lg:sticky lg:top-8 lg:self-start">
-          {INFO_GROUPS.map((group) => (
+          {PAGE_GROUPS.map((group) => (
             <div key={group}>
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold)]">{group}</p>
               <ul className="mt-3 space-y-2 text-sm">
-                {INFO_PAGES.filter((item) => item.group === group).map((item) => (
+                {pages.filter((item) => item.group === group).map((item) => (
                   <li key={item.slug}>
                     <Link
                       href={`/${item.slug}`}
