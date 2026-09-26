@@ -6,6 +6,8 @@ import {
   saveHomepageContent,
   type HomepageContent,
 } from "@/lib/data/homepage-content";
+import { canAccess } from "@/lib/domain/staff-permissions";
+import { requireStaffPage } from "@/lib/http/require-staff";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
@@ -18,6 +20,9 @@ async function saveHomepageAction(
     const token = await readStaffSessionToken();
     const access = await resolveStaffAccess(token);
     if (!access.ok) return { error: "Staff sign in required." };
+    if (!canAccess(access.staff.role, "content")) {
+      return { error: "Your staff role cannot edit website content." };
+    }
     const result = await saveHomepageContent(content);
     if ("error" in result) return result;
     revalidatePath("/");
@@ -33,6 +38,7 @@ async function saveHomepageAction(
 }
 
 export default async function AdminHomepagePage() {
+  await requireStaffPage("content");
   const content = await getHomepageContent();
   return (
     <>

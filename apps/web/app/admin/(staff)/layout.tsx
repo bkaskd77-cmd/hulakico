@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/app/admin/AdminNav";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { canAccess, ROLE_LABELS } from "@/lib/domain/staff-permissions";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
@@ -29,14 +31,19 @@ export default async function AdminStaffLayout({
               Hulakico Admin
             </p>
             <p className="mt-1 text-sm font-medium text-[var(--off-white)]">
-              Signed in as {access.ok ? access.staff.email : "staff"}
+              Signed in as {access.staff.email}
               <span className="text-[color-mix(in_srgb,var(--off-white)_72%,transparent)]">
                 {" "}
-                ({access.ok ? access.staff.role : "—"})
+                ({ROLE_LABELS[access.staff.role]})
               </span>
             </p>
+            {canAccess(access.staff.role, "team") ? (
+              <Link href="/admin/signup" className="mt-1 inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+                + Add staff account
+              </Link>
+            ) : null}
           </div>
-          <AdminNav />
+          <AdminNav role={access.staff.role} />
         </div>
         {children}
       </div>

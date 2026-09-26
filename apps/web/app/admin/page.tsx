@@ -1,7 +1,10 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AdminNav } from "@/app/admin/AdminNav";
 import { AdminTowerBoard } from "@/app/admin/AdminTowerBoard";
 import { StaffSignInForm } from "@/app/admin/StaffSignInForm";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { canAccess, roleHome, ROLE_LABELS } from "@/lib/domain/staff-permissions";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
@@ -22,6 +25,7 @@ export default async function AdminPlatformPage({
       </div>
     );
   }
+  if (!canAccess(access.staff.role, "operations")) redirect(roleHome(access.staff.role));
 
   return (
     <div className="shell-sky min-h-dvh px-6 py-12 sm:px-10">
@@ -32,10 +36,15 @@ export default async function AdminPlatformPage({
               Hulakico Admin
             </p>
             <p className="text-sm text-[var(--muted)]">
-              Signed in as {access.staff.email} ({access.staff.role})
+              Signed in as {access.staff.email} ({ROLE_LABELS[access.staff.role]})
             </p>
+            {canAccess(access.staff.role, "team") ? (
+              <Link href="/admin/signup" className="mt-1 inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
+                + Add staff account
+              </Link>
+            ) : null}
           </div>
-          <AdminNav />
+          <AdminNav role={access.staff.role} />
         </div>
         <AdminTowerBoard />
       </div>

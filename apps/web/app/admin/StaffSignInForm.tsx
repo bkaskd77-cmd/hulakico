@@ -98,7 +98,7 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
       <p className="mt-4 text-center text-sm text-[var(--muted)]">
         New staff?{" "}
         <Link href="/admin/signup" className="text-[var(--teal)] underline">
-          Create staff account
+          Ask an Admin for an account
         </Link>
       </p>
     </form>

@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
+import type { StaffRole } from "@/lib/data/staff-auth";
+import { canAccess, type StaffArea } from "@/lib/domain/staff-permissions";
 
-const LINKS = [
-  { href: "/admin", label: "AI tower" },
-  { href: "/admin/homepage", label: "Homepage" },
-  { href: "/admin/shipments", label: "Shipments" },
-  { href: "/admin/exceptions", label: "Exceptions" },
-  { href: "/admin/cod", label: "COD" },
-  { href: "/admin/payments", label: "Payments" },
-  { href: "/admin/notifications", label: "Notifications" },
-  { href: "/admin/carriers", label: "Carriers" },
-] as const;
+const LINKS: ReadonlyArray<{ href: string; label: string; area: StaffArea }> = [
+  { href: "/admin", label: "AI tower", area: "operations" },
+  { href: "/admin/homepage", label: "Homepage", area: "content" },
+  { href: "/admin/shipments", label: "Shipments", area: "operations" },
+  { href: "/admin/exceptions", label: "Exceptions", area: "operations" },
+  { href: "/admin/cod", label: "COD", area: "operations" },
+  { href: "/admin/payments", label: "Payments", area: "operations" },
+  { href: "/admin/notifications", label: "Notifications", area: "operations" },
+  { href: "/admin/carriers", label: "Carriers", area: "carriers" },
+];
 
 const BASE =
   "rounded-md border px-3 py-1.5 text-sm font-semibold transition";
@@ -24,14 +26,14 @@ const ACTIVE =
 const PENDING = "opacity-60 pointer-events-none";
 
 /** Instant click feedback — does not wait for the next RSC payload. */
-export function AdminNav() {
+export function AdminNav({ role }: { role: StaffRole }) {
   const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   return (
     <nav className="flex flex-wrap gap-2" aria-busy={pending}>
-      {LINKS.map((link) => {
+      {LINKS.filter((link) => canAccess(role, link.area)).map((link) => {
         const active =
           link.href === "/admin"
             ? pathname === "/admin"

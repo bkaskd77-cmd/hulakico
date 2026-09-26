@@ -51,7 +51,7 @@ export default async function AdminShipmentsPage({
 }: {
   searchParams: Promise<{ filter?: string }>;
 }) {
-  await requireStaffPage();
+  await requireStaffPage("operations");
   const params = await searchParams;
   const filter = resolveOpsFilter(params.filter ?? "running");
   let shipments: Awaited<ReturnType<typeof listOpsShipments>> = [];

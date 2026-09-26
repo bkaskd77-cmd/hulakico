@@ -8,12 +8,28 @@ import {
 } from "@/lib/domain/auth";
 import type { StaffRole, StaffUser } from "@/lib/data/staff-auth";
 
+export async function countStaff(): Promise<number> {
+  try {
+    const row = (await (await getSql())
+      .prepare(`SELECT COUNT(*) AS c FROM staff_users`)
+      .get()) as { c: number };
+    return Number(row.c);
+  } catch (error) {
+    console.error(
+      "[staff-register.ts:countStaff]",
+      error instanceof Error ? error.message : error,
+    );
+    throw new Error("Could not check staff accounts.");
+  }
+}
+
 export async function registerStaff(input: {
   name: string;
   email: string;
   password: string;
   role: StaffRole;
-}): Promise<{ staff: StaffUser; sessionToken: string } | { error: string }> {
+  startSession: boolean;
+}): Promise<{ staff: StaffUser; sessionToken: string | null } | { error: string }> {
   try {
     const email = input.email.trim().toLowerCase();
     const name = input.name.trim();
@@ -41,17 +57,20 @@ export async function registerStaff(input: {
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(id, email, passwordHash, name, input.role, now);
 
-    const sessionToken = createSessionToken();
-    await db.prepare(
-      `INSERT INTO staff_sessions (id, staff_user_id, token_hash, expires_at, created_at)
-       VALUES (?, ?, ?, ?, ?)`,
-    ).run(
-      newId("sses"),
-      id,
-      hashSessionToken(sessionToken),
-      sessionExpiryIso(),
-      now,
-    );
+    let sessionToken: string | null = null;
+    if (input.startSession) {
+      sessionToken = createSessionToken();
+      await db.prepare(
+        `INSERT INTO staff_sessions (id, staff_user_id, token_hash, expires_at, created_at)
+         VALUES (?, ?, ?, ?, ?)`,
+      ).run(
+        newId("sses"),
+        id,
+        hashSessionToken(sessionToken),
+        sessionExpiryIso(),
+        now,
+      );
+    }
 
     return {
       sessionToken,

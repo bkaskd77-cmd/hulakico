@@ -6,7 +6,7 @@ import { requireStaffPage } from "@/lib/http/require-staff";
 export const runtime = "nodejs";
 
 export default async function AdminExceptionsPage() {
-  await requireStaffPage();
+  await requireStaffPage("operations");
   let exceptions: Awaited<ReturnType<typeof listExceptions>> = [];
   let error: string | null = null;
   try {

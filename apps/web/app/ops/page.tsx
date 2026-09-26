@@ -5,6 +5,7 @@ import { OpenExceptionForm } from "@/app/ops/OpenExceptionForm";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listOpsShipments } from "@/lib/data/ops-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,7 @@ const OPS_TRACK_STATUSES = new Set([
 ]);
 
 export default async function OpsShipmentsPage() {
+  await requireStaffPage("operations");
   const token = await readSessionToken();
   if (!token || !(await getUserBySessionToken(token))) redirect("/signin");
 

@@ -4,10 +4,12 @@ import { MarkPaidForm } from "@/app/ops/MarkPaidForm";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listAwaitingTransferPayments } from "@/lib/data/payment-ops";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function OpsPaymentsPage() {
+  await requireStaffPage("operations");
   const token = await readSessionToken();
   if (!token || !(await getUserBySessionToken(token))) {
     redirect("/signin");

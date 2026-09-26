@@ -5,7 +5,7 @@ import { requireStaffPage } from "@/lib/http/require-staff";
 export const runtime = "nodejs";
 
 export default async function AdminCodPage() {
-  await requireStaffPage();
+  await requireStaffPage("operations");
   let items: Awaited<ReturnType<typeof listCodCollections>> = [];
   let error: string | null = null;
   try {

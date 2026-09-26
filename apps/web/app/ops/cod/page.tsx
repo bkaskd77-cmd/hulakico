@@ -4,10 +4,12 @@ import { CollectCodForm } from "@/app/ops/CollectCodForm";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listCodCollections } from "@/lib/data/cod";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function OpsCodPage() {
+  await requireStaffPage("operations");
   const token = await readSessionToken();
   if (!token || !(await getUserBySessionToken(token))) {
     redirect("/signin");

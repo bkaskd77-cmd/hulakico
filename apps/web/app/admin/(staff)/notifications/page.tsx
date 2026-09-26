@@ -4,7 +4,7 @@ import { requireStaffPage } from "@/lib/http/require-staff";
 export const runtime = "nodejs";
 
 export default async function AdminNotificationsPage() {
-  await requireStaffPage();
+  await requireStaffPage("operations");
   let items: Awaited<ReturnType<typeof listRecentNotifications>> = [];
   let error: string | null = null;
   try {

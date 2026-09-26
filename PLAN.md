@@ -280,6 +280,24 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 ---
 
+## Phase 16 — Active (Admin panel upgrade: editable, removable, addable)
+
+**Roles (locked):** Admin = everything incl. staff accounts. Editor = website content only. Sub-admin = shipments, exceptions, COD, payments, notifications (no content, no staff, no carriers). Rules live in `lib/domain/staff-permissions.ts`; pages call `requireStaffPage(area)`, ops APIs go through `resolveOpsAccess`.
+
+**Images (locked):** staff upload real images (Vercel Blob) — set up when the first image field is built.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Close public staff signup (first account bootstraps Admin; then Admin-only); enforce roles on pages, nav, APIs, homepage save | **DONE** |
+| 2 | Homepage editor: reorder, show/hide sections, add/remove everything, image uploads, drop dead fields | Pending |
+| 3 | Services manager (cards + detail pages, tag, image) — current 4 services as seed | Pending |
+| 4 | Pages manager (About, Help FAQ, Terms, Privacy, new pages, footer group) | Pending |
+| 5 | Company contact settings (phones, email, WhatsApp, address, map) used site-wide | Pending |
+| 6 | Contact messages inbox | Pending |
+| 7 | Team page (list staff, change role, remove access) | Pending |
+
+---
+
 ## After Phase 5 Step 2
 
 Human: open `/account` → **Copy / rebook** → `/book` wizard opens with prior shipper/consignee/package filled → review each step → Save draft → approve.  

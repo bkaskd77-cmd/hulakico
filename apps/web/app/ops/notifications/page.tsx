@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { listRecentNotifications } from "@/lib/data/notifications";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function OpsNotificationsPage() {
+  await requireStaffPage("operations");
   const token = await readStaffSessionToken();
   const access = await resolveOpsAccess(token);
   if (!access.ok) {

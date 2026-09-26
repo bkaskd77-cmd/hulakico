@@ -34,7 +34,7 @@ export default async function AdminShipmentDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ ops?: string }>;
 }) {
-  await requireStaffPage();
+  await requireStaffPage("operations");
   const { id } = await params;
   const query = await searchParams;
   const loaded = await getStaffShipmentSummary(id);
