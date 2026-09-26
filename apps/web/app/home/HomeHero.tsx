@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { QuoteLink } from "@/app/home/QuoteLink";
-import { SiteHeader } from "@/app/home/SiteHeader";
+import { PublicHeader } from "@/app/home/PublicHeader";
 import { WHATSAPP_PATH } from "@/app/home/social-icons";
 import type { HomepageContent } from "@/lib/data/homepage-content";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
@@ -33,7 +33,7 @@ export function HomeHero({
   return (
     <section className="home-hero relative overflow-hidden">
       <div aria-hidden className="home-hero-aurora pointer-events-none absolute inset-0 opacity-70" />
-      <SiteHeader onHome signedIn={signedIn} />
+      <PublicHeader onHome signedIn={signedIn} />
 
       <div className="relative z-10 px-6 pb-20 pt-8 sm:px-12">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:min-h-[calc(100dvh-8rem)] lg:grid-cols-[1.05fr_0.95fr]">

@@ -52,7 +52,7 @@ export function ServicesEditor({
         return;
       }
       setDirty(false);
-      setMessage("Saved — catalogue stored. Public pages still use the current seed until they are wired.");
+      setMessage("Saved — homepage cards, menus, and detail pages updated.");
     });
   }
 

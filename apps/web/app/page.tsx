@@ -6,16 +6,17 @@ import { SiteFooter } from "@/app/home/SiteFooter";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getHomepageContent, type HomepageContent, type HomeSectionKey } from "@/lib/data/homepage-content";
+import { getServices, type ServiceItem } from "@/lib/data/services-content";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
 
-function renderSection(key: HomeSectionKey, content: HomepageContent) {
+function renderSection(key: HomeSectionKey, content: HomepageContent, services: ServiceItem[]) {
   if (key === "track") {
     return <HomeTrackSection key={key} title={content.trackTitle} placeholder={content.hubTrackPlaceholder} />;
   }
   if (key === "highlights") return <HomeHighlights key={key} items={content.towerAlerts} />;
-  if (key === "services") return <HomeServices key={key} content={content} />;
+  if (key === "services") return <HomeServices key={key} content={content} services={services} />;
   return <HomeFeatures key={key} content={content} />;
 }
 
@@ -24,13 +25,14 @@ export default async function Home() {
   const user = token ? await getUserBySessionToken(token) : null;
   const bookHref = user ? "/book" : "/signup";
   const content = await getHomepageContent();
+  const services = await getServices();
 
   return (
     <div className="shell-sky">
       <HomeHero bookHref={bookHref} signedIn={Boolean(user)} content={content} />
       {content.sectionOrder
         .filter((key) => !content.hiddenSections.includes(key))
-        .map((key) => renderSection(key, content))}
+        .map((key) => renderSection(key, content, services))}
       <SiteFooter />
       <HomeQuoteForm bookHref={bookHref} />
       <WhatsAppButton />

@@ -3,7 +3,7 @@ import { SOCIAL_ICON_PATHS, SOCIAL_LABELS, WHATSAPP_PATH } from "@/app/home/soci
 import { getHomepageContent } from "@/lib/data/homepage-content";
 import { SOCIAL_NETWORKS } from "@/lib/domain/social";
 import { COMPANY_CONTACT, INFO_GROUPS, INFO_PAGES } from "@/lib/data/info-pages";
-import { SERVICE_PAGES } from "@/lib/data/service-pages";
+import { getServices } from "@/lib/data/services-content";
 
 const headingClass = "text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold)]";
 const linkClass = "text-[var(--off-white)]/80 transition hover:text-[var(--gold)]";
@@ -13,6 +13,7 @@ const iconClass =
 /** Public footer: brand + socials, services, company pages, contact details and hours. */
 export async function SiteFooter() {
   const content = await getHomepageContent();
+  const services = await getServices();
   const c = COMPANY_CONTACT;
   return (
     <footer className="home-footer relative overflow-hidden border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">
@@ -52,7 +53,7 @@ export async function SiteFooter() {
 
         <div className="flex flex-col gap-2 text-sm">
           <p className={headingClass}>Services</p>
-          {SERVICE_PAGES.map((service) => (
+          {services.map((service) => (
             <Link key={service.slug} href={`/services/${service.slug}`} className={linkClass}>{service.title}</Link>
           ))}
         </div>

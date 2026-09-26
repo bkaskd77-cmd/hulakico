@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/contact/ContactForm";
 import { SiteFooter } from "@/app/home/SiteFooter";
-import { SiteHeader } from "@/app/home/SiteHeader";
+import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 
@@ -40,7 +40,7 @@ export default function ContactPage() {
       <section className="relative overflow-hidden">
         <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-35" style={{ backgroundImage: "url(/home/footer.jpg)" }} />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[color-mix(in_srgb,var(--navy)_70%,transparent)] to-[var(--navy)]" />
-        <div className="relative z-10"><SiteHeader /></div>
+        <div className="relative z-10"><PublicHeader /></div>
         <div className="relative z-10 mx-auto max-w-[78rem] px-6 pb-16 pt-10 sm:px-12">
           <p className="shell-rise text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">Contact</p>
           <h1 className="shell-rise mt-3 max-w-2xl font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-5xl">

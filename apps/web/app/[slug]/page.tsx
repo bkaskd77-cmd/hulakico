@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteFooter } from "@/app/home/SiteFooter";
-import { SiteHeader } from "@/app/home/SiteHeader";
+import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { INFO_GROUPS, INFO_PAGES, getInfoPage } from "@/lib/data/info-pages";
 
@@ -36,7 +36,7 @@ export default async function InfoPageView({
   return (
     <div className="shell-sky min-h-dvh">
       <div className="border-b border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">
-        <SiteHeader />
+        <PublicHeader />
       </div>
 
       <div className="mx-auto grid max-w-[78rem] gap-12 px-6 py-16 sm:px-12 lg:grid-cols-[1fr_14rem]">

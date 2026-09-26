@@ -3,20 +3,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuoteLink } from "@/app/home/QuoteLink";
 import { SiteFooter } from "@/app/home/SiteFooter";
-import { SiteHeader } from "@/app/home/SiteHeader";
+import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
-import { SERVICE_PAGES, getServicePage } from "@/lib/data/service-pages";
+import { getServices } from "@/lib/data/services-content";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 export const revalidate = 300;
 
-export function generateStaticParams() {
-  return SERVICE_PAGES.map((page) => ({ slug: page.slug }));
+export async function generateStaticParams() {
+  const items = await getServices();
+  return items.map((page) => ({ slug: page.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const page = getServicePage(slug);
+  const page = (await getServices()).find((item) => item.slug === slug);
   return page ? { title: `${page.title} · Hulakico`, description: page.summary } : {};
 }
 
@@ -26,9 +27,10 @@ const panelClass =
 /** Service detail page — what it is, what you need, how it works, then quote. */
 export default async function ServicePageView({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const page = getServicePage(slug);
+  const services = await getServices();
+  const page = services.find((item) => item.slug === slug);
   if (!page) notFound();
-  const others = SERVICE_PAGES.filter((item) => item.slug !== page.slug);
+  const others = services.filter((item) => item.slug !== page.slug);
 
   return (
     <div className="shell-sky min-h-dvh">
@@ -36,7 +38,7 @@ export default async function ServicePageView({ params }: { params: Promise<{ sl
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={page.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[var(--navy)] via-[color-mix(in_srgb,var(--navy)_80%,transparent)] to-[color-mix(in_srgb,var(--navy)_35%,transparent)]" />
-        <div className="relative"><SiteHeader /></div>
+        <div className="relative"><PublicHeader /></div>
         <div className="relative mx-auto max-w-[78rem] px-6 pb-20 pt-12 sm:px-12">
           <p className="shell-rise text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">Services</p>
           <h1 className="shell-rise mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-6xl">

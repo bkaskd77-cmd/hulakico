@@ -49,7 +49,7 @@ export default async function AdminHomepagePage() {
         Homepage
       </h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-        Reorder, hide, add, remove, and replace photos. Nothing goes live until you click Save.
+        Open a section card to edit it. Service cards live under Services. Nothing goes live until you click Save.
       </p>
       <HomepageEditor initial={content} saveAction={saveHomepageAction} />
     </>

@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { QuoteLink } from "@/app/home/QuoteLink";
 import { SERVICE_PAGES } from "@/lib/data/service-pages";
 
-type Props = { onHome?: boolean; signedIn?: boolean };
+type NavService = { slug: string; title: string; summary: string };
+type Props = { onHome?: boolean; signedIn?: boolean; services?: NavService[] };
 
 const linkClass = "text-[var(--off-white)]/90 transition hover:text-[var(--gold)]";
 
 /** Public site header: Track · Services ▾ · About · Contact · account · Get a Quote. */
-export function SiteHeader({ onHome = false, signedIn }: Props) {
+export function SiteHeader({ onHome = false, signedIn, services }: Props) {
+  const serviceLinks = services ?? SERVICE_PAGES;
   const [account, setAccount] = useState(Boolean(signedIn));
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -48,7 +50,7 @@ export function SiteHeader({ onHome = false, signedIn }: Props) {
             </Link>
             <div className="invisible absolute left-1/2 top-full w-64 -translate-x-1/2 pt-3 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
               <ul className="rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-2 shadow-xl">
-                {SERVICE_PAGES.map((service) => (
+                {serviceLinks.map((service) => (
                   <li key={service.slug}>
                     <Link href={`/services/${service.slug}`} className="block rounded-md px-3 py-2 hover:bg-[color-mix(in_srgb,var(--teal)_18%,transparent)]">
                       <span className="block text-sm font-semibold text-[var(--off-white)]">{service.title}</span>
@@ -83,7 +85,7 @@ export function SiteHeader({ onHome = false, signedIn }: Props) {
         <nav className="hub-panel mx-auto mt-4 max-w-6xl space-y-1 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-4 text-sm lg:hidden" aria-label="Mobile">
           <Link href="/#track" className="block py-2 font-semibold text-[var(--gold)]">Track a shipment</Link>
           <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Services</p>
-          {SERVICE_PAGES.map((service) => (
+          {serviceLinks.map((service) => (
             <Link key={service.slug} href={`/services/${service.slug}`} className="block py-1.5 pl-2 text-[var(--off-white)]/90">
               {service.title}
             </Link>

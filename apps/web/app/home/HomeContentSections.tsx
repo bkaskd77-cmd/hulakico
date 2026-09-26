@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { HomepageContent } from "@/lib/data/homepage-content";
-import { SERVICE_PAGES } from "@/lib/data/service-pages";
+import type { ServiceItem } from "@/lib/domain/service-catalogue";
 
 const cardClass =
   "overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)]";
@@ -22,7 +22,7 @@ export function HomeHighlights({ items }: { items: string[] }) {
   );
 }
 
-export function HomeServices({ content }: { content: HomepageContent }) {
+export function HomeServices({ content, services }: { content: HomepageContent; services: ServiceItem[] }) {
   return (
     <section id="services" className="home-section scroll-mt-6 px-6 py-24 sm:px-12">
       <div className="mx-auto max-w-6xl">
@@ -31,13 +31,13 @@ export function HomeServices({ content }: { content: HomepageContent }) {
           {content.servicesTitle}
         </h2>
         <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {SERVICE_PAGES.map((service, i) => (
+          {services.map((service, i) => (
             <li key={service.slug} className="hub-rank-item" style={{ animationDelay: `${i * 90}ms` }}>
               <Link href={`/services/${service.slug}`} className={`group flex h-full flex-col ${cardClass} transition hover:-translate-y-1 hover:border-[color-mix(in_srgb,var(--gold)_55%,transparent)]`}>
                 <div className="relative h-44 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={content.serviceImages?.[service.slug] || service.image}
+                    src={service.image}
                     alt=""
                     className="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
                   />

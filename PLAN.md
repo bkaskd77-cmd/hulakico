@@ -290,7 +290,7 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 |------|-------------|--------|
 | 1 | Close public staff signup (first account bootstraps Admin; then Admin-only); enforce roles on pages, nav, APIs, homepage save | **DONE** |
 | 2 | Homepage editor: reorder, show/hide sections, add/remove everything, image uploads, drop dead fields | **DONE** |
-| 3 | Services manager (cards + detail pages, tag, image) — current 4 services as seed | In progress (admin editor; public pages next) |
+| 3 | Services manager (cards + detail pages, tag, image) — current 4 services as seed | **DONE** (public site reads the saved catalogue) |
 | 4 | Pages manager (About, Help FAQ, Terms, Privacy, new pages, footer group) | Pending |
 | 5 | Company contact settings (phones, email, WhatsApp, address, map) used site-wide | Pending |
 | 6 | Contact messages inbox | Pending |
