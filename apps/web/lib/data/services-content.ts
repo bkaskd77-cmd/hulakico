@@ -1,27 +1,27 @@
 import { cache } from "react";
-import { SERVICE_PAGES, type ServicePage } from "@/lib/data/service-pages";
+import { SERVICE_PAGES } from "@/lib/data/service-pages";
 import { getHomepageContent } from "@/lib/data/homepage-content";
 import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
+import {
+  SERVICE_LIMITS,
+  slugifyTitle,
+  type ServiceItem,
+} from "@/lib/domain/service-catalogue";
 import { getSql } from "@/lib/sql";
 
-export const SERVICE_LIMITS = { items: 12, highlights: 6, needs: 8, howItWorks: 8, tag: 24 } as const;
-export type ServiceItem = ServicePage & { tag: string };
+export type { ServiceItem } from "@/lib/domain/service-catalogue";
+export { SERVICE_LIMITS, blankService } from "@/lib/domain/service-catalogue";
 
 const SLUG = "services";
 const SLUG_OK = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const FALLBACK_IMAGE = "/home/service-domestic.jpg";
-
-export function slugifyTitle(title: string): string {
-  return title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
-}
-
-function asItem(page: ServicePage): ServiceItem {
-  return { ...page, tag: page.tag ?? "" };
-}
 
 function stringList(value: unknown, fallback: string[], max: number): string[] {
   const raw = Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : fallback;
   return raw.slice(0, max);
+}
+
+function asItem(page: (typeof SERVICE_PAGES)[number]): ServiceItem {
+  return { ...page, tag: page.tag ?? "" };
 }
 
 function normalizeItem(raw: unknown, fallback: ServiceItem, used: Set<string>): ServiceItem {
@@ -51,9 +51,11 @@ export function normalizeServices(data: unknown, images?: Record<string, string>
     ...asItem(page),
     image: images?.[page.slug] || page.image,
   }));
-  const raw = Array.isArray(data) ? data : data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)
-    ? (data as { items: unknown[] }).items
-    : null;
+  const raw = Array.isArray(data)
+    ? data
+    : data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)
+      ? (data as { items: unknown[] }).items
+      : null;
   const used = new Set<string>();
   if (!raw) return seed.map((item) => normalizeItem(item, item, used));
   return raw.slice(0, SERVICE_LIMITS.items).map((row, i) => normalizeItem(row, seed[i] ?? seed[0], used));
@@ -63,7 +65,9 @@ export function validateServices(items: ServiceItem[]): string | null {
   if (items.length < 1) return "Keep at least one service.";
   if (items.length > SERVICE_LIMITS.items) return `Up to ${SERVICE_LIMITS.items} services.`;
   if (items.some((item) => !item.title.trim())) return "Every service needs a title.";
-  if (items.some((item) => !SLUG_OK.test(item.slug))) return "Each URL slug must be lowercase letters, numbers, and hyphens.";
+  if (items.some((item) => !SLUG_OK.test(item.slug))) {
+    return "Each URL slug must be lowercase letters, numbers, and hyphens.";
+  }
   if (items.some((item) => !isAllowedImageUrl(item.image))) return "Images must be uploaded through the editor.";
   return null;
 }
@@ -110,20 +114,6 @@ export async function saveServices(items: ServiceItem[]): Promise<{ ok: true } |
     console.error("[services-content.ts:saveServices]", error instanceof Error ? error.message : error);
     return { error: "Could not save services." };
   }
-}
-
-export function blankService(): ServiceItem {
-  return {
-    slug: "",
-    title: "",
-    tag: "",
-    image: FALLBACK_IMAGE,
-    summary: "",
-    intro: "",
-    highlights: [],
-    needs: [],
-    howItWorks: [],
-  };
 }
 
 export const getServices = cache(loadServices);

@@ -9,7 +9,7 @@ import {
   SERVICE_LIMITS,
   blankService,
   type ServiceItem,
-} from "@/lib/data/services-content";
+} from "@/lib/domain/service-catalogue";
 
 type SaveAction = (items: ServiceItem[]) => Promise<{ ok: true } | { error: string }>;
 
