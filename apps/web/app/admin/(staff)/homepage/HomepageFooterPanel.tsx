@@ -1,7 +1,8 @@
 "use client";
 
-import { Field } from "@/app/admin/(staff)/homepage/HomepageListPanels";
-import type { HomepageContent } from "@/lib/data/homepage-content";
+import { Field, SectionNote } from "@/app/admin/(staff)/homepage/AdminFields";
+import { EditableList } from "@/app/admin/(staff)/homepage/EditableList";
+import { HOME_LIMITS, type HomepageContent } from "@/lib/domain/homepage-types";
 import { SOCIAL_NETWORKS, type SocialNetwork } from "@/lib/domain/social";
 
 const NETWORK_LABELS: Record<SocialNetwork, string> = {
@@ -23,12 +24,19 @@ export function HomepageFooterPanel({
   return (
     <>
       <Field label="Footer tagline" value={content.footerTagline} onChange={(v) => patch({ footerTagline: v })} rows={3} />
-      <Field
-        label="Opening hours (one per line)"
-        value={content.openingHours.join("\n")}
-        onChange={(v) => patch({ openingHours: v.split("\n").map((line) => line.trim()).filter(Boolean) })}
-        rows={3}
-      />
+      <div className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--teal)]">Opening hours</p>
+        <EditableList
+          itemLabel="Line"
+          items={content.openingHours}
+          max={HOME_LIMITS.openingHours}
+          blank={() => ""}
+          onChange={(openingHours) => patch({ openingHours })}
+          renderItem={(line, update) => (
+            <Field label="Days and hours" value={line} placeholder="Sunday – Friday: 9:00 AM – 5:00 PM" onChange={update} />
+          )}
+        />
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         {SOCIAL_NETWORKS.map((network) => (
           <Field
@@ -39,9 +47,7 @@ export function HomepageFooterPanel({
           />
         ))}
       </div>
-      <p className="text-xs text-[var(--muted)]">
-        Use full https:// addresses. Icons without a link stay visible but inactive.
-      </p>
+      <SectionNote>Use full https:// addresses. Icons without a link stay visible but inactive.</SectionNote>
     </>
   );
 }

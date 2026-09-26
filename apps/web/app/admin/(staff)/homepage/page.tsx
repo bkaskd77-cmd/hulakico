@@ -49,8 +49,7 @@ export default async function AdminHomepagePage() {
         Homepage
       </h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-        Edit one section at a time. Save publishes to the public landing page at{" "}
-        <span className="text-[var(--off-white)]">/</span>.
+        Reorder, hide, add, remove, and replace photos. Nothing goes live until you click Save.
       </p>
       <HomepageEditor initial={content} saveAction={saveHomepageAction} />
     </>

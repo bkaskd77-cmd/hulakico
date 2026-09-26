@@ -1,22 +1,25 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import type { HomepageContent } from "@/lib/data/homepage-content";
-import {
-  Field,
-  HomepageListPanels,
-} from "@/app/admin/(staff)/homepage/HomepageListPanels";
+import type { HomepageContent } from "@/lib/domain/homepage-types";
 import { HomepageFooterPanel } from "@/app/admin/(staff)/homepage/HomepageFooterPanel";
+import { HomepageHeroPanel } from "@/app/admin/(staff)/homepage/HomepageHeroPanel";
+import { HomepageLayoutPanel } from "@/app/admin/(staff)/homepage/HomepageLayoutPanel";
+import {
+  HomepageFeaturesPanel,
+  HomepageHighlightsPanel,
+  HomepageServicesPanel,
+} from "@/app/admin/(staff)/homepage/HomepageListPanels";
 
-const TABS = ["Hero", "Features", "Services", "Footer"] as const;
+const TABS = ["Layout", "Hero", "Highlights", "Services", "Features", "Footer"] as const;
 type Tab = (typeof TABS)[number];
 
 type SaveAction = (
   content: HomepageContent,
 ) => Promise<{ ok: true } | { error: string }>;
 
-/** Tabbed homepage CMS — one section at a time, no clutter. */
+/** Tabbed homepage CMS — one section at a time; nothing goes live until Save. */
 export function HomepageEditor({
   initial,
   saveAction,
@@ -24,14 +27,24 @@ export function HomepageEditor({
   initial: HomepageContent;
   saveAction: SaveAction;
 }) {
-  const [tab, setTab] = useState<Tab>("Hero");
+  const [tab, setTab] = useState<Tab>("Layout");
   const [content, setContent] = useState(initial);
+  const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
   function patch(partial: Partial<HomepageContent>) {
     setContent((prev) => ({ ...prev, ...partial }));
+    setDirty(true);
+    setMessage(null);
   }
 
   function save() {
@@ -43,10 +56,12 @@ export function HomepageEditor({
         setError(result.error);
         return;
       }
+      setDirty(false);
       setMessage("Saved — public homepage updated.");
     });
   }
 
+  const panelProps = { content, patch };
   return (
     <div className="mt-8">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pb-5">
@@ -67,11 +82,8 @@ export function HomepageEditor({
           ))}
         </nav>
         <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/"
-            target="_blank"
-            className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline"
-          >
+          {dirty ? <span className="text-xs font-semibold text-[var(--gold)]">Unsaved changes</span> : null}
+          <Link href="/" target="_blank" className="text-sm font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
             Preview /
           </Link>
           <button
@@ -89,36 +101,12 @@ export function HomepageEditor({
       {message ? <p className="mt-4 text-sm text-[var(--gold)]">{message}</p> : null}
 
       <div className="mt-8 max-w-2xl space-y-5">
-        {tab === "Hero" ? (
-          <>
-            <Field label="Badge above headline" value={content.heroBadge} onChange={(v) => patch({ heroBadge: v })} />
-            <Field label="Headline" value={content.heroHeadline} onChange={(v) => patch({ heroHeadline: v })} rows={2} />
-            <Field label="Gold words in headline (must match exactly)" value={content.heroAccent} onChange={(v) => patch({ heroAccent: v })} />
-            <Field label="Supporting line" value={content.heroSubhead} onChange={(v) => patch({ heroSubhead: v })} rows={3} />
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Primary CTA" value={content.ctaBook} onChange={(v) => patch({ ctaBook: v })} />
-              <Field label="Quote CTA" value={content.ctaQuote} onChange={(v) => patch({ ctaQuote: v })} />
-              <Field label="Track placeholder" value={content.hubTrackPlaceholder} onChange={(v) => patch({ hubTrackPlaceholder: v })} />
-            </div>
-            <Field
-              label="Tower alerts (one per line)"
-              value={content.towerAlerts.join("\n")}
-              onChange={(v) =>
-                patch({
-                  towerAlerts: v
-                    .split("\n")
-                    .map((line) => line.trim())
-                    .filter(Boolean),
-                })
-              }
-              rows={3}
-            />
-          </>
-        ) : null}
-        {tab === "Features" || tab === "Services" ? (
-          <HomepageListPanels tab={tab} content={content} patch={patch} />
-        ) : null}
-        {tab === "Footer" ? <HomepageFooterPanel content={content} patch={patch} /> : null}
+        {tab === "Layout" ? <HomepageLayoutPanel {...panelProps} /> : null}
+        {tab === "Hero" ? <HomepageHeroPanel {...panelProps} /> : null}
+        {tab === "Highlights" ? <HomepageHighlightsPanel {...panelProps} /> : null}
+        {tab === "Services" ? <HomepageServicesPanel {...panelProps} /> : null}
+        {tab === "Features" ? <HomepageFeaturesPanel {...panelProps} /> : null}
+        {tab === "Footer" ? <HomepageFooterPanel {...panelProps} /> : null}
       </div>
     </div>
   );

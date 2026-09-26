@@ -284,12 +284,12 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 **Roles (locked):** Admin = everything incl. staff accounts. Editor = website content only. Sub-admin = shipments, exceptions, COD, payments, notifications (no content, no staff, no carriers). Rules live in `lib/domain/staff-permissions.ts`; pages call `requireStaffPage(area)`, ops APIs go through `resolveOpsAccess`.
 
-**Images (locked):** staff upload real images (Vercel Blob) — set up when the first image field is built.
+**Images (locked):** staff upload real images via Vercel Blob (`POST /api/admin/uploads`). Store `BLOB_READ_WRITE_TOKEN` on the `web` project (Production + Preview).
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 1 | Close public staff signup (first account bootstraps Admin; then Admin-only); enforce roles on pages, nav, APIs, homepage save | **DONE** |
-| 2 | Homepage editor: reorder, show/hide sections, add/remove everything, image uploads, drop dead fields | Pending |
+| 2 | Homepage editor: reorder, show/hide sections, add/remove everything, image uploads, drop dead fields | **DONE** |
 | 3 | Services manager (cards + detail pages, tag, image) — current 4 services as seed | Pending |
 | 4 | Pages manager (About, Help FAQ, Terms, Privacy, new pages, footer group) | Pending |
 | 5 | Company contact settings (phones, email, WhatsApp, address, map) used site-wide | Pending |

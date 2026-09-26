@@ -5,13 +5,6 @@ import { WHATSAPP_PATH } from "@/app/home/social-icons";
 import type { HomepageContent } from "@/lib/data/homepage-content";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 
-const TIMELINE = [
-  { label: "Booked", done: true },
-  { label: "Picked up by partner", done: true },
-  { label: "In transit", done: false },
-  { label: "Delivered", done: false },
-];
-
 function Headline({ text, accent }: { text: string; accent: string }) {
   const index = accent ? text.indexOf(accent) : -1;
   if (index < 0) return <>{text}</>;
@@ -35,6 +28,8 @@ export function HomeHero({
   content: HomepageContent;
 }) {
   const phone = COMPANY_CONTACT.phones[0];
+  const steps = content.heroTimeline.filter((step) => step.label.trim());
+  const activeIndex = steps.findIndex((step) => !step.done);
   return (
     <section className="home-hero relative overflow-hidden">
       <div aria-hidden className="home-hero-aurora pointer-events-none absolute inset-0 opacity-70" />
@@ -74,19 +69,21 @@ export function HomeHero({
         <div className="hub-enter relative">
           <div className="overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] shadow-2xl shadow-black/40">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/home/hero-handover.jpg" alt="Courier handing a parcel to a customer at her door" className="h-[26rem] w-full object-cover sm:h-[32rem]" />
+            <img src={content.heroImage} alt={content.heroImageAlt} className="h-[26rem] w-full object-cover sm:h-[32rem]" />
           </div>
-          <div className="absolute -bottom-6 left-4 w-64 rounded-xl border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[color-mix(in_srgb,var(--navy-elevated)_92%,transparent)] p-4 shadow-xl backdrop-blur sm:-left-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">One live timeline</p>
-            <ol className="mt-3 space-y-2.5">
-              {TIMELINE.map((step, index) => (
-                <li key={step.label} className="hub-rank-item flex items-center gap-3 text-sm" style={{ animationDelay: `${600 + index * 180}ms` }}>
-                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${step.done ? "bg-[var(--gold)]" : "border border-[var(--off-white)]/40"} ${index === 2 ? "home-node" : ""}`} />
-                  <span className={step.done ? "text-[var(--off-white)]" : "text-[var(--off-white)]/60"}>{step.label}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+          {content.showHeroTimeline && steps.length > 0 ? (
+            <div className="absolute -bottom-6 left-4 w-64 rounded-xl border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[color-mix(in_srgb,var(--navy-elevated)_92%,transparent)] p-4 shadow-xl backdrop-blur sm:-left-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">{content.heroTimelineTitle}</p>
+              <ol className="mt-3 space-y-2.5">
+                {steps.map((step, index) => (
+                  <li key={`${index}-${step.label}`} className="hub-rank-item flex items-center gap-3 text-sm" style={{ animationDelay: `${600 + index * 180}ms` }}>
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${step.done ? "bg-[var(--gold)]" : "border border-[var(--off-white)]/40"} ${index === activeIndex ? "home-node" : ""}`} />
+                    <span className={step.done ? "text-[var(--off-white)]" : "text-[var(--off-white)]/60"}>{step.label}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
         </div>
       </div>
       </div>
