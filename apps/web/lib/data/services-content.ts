@@ -27,7 +27,7 @@ function asItem(page: (typeof SERVICE_PAGES)[number]): ServiceItem {
 function normalizeItem(raw: unknown, fallback: ServiceItem, used: Set<string>): ServiceItem {
   const row = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const title = typeof row.title === "string" ? row.title : fallback.title;
-  let slug = slugifyTitle(typeof row.slug === "string" ? row.slug : "") || slugifyTitle(title) || fallback.slug;
+  const slug = slugifyTitle(typeof row.slug === "string" ? row.slug : "") || slugifyTitle(title) || fallback.slug;
   let unique = slug;
   for (let n = 2; used.has(unique); n += 1) unique = `${slug}-${n}`;
   used.add(unique);
