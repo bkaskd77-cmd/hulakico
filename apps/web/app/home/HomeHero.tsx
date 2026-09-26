@@ -67,9 +67,9 @@ export function HomeHero({
         </div>
 
         <div className="hub-enter relative">
-          <div className="overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] shadow-2xl shadow-black/40">
+          <div className="relative h-[26rem] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] shadow-2xl shadow-black/40 sm:h-[32rem]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={content.heroImage} alt={content.heroImageAlt} className="h-[26rem] w-full object-cover sm:h-[32rem]" />
+            <img src={content.heroImage} alt={content.heroImageAlt} className="absolute inset-0 h-full w-full object-cover object-center" />
           </div>
           {content.showHeroTimeline && steps.length > 0 ? (
             <div className="absolute -bottom-6 left-4 w-64 rounded-xl border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[color-mix(in_srgb,var(--navy-elevated)_92%,transparent)] p-4 shadow-xl backdrop-blur sm:-left-8">

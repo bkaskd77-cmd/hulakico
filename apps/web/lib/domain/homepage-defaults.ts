@@ -1,4 +1,5 @@
 import type { HomepageContent } from "@/lib/domain/homepage-types";
+import { SERVICE_PAGES } from "@/lib/data/service-pages";
 
 export const DEFAULT_FEATURE_IMAGES = ["/home/feature-1.jpg", "/home/feature-2.jpg", "/home/feature-3.jpg"];
 export const DEFAULT_HERO_IMAGE = "/home/hero-handover.jpg";
@@ -31,6 +32,7 @@ export const DEFAULT_HOMEPAGE: HomepageContent = {
   ],
   servicesEyebrow: "Services",
   servicesTitle: "What we run for every shipment.",
+  serviceImages: Object.fromEntries(SERVICE_PAGES.map((page) => [page.slug, page.image])),
   featuresEyebrow: "Platform",
   featuresTitle: "Built like a control tower, not a form.",
   featuresIntro:

@@ -3,6 +3,7 @@
 import { Field, SectionNote } from "@/app/admin/(staff)/homepage/AdminFields";
 import { EditableList } from "@/app/admin/(staff)/homepage/EditableList";
 import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
+import { SERVICE_PAGES } from "@/lib/data/service-pages";
 import { DEFAULT_FEATURE_IMAGES } from "@/lib/domain/homepage-defaults";
 import { HOME_LIMITS, type HomepageContent } from "@/lib/domain/homepage-types";
 
@@ -32,10 +33,17 @@ export function HomepageServicesPanel({ content, patch }: PanelProps) {
     <>
       <Field label="Eyebrow" value={content.servicesEyebrow} onChange={(v) => patch({ servicesEyebrow: v })} />
       <Field label="Section title" value={content.servicesTitle} onChange={(v) => patch({ servicesTitle: v })} rows={2} />
-      <SectionNote>
-        The service cards and their detail pages come from the service catalogue, so each card always matches its page.
-        Editing the cards themselves arrives with the Services manager.
-      </SectionNote>
+      <SectionNote>Card photos crop to fill the homepage tile. Titles and detail pages stay on the service catalogue until the Services manager.</SectionNote>
+      {SERVICE_PAGES.map((service) => (
+        <ImageField
+          key={service.slug}
+          label={`${service.title} photo`}
+          frame="card"
+          value={content.serviceImages?.[service.slug] || service.image}
+          defaultValue={service.image}
+          onChange={(image) => patch({ serviceImages: { ...content.serviceImages, [service.slug]: image } })}
+        />
+      ))}
     </>
   );
 }
@@ -62,6 +70,7 @@ export function HomepageFeaturesPanel({ content, patch }: PanelProps) {
             <Field label="Body" value={feature.body} rows={3} onChange={(body) => update({ ...feature, body })} />
             <ImageField
               label="Photo"
+              frame="card"
               value={feature.image}
               defaultValue={DEFAULT_FEATURE_IMAGES[index % DEFAULT_FEATURE_IMAGES.length]}
               onChange={(image) => update({ ...feature, image })}

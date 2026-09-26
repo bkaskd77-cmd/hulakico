@@ -33,6 +33,7 @@ export type HomepageContent = {
   towerAlerts: string[];
   servicesEyebrow: string;
   servicesTitle: string;
+  serviceImages: Record<string, string>;
   featuresEyebrow: string;
   featuresTitle: string;
   featuresIntro: string;

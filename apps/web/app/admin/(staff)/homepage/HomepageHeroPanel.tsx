@@ -25,7 +25,7 @@ export function HomepageHeroPanel({
         <Field label="Quote button" value={content.ctaQuote} onChange={(v) => patch({ ctaQuote: v })} />
       </div>
 
-      <ImageField label="Hero photo" value={content.heroImage} defaultValue={DEFAULT_HERO_IMAGE} onChange={(url) => patch({ heroImage: url })} />
+      <ImageField label="Hero photo" frame="hero" value={content.heroImage} defaultValue={DEFAULT_HERO_IMAGE} onChange={(url) => patch({ heroImage: url })} />
       <Field label="Photo description (for screen readers)" value={content.heroImageAlt} onChange={(v) => patch({ heroImageAlt: v })} />
 
       <div className="space-y-4 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-5">

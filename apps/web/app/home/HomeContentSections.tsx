@@ -36,7 +36,11 @@ export function HomeServices({ content }: { content: HomepageContent }) {
               <Link href={`/services/${service.slug}`} className={`group flex h-full flex-col ${cardClass} transition hover:-translate-y-1 hover:border-[color-mix(in_srgb,var(--gold)_55%,transparent)]`}>
                 <div className="relative h-44 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={service.image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <img
+                    src={content.serviceImages?.[service.slug] || service.image}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
+                  />
                   {service.tag ? (
                     <span className="absolute right-3 top-3 rounded-full bg-[var(--gold)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--navy)]">
                       {service.tag}
@@ -67,8 +71,10 @@ export function HomeFeatures({ content }: { content: HomepageContent }) {
         <ul className="mt-14 grid gap-8 sm:grid-cols-3">
           {content.features.map((item, index) => (
             <li key={`${index}-${item.title}`} className={cardClass}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.image} alt="" className="h-40 w-full object-cover" />
+              <div className="relative h-40 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.image} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+              </div>
               <div className="p-5">
                 <p className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">{item.title}</p>
                 <p className="mt-2 text-sm text-[var(--off-white)]/85">{item.body}</p>

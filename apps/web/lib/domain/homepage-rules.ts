@@ -42,6 +42,16 @@ function steps(value: unknown): HeroStep[] {
   return value.map((item) => ({ label: text(item?.label, ""), done: item?.done === true }));
 }
 
+function serviceImages(value: unknown): Record<string, string> {
+  const saved = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const out: Record<string, string> = { ...DEFAULT_HOMEPAGE.serviceImages };
+  for (const slug of Object.keys(out)) {
+    const url = text(saved[slug], out[slug]);
+    out[slug] = isAllowedImageUrl(url) ? url : out[slug];
+  }
+  return out;
+}
+
 /** Merges saved JSON (any older shape) with defaults; unknown/obsolete keys are dropped. */
 export function normalizeHomepage(data: Record<string, unknown> | null): HomepageContent {
   const d = data ?? {};
@@ -59,6 +69,7 @@ export function normalizeHomepage(data: Record<string, unknown> | null): Homepag
     heroTimeline: steps(d.heroTimeline),
     towerAlerts: strings(d.towerAlerts, base.towerAlerts),
     features: features(d.features),
+    serviceImages: serviceImages(d.serviceImages),
     openingHours: strings(d.openingHours, base.openingHours),
     socialLinks: { ...base.socialLinks, ...((d.socialLinks as object) ?? {}) },
   };
@@ -74,7 +85,11 @@ export function validateHomepage(content: HomepageContent): string | null {
   if (content.heroTimeline.length > HOME_LIMITS.heroTimeline) return `Up to ${HOME_LIMITS.heroTimeline} timeline steps.`;
   if (content.openingHours.length > HOME_LIMITS.openingHours) return `Up to ${HOME_LIMITS.openingHours} opening-hour lines.`;
   if (content.features.some((f) => !f.title.trim())) return "Every feature needs a title.";
-  const images = [content.heroImage, ...content.features.map((f) => f.image)];
+  const images = [
+    content.heroImage,
+    ...content.features.map((f) => f.image),
+    ...Object.values(content.serviceImages),
+  ];
   if (images.some((url) => !isAllowedImageUrl(url))) return "Images must be uploaded through the editor.";
   const badLink = Object.values(content.socialLinks).find(
     (url) => url.trim() !== "" && !/^https:\/\/[^\s]+$/i.test(url.trim()),
