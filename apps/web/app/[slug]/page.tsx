@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SiteFooter } from "@/app/home/SiteFooter";
+import { SiteHeader } from "@/app/home/SiteHeader";
+import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { INFO_GROUPS, INFO_PAGES, getInfoPage } from "@/lib/data/info-pages";
 
 export const dynamicParams = false;
+export const revalidate = 300;
 
 export function generateStaticParams() {
   return INFO_PAGES.filter((page) => !page.standalone).map((page) => ({ slug: page.slug }));
@@ -31,18 +35,11 @@ export default async function InfoPageView({
 
   return (
     <div className="shell-sky min-h-dvh">
-      <header className="border-b border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-6 py-5 sm:px-12">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link href="/" className="font-[family-name:var(--font-display)] text-lg font-extrabold text-[var(--off-white)]">
-            Hulakico
-          </Link>
-          <Link href="/" className="text-sm text-[var(--off-white)]/85 hover:text-[var(--gold)]">
-            Back to home
-          </Link>
-        </div>
-      </header>
+      <div className="border-b border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">
+        <SiteHeader />
+      </div>
 
-      <div className="mx-auto grid max-w-5xl gap-12 px-6 py-16 sm:px-12 lg:grid-cols-[1fr_14rem]">
+      <div className="mx-auto grid max-w-[78rem] gap-12 px-6 py-16 sm:px-12 lg:grid-cols-[1fr_14rem]">
         <article className="shell-rise">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">{page.group}</p>
           <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-5xl">
@@ -88,6 +85,8 @@ export default async function InfoPageView({
           ))}
         </nav>
       </div>
+      <SiteFooter />
+      <WhatsAppButton />
     </div>
   );
 }

@@ -21,6 +21,7 @@ export const COMPANY_CONTACT = {
     { label: "Office", display: "+977-1-4517579", href: "tel:+97714517579" },
   ],
   email: "info@hulakico.com",
+  whatsappHref: "https://wa.me/9779851012358",
   address: ["Keshar Mahal Marga, Thamel", "Kathmandu, Nepal"],
   mapsHref:
     "https://www.google.com/maps/search/?api=1&query=Keshar+Mahal+Marga%2C+Thamel%2C+Kathmandu",
@@ -71,7 +72,7 @@ export const INFO_PAGES: InfoPage[] = [
         "A hold means the shipment is paused, usually for missing information or documents. The track page explains the reason and, when we need something from you, lets you reply so the shipment can move again.",
       ] },
       { heading: "What documents do international goods need?", body: [
-        "Goods need a commercial invoice. Each line requires a description, HS code, country of manufacture, quantity, unit, unit value, and weight per item. Incomplete invoices block booking until they are fixed. Documents-only shipments do not need an invoice.",
+        "Goods need a commercial invoice. Each line requires a description, HS code, country of manufacture, quantity, unit, unit value, and weight per item — the invoice cannot be saved until every line is complete. Documents-only shipments have no goods lines to fill in.",
       ] },
       { heading: "How does cash on delivery work?", body: [
         "On eligible domestic lanes the carrier collects the amount from the consignee at delivery, and Hulakico records and settles it through the COD ledger.",

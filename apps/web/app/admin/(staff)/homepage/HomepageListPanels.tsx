@@ -61,15 +61,10 @@ export function HomepageListPanels({
     <>
       <Field label="Eyebrow" value={content.servicesEyebrow} onChange={(v) => patch({ servicesEyebrow: v })} />
       <Field label="Section title" value={content.servicesTitle} onChange={(v) => patch({ servicesTitle: v })} rows={2} />
-      <Field label="Section CTA" value={content.servicesCta} onChange={(v) => patch({ servicesCta: v })} />
-      <ItemList
-        kind="Service"
-        items={content.services}
-        onChange={(services) => patch({ services })}
-        blank={{ name: "New service", detail: "" }}
-        titleKey="name"
-        bodyKey="detail"
-      />
+      <p className="text-sm text-[var(--muted)]">
+        Service cards and their detail pages (Domestic, International, Express, Documents) come from the
+        service catalogue so each card always matches its page.
+      </p>
     </>
   );
 }

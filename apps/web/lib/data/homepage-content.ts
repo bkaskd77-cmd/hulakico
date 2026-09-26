@@ -3,10 +3,16 @@ import { getDb } from "@/lib/db";
 export type HomeFeature = { title: string; body: string };
 export type HomeService = { name: string; detail: string };
 
+import type { SocialLinks } from "@/lib/domain/social";
+
 /** Editable homepage fields (public /). */
 export type HomepageContent = {
+  heroBadge: string;
   heroHeadline: string;
+  heroAccent: string;
   heroSubhead: string;
+  openingHours: string[];
+  socialLinks: SocialLinks;
   ctaBook: string;
   ctaQuote: string;
   hubTrackLabel: string;
@@ -26,9 +32,13 @@ export type HomepageContent = {
 };
 
 export const DEFAULT_HOMEPAGE: HomepageContent = {
-  heroHeadline: "AI logistics control tower for Nepal — and beyond.",
+  heroBadge: "Partnered with national & international freight networks",
+  heroHeadline: "Courier & cargo from Nepal to the world.",
+  heroAccent: "Courier & cargo",
   heroSubhead:
-    "Book once. We orchestrate every carrier and keep one intelligent timeline from Kathmandu to the world.",
+    "Book once and we match your parcel with the right freight partner — ranked by AI on price and speed, tracked on one live timeline.",
+  openingHours: ["Sunday – Friday: 9:00 AM – 5:00 PM", "Saturday: 9:00 AM – 3:00 PM"],
+  socialLinks: { facebook: "", instagram: "", tiktok: "", linkedin: "", youtube: "" },
   ctaBook: "Book a shipment",
   ctaQuote: "Get the Quote",
   hubTrackLabel: "Track",
@@ -99,6 +109,10 @@ function parseContent(raw: string): HomepageContent | null {
       towerAlerts: Array.isArray(data.towerAlerts)
         ? data.towerAlerts
         : DEFAULT_HOMEPAGE.towerAlerts,
+      openingHours: Array.isArray(data.openingHours)
+        ? data.openingHours
+        : DEFAULT_HOMEPAGE.openingHours,
+      socialLinks: { ...DEFAULT_HOMEPAGE.socialLinks, ...(data.socialLinks ?? {}) },
     };
   } catch {
     return null;
@@ -111,6 +125,8 @@ function cloneDefault(): HomepageContent {
     features: [...DEFAULT_HOMEPAGE.features],
     services: [...DEFAULT_HOMEPAGE.services],
     towerAlerts: [...DEFAULT_HOMEPAGE.towerAlerts],
+    openingHours: [...DEFAULT_HOMEPAGE.openingHours],
+    socialLinks: { ...DEFAULT_HOMEPAGE.socialLinks },
   };
 }
 
@@ -138,6 +154,12 @@ export function saveHomepageContent(
   try {
     if (!content.heroHeadline?.trim() || !content.heroSubhead?.trim()) {
       return { error: "Hero headline and subhead are required." };
+    }
+    const badLink = Object.values(content.socialLinks ?? {}).find(
+      (url) => url.trim() !== "" && !/^https:\/\/[^\s]+$/i.test(url.trim()),
+    );
+    if (badLink) {
+      return { error: "Social links must be full https:// addresses." };
     }
     const now = new Date().toISOString();
     getDb()

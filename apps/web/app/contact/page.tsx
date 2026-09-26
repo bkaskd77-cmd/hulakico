@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/contact/ContactForm";
+import { SiteFooter } from "@/app/home/SiteFooter";
+import { SiteHeader } from "@/app/home/SiteHeader";
+import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 
 export const metadata: Metadata = {
   title: "Contact · Hulakico",
   description: "Call, email, or visit Hulakico in Thamel, Kathmandu — or send us a message.",
 };
+
+export const revalidate = 300;
 
 const MAP_EMBED =
   "https://www.openstreetmap.org/export/embed.html?bbox=85.3050%2C27.7080%2C85.3200%2C27.7200&layer=mapnik";
@@ -35,11 +40,8 @@ export default function ContactPage() {
       <section className="relative overflow-hidden">
         <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-35" style={{ backgroundImage: "url(/home/footer.jpg)" }} />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[color-mix(in_srgb,var(--navy)_70%,transparent)] to-[var(--navy)]" />
-        <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-5 sm:px-12">
-          <Link href="/" className="font-[family-name:var(--font-display)] text-lg font-extrabold text-[var(--off-white)]">Hulakico</Link>
-          <Link href="/" className="text-sm text-[var(--off-white)]/85 hover:text-[var(--gold)]">Back to home</Link>
-        </header>
-        <div className="relative z-10 mx-auto max-w-5xl px-6 pb-16 pt-10 sm:px-12">
+        <div className="relative z-10"><SiteHeader /></div>
+        <div className="relative z-10 mx-auto max-w-[78rem] px-6 pb-16 pt-10 sm:px-12">
           <p className="shell-rise text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">Contact</p>
           <h1 className="shell-rise mt-3 max-w-2xl font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-5xl">
             Talk to the tower.
@@ -50,7 +52,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-5xl gap-8 px-6 pb-16 sm:px-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="mx-auto grid max-w-[78rem] gap-8 px-6 pb-16 sm:px-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-4">
           <div className={cardClass}>
             <Icon path={PHONE_ICON} />
@@ -95,12 +97,13 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 pb-20 sm:px-12">
+      <section className="mx-auto max-w-[78rem] px-6 pb-20 sm:px-12">
         <div className="overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)]">
           <iframe title="Map of Thamel, Kathmandu" src={MAP_EMBED} className="h-72 w-full grayscale-[35%]" loading="lazy" />
         </div>
-        <p className="mt-6 text-xs text-[var(--off-white)]/70">© {new Date().getFullYear()} Hulakico · Kathmandu, Nepal</p>
       </section>
+      <SiteFooter />
+      <WhatsAppButton />
     </div>
   );
 }

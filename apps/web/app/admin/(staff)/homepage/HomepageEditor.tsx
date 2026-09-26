@@ -7,6 +7,7 @@ import {
   Field,
   HomepageListPanels,
 } from "@/app/admin/(staff)/homepage/HomepageListPanels";
+import { HomepageFooterPanel } from "@/app/admin/(staff)/homepage/HomepageFooterPanel";
 
 const TABS = ["Hero", "Features", "Services", "Footer"] as const;
 type Tab = (typeof TABS)[number];
@@ -90,14 +91,13 @@ export function HomepageEditor({
       <div className="mt-8 max-w-2xl space-y-5">
         {tab === "Hero" ? (
           <>
+            <Field label="Badge above headline" value={content.heroBadge} onChange={(v) => patch({ heroBadge: v })} />
             <Field label="Headline" value={content.heroHeadline} onChange={(v) => patch({ heroHeadline: v })} rows={2} />
+            <Field label="Gold words in headline (must match exactly)" value={content.heroAccent} onChange={(v) => patch({ heroAccent: v })} />
             <Field label="Supporting line" value={content.heroSubhead} onChange={(v) => patch({ heroSubhead: v })} rows={3} />
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Primary CTA" value={content.ctaBook} onChange={(v) => patch({ ctaBook: v })} />
               <Field label="Quote CTA" value={content.ctaQuote} onChange={(v) => patch({ ctaQuote: v })} />
-              <Field label="Hub Track" value={content.hubTrackLabel} onChange={(v) => patch({ hubTrackLabel: v })} />
-              <Field label="Hub Book" value={content.hubBookLabel} onChange={(v) => patch({ hubBookLabel: v })} />
-              <Field label="Hub Quote" value={content.hubQuoteLabel} onChange={(v) => patch({ hubQuoteLabel: v })} />
               <Field label="Track placeholder" value={content.hubTrackPlaceholder} onChange={(v) => patch({ hubTrackPlaceholder: v })} />
             </div>
             <Field
@@ -118,14 +118,7 @@ export function HomepageEditor({
         {tab === "Features" || tab === "Services" ? (
           <HomepageListPanels tab={tab} content={content} patch={patch} />
         ) : null}
-        {tab === "Footer" ? (
-          <Field
-            label="Footer tagline"
-            value={content.footerTagline}
-            onChange={(v) => patch({ footerTagline: v })}
-            rows={3}
-          />
-        ) : null}
+        {tab === "Footer" ? <HomepageFooterPanel content={content} patch={patch} /> : null}
       </div>
     </div>
   );

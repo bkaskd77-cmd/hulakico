@@ -1,7 +1,30 @@
 import Link from "next/link";
+import { QuoteLink } from "@/app/home/QuoteLink";
+import { SiteHeader } from "@/app/home/SiteHeader";
+import { WHATSAPP_PATH } from "@/app/home/social-icons";
 import type { HomepageContent } from "@/lib/data/homepage-content";
+import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 
-/** Brand-first hero — no side hub; Track lives in nav. */
+const TIMELINE = [
+  { label: "Booked", done: true },
+  { label: "Picked up by partner", done: true },
+  { label: "In transit", done: false },
+  { label: "Delivered", done: false },
+];
+
+function Headline({ text, accent }: { text: string; accent: string }) {
+  const index = accent ? text.indexOf(accent) : -1;
+  if (index < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, index)}
+      <span className="text-[var(--gold)]">{accent}</span>
+      {text.slice(index + accent.length)}
+    </>
+  );
+}
+
+/** Split hero: plain-language promise left, real hand-over photo with live timeline right. */
 export function HomeHero({
   bookHref,
   signedIn,
@@ -11,75 +34,61 @@ export function HomeHero({
   signedIn: boolean;
   content: HomepageContent;
 }) {
+  const phone = COMPANY_CONTACT.phones[0];
   return (
-    <section className="home-hero relative min-h-dvh overflow-hidden">
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: "url(/home/feature-1.jpg)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--navy)_92%,transparent)] via-[color-mix(in_srgb,var(--navy)_78%,transparent)] to-[color-mix(in_srgb,var(--navy)_55%,transparent)]"
-      />
-      <div aria-hidden className="home-hero-aurora pointer-events-none absolute inset-0 opacity-60" />
+    <section className="home-hero relative overflow-hidden">
+      <div aria-hidden className="home-hero-aurora pointer-events-none absolute inset-0 opacity-70" />
+      <SiteHeader onHome signedIn={signedIn} />
 
-      <header className="relative z-10 flex items-center justify-between gap-4 px-6 py-5 sm:px-12">
-        <p className="font-[family-name:var(--font-display)] text-lg font-extrabold tracking-tight text-[var(--off-white)]">
-          Hulakico
-        </p>
-        <nav className="flex flex-wrap items-center justify-end gap-3 text-sm sm:gap-5">
-          <a href="#track" className="font-semibold text-[var(--gold)] hover:brightness-110">
-            Track a shipment
-          </a>
-          <Link href={bookHref} className="hidden text-[var(--off-white)]/90 hover:text-[var(--off-white)] sm:inline">
-            {content.hubBookLabel}
-          </Link>
-          <button type="button" data-open-quote className="hidden text-[var(--off-white)]/90 hover:text-[var(--off-white)] sm:inline">
-            {content.hubQuoteLabel}
-          </button>
-          <a href="#features" className="hidden text-[var(--off-white)]/90 hover:text-[var(--off-white)] md:inline">
-            How it works
-          </a>
-          {signedIn ? (
-            <Link href="/account" className="rounded-md bg-[var(--teal)] px-3.5 py-1.5 font-medium text-[var(--off-white)]">
-              Account
+      <div className="relative z-10 px-6 pb-20 pt-8 sm:px-12">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:min-h-[calc(100dvh-8rem)] lg:grid-cols-[1.05fr_0.95fr]">
+        <div>
+          <p className="shell-rise inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[color-mix(in_srgb,var(--gold)_10%,transparent)] px-3.5 py-1.5 text-xs font-medium text-[var(--off-white)]">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
+            {content.heroBadge}
+          </p>
+          <h1 className="shell-rise mt-6 font-[family-name:var(--font-display)] text-[clamp(2.6rem,6vw,4.6rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-[var(--off-white)]">
+            <Headline text={content.heroHeadline} accent={content.heroAccent} />
+          </h1>
+          <p className="shell-rise-delay mt-6 max-w-lg text-base leading-relaxed text-[var(--off-white)]/90 sm:text-lg">
+            {content.heroSubhead}
+          </p>
+          <div className="shell-rise-delay mt-9 flex flex-wrap items-center gap-4">
+            <Link href={bookHref} className="inline-flex rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold text-[var(--navy)] transition hover:brightness-110">
+              {content.ctaBook}
             </Link>
-          ) : (
-            <Link href="/signin" className="rounded-md bg-[var(--teal)] px-3.5 py-1.5 font-medium text-[var(--off-white)]">
-              Sign in
-            </Link>
-          )}
-        </nav>
-      </header>
-
-      <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] max-w-5xl flex-col justify-center px-6 pb-24 sm:px-12">
-        <p className="shell-rise font-[family-name:var(--font-display)] text-[clamp(3.4rem,12vw,7rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-[var(--off-white)]">
-          Hulakico
-        </p>
-        <h1 className="shell-rise-delay mt-6 max-w-2xl font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-[var(--off-white)] sm:text-3xl">
-          {content.heroHeadline}
-        </h1>
-        <p className="shell-rise-delay mt-4 max-w-md text-base leading-relaxed text-[var(--off-white)]/90">
-          {content.heroSubhead}
-        </p>
-        <div className="shell-rise-delay mt-10 flex flex-wrap items-center gap-4">
-          <Link
-            href={bookHref}
-            className="inline-flex rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold text-[var(--navy)] transition hover:brightness-110"
-          >
-            {content.ctaBook}
-          </Link>
-          <button
-            type="button"
-            data-open-quote
-            className="inline-flex rounded-md border border-[var(--off-white)] px-7 py-3.5 text-sm font-semibold text-[var(--off-white)] transition hover:bg-[color-mix(in_srgb,var(--off-white)_14%,transparent)]"
-          >
-            {content.ctaQuote}
-          </button>
+            <QuoteLink onHome className="inline-flex rounded-md border border-[var(--off-white)] px-7 py-3.5 text-sm font-semibold text-[var(--off-white)] transition hover:bg-[color-mix(in_srgb,var(--off-white)_14%,transparent)]">
+              {content.ctaQuote}
+            </QuoteLink>
+          </div>
+          <p className="shell-rise-delay mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--off-white)]/75">
+            Prefer to talk?
+            <a href={phone.href} className="font-semibold text-[var(--off-white)] hover:text-[var(--gold)]">{phone.display}</a>
+            <a href={COMPANY_CONTACT.whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-[#25D366] hover:brightness-110">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden><path d={WHATSAPP_PATH} /></svg>
+              WhatsApp
+            </a>
+          </p>
         </div>
+
+        <div className="hub-enter relative">
+          <div className="overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] shadow-2xl shadow-black/40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/home/hero-handover.jpg" alt="Courier handing a parcel to a customer at her door" className="h-[26rem] w-full object-cover sm:h-[32rem]" />
+          </div>
+          <div className="absolute -bottom-6 left-4 w-64 rounded-xl border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[color-mix(in_srgb,var(--navy-elevated)_92%,transparent)] p-4 shadow-xl backdrop-blur sm:-left-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">One live timeline</p>
+            <ol className="mt-3 space-y-2.5">
+              {TIMELINE.map((step, index) => (
+                <li key={step.label} className="hub-rank-item flex items-center gap-3 text-sm" style={{ animationDelay: `${600 + index * 180}ms` }}>
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${step.done ? "bg-[var(--gold)]" : "border border-[var(--off-white)]/40"} ${index === 2 ? "home-node" : ""}`} />
+                  <span className={step.done ? "text-[var(--off-white)]" : "text-[var(--off-white)]/60"}>{step.label}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </div>
       </div>
     </section>
   );

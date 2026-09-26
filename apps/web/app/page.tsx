@@ -1,6 +1,8 @@
 import { HomeHero } from "@/app/home/HomeHero";
 import { HomeQuoteForm } from "@/app/home/HomeQuoteForm";
 import { HomeSections } from "@/app/home/HomeSections";
+import { SiteFooter } from "@/app/home/SiteFooter";
+import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getHomepageContent } from "@/lib/data/homepage-content";
 import { readSessionToken } from "@/lib/http/session-cookie";
@@ -16,8 +18,10 @@ export default async function Home() {
   return (
     <div className="shell-sky">
       <HomeHero bookHref={bookHref} signedIn={Boolean(user)} content={content} />
-      <HomeSections bookHref={bookHref} content={content} />
+      <HomeSections content={content} />
+      <SiteFooter />
       <HomeQuoteForm bookHref={bookHref} />
+      <WhatsAppButton />
     </div>
   );
 }
