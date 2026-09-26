@@ -106,6 +106,15 @@ export async function createDraftShipment(
       "[shipments.ts:createDraftShipment]",
       error instanceof Error ? error.message : error,
     );
+    try {
+      const db = await getSql();
+      const fks = await db.prepare("PRAGMA foreign_key_list(shipments)").all();
+      const userFound = await db.prepare("SELECT 1 AS ok FROM users WHERE id = ?").get(userId);
+      const tableSql = await db.prepare("SELECT sql FROM sqlite_master WHERE name = 'shipments'").get();
+      console.error("[shipments.ts:createDraftShipment:diag]", JSON.stringify({ userIdType: typeof userId, userFound: Boolean(userFound), fks, tableSql }));
+    } catch (diagError) {
+      console.error("[shipments.ts:createDraftShipment:diag] failed", diagError instanceof Error ? diagError.message : diagError);
+    }
     throw new Error("Could not save draft shipment.");
   }
 }
