@@ -1,36 +1,36 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import type { QuoteOptionView } from "@/lib/data/quotes";
 
-export function getLatestQuoteOptions(
+export async function getLatestQuoteOptions(
   userId: string,
   shipmentId: string,
-): QuoteOptionView[] {
+): Promise<QuoteOptionView[]> {
   try {
-    const db = getDb();
-    const owned = db
+    const db = await getSql();
+    const owned = await db
       .prepare(`SELECT id FROM shipments WHERE id = ? AND user_id = ?`)
       .get(shipmentId, userId);
     if (!owned) {
       return [];
     }
 
-    const quote = db
+    const quote = (await db
       .prepare(
         `SELECT id FROM quotes WHERE shipment_id = ? ORDER BY created_at DESC LIMIT 1`,
       )
-      .get(shipmentId) as { id: string } | undefined;
+      .get(shipmentId)) as { id: string } | undefined;
     if (!quote) {
       return [];
     }
 
     return (
-      db
+      (await db
         .prepare(
           `SELECT id, carrier_name, service_name, currency, amount,
                   eta_days_min, eta_days_max, zone_label
            FROM quote_options WHERE quote_id = ? ORDER BY amount ASC`,
         )
-        .all(quote.id) as Array<{
+        .all(quote.id)) as Array<{
         id: string;
         carrier_name: string;
         service_name: string;

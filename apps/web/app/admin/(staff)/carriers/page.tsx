@@ -1,13 +1,15 @@
 import { listAdapterKeys } from "@/lib/carriers/adapter";
 import { listCarriersWithDetails } from "@/lib/data/carriers-query";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function AdminCarriersPage() {
-  let carriers: ReturnType<typeof listCarriersWithDetails> = [];
+  await requireStaffPage();
+  let carriers: Awaited<ReturnType<typeof listCarriersWithDetails>> = [];
   let error: string | null = null;
   try {
-    carriers = listCarriersWithDetails();
+    carriers = await listCarriersWithDetails();
   } catch (err) {
     console.error(
       "[admin/carriers/page.tsx]",

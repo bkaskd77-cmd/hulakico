@@ -13,10 +13,10 @@ export default async function OpsPaymentsPage() {
     redirect("/signin");
   }
 
-  let items: ReturnType<typeof listAwaitingTransferPayments> = [];
+  let items: Awaited<ReturnType<typeof listAwaitingTransferPayments>> = [];
   let error: string | null = null;
   try {
-    items = listAwaitingTransferPayments();
+    items = await listAwaitingTransferPayments();
   } catch (err) {
     console.error(
       "[ops/payments/page.tsx]",

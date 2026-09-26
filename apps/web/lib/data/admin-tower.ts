@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 export type AdminTowerRow = {
   id: string;
@@ -57,7 +57,7 @@ function localEta(row: {
 export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
   try {
     const placeholders = ACTIVE.map(() => "?").join(",");
-    const rows = getDb()
+    const rows = (await (await getSql())
       .prepare(
         `SELECT s.id, s.status, s.lane, s.origin_city, s.destination_city,
                 s.service_class, s.hulakico_awb, u.email,
@@ -81,7 +81,7 @@ export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
          ORDER BY s.updated_at DESC
          LIMIT 40`,
       )
-      .all(...ACTIVE) as Array<{
+      .all(...ACTIVE)) as Array<{
       id: string;
       status: string;
       lane: string;

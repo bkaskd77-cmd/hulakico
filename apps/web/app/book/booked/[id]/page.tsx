@@ -18,7 +18,7 @@ export default async function BookedPage({
   }
 
   const { id } = await params;
-  const shipment = getBookedShipmentForUser(user.id, id);
+  const shipment = await getBookedShipmentForUser(user.id, id);
   if (!shipment || !shipment.hulakico_awb || !shipment.tracking_token) {
     notFound();
   }

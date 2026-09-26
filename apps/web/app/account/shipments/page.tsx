@@ -35,11 +35,11 @@ export default async function AccountShipmentsPage({
 
   const params = await searchParams;
   const copyError = params.copy && params.copy !== "missing" ? params.copy : null;
-  const list = listMyShipments(user.id, Number(params.page ?? "1"), {
+  const list = await listMyShipments(user.id, Number(params.page ?? "1"), {
     filter: params.filter as HubFilterKey | undefined,
     q: params.q,
   });
-  const attention = listAttentionItems(user.id);
+  const attention = await listAttentionItems(user.id);
   const pageNumbers = Array.from(
     { length: Math.min(list.pageCount, SHIPMENTS_MAX_PAGE_BUTTONS) },
     (_, i) => i + 1,

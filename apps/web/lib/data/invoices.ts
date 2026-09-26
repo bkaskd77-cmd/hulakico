@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
   commercialInvoiceSchema,
@@ -31,13 +31,13 @@ type LineRow = {
   sort_order: number;
 };
 
-function loadLines(invoiceId: string): CommercialInvoiceLine[] {
-  const rows = getDb()
+async function loadLines(invoiceId: string): Promise<CommercialInvoiceLine[]> {
+  const rows = (await (await getSql())
     .prepare(
       `SELECT * FROM commercial_invoice_lines
        WHERE invoice_id = ? ORDER BY sort_order ASC, id ASC`,
     )
-    .all(invoiceId) as LineRow[];
+    .all(invoiceId)) as LineRow[];
   return rows.map((line) => ({
     id: line.id,
     description: line.description,
@@ -52,13 +52,15 @@ function loadLines(invoiceId: string): CommercialInvoiceLine[] {
   }));
 }
 
-export function getInvoiceForShipment(shipmentId: string): CommercialInvoice | null {
+export async function getInvoiceForShipment(
+  shipmentId: string,
+): Promise<CommercialInvoice | null> {
   try {
-    const row = getDb()
+    const row = (await (await getSql())
       .prepare(`SELECT * FROM commercial_invoices WHERE shipment_id = ?`)
-      .get(shipmentId) as InvoiceRow | undefined;
+      .get(shipmentId)) as InvoiceRow | undefined;
     if (!row) return null;
-    const lines = loadLines(row.id);
+    const lines = await loadLines(row.id);
     return {
       id: row.id,
       shipmentId: row.shipment_id,
@@ -79,62 +81,57 @@ export function getInvoiceForShipment(shipmentId: string): CommercialInvoice | n
   }
 }
 
-export function upsertCommercialInvoice(
+export async function upsertCommercialInvoice(
   input: CommercialInvoiceInput,
-): { invoice: CommercialInvoice } | { error: string } {
+): Promise<{ invoice: CommercialInvoice } | { error: string }> {
   try {
     const parsed = commercialInvoiceSchema.safeParse(input);
     if (!parsed.success) return { error: "Invalid commercial invoice details." };
     const data = parsed.data;
-    const shipment = getDb()
+    const db = await getSql();
+    const shipment = (await db
       .prepare(`SELECT id, lane FROM shipments WHERE id = ?`)
-      .get(data.shipmentId) as { id: string; lane: string } | undefined;
+      .get(data.shipmentId)) as { id: string; lane: string } | undefined;
     if (!shipment) return { error: "Shipment not found." };
     if (shipment.lane !== "INTERNATIONAL") {
       return { error: "Commercial invoices are for international shipments only." };
     }
 
-    const db = getDb();
-    const existing = db
+    const existing = (await db
       .prepare(`SELECT id FROM commercial_invoices WHERE shipment_id = ?`)
-      .get(data.shipmentId) as { id: string } | undefined;
+      .get(data.shipmentId)) as { id: string } | undefined;
     const now = new Date().toISOString();
     const invoiceId = existing?.id ?? newId("cinv");
     const notes = data.notes?.trim() || null;
 
-    db.exec("BEGIN");
-    try {
+    await db.transaction(async (tx) => {
       if (existing) {
-        db.prepare(
+        await tx.prepare(
           `UPDATE commercial_invoices SET currency=?, export_reason=?, notes=?, updated_at=? WHERE id=?`,
         ).run(data.currency, data.exportReason, notes, now, invoiceId);
-        db.prepare(`DELETE FROM commercial_invoice_lines WHERE invoice_id=?`).run(invoiceId);
+        await tx.prepare(`DELETE FROM commercial_invoice_lines WHERE invoice_id=?`).run(invoiceId);
       } else {
-        db.prepare(
+        await tx.prepare(
           `INSERT INTO commercial_invoices (id, shipment_id, currency, export_reason, notes, created_at, updated_at)
            VALUES (?,?,?,?,?,?,?)`,
         ).run(invoiceId, data.shipmentId, data.currency, data.exportReason, notes, now, now);
       }
-      const insertLine = db.prepare(
+      const insertLine = tx.prepare(
         `INSERT INTO commercial_invoice_lines
            (id, invoice_id, description, quantity, unit, unit_value, weight_kg,
             hs_code, country_of_origin, sort_order)
          VALUES (?,?,?,?,?,?,?,?,?,?)`,
       );
-      data.lines.forEach((line, index) => {
-        insertLine.run(
+      for (const [index, line] of data.lines.entries()) {
+        await insertLine.run(
           newId("ciln"), invoiceId, line.description.trim(), line.quantity,
           line.unit, line.unitValue, line.weightKg ?? null,
           line.hsCode?.trim() || null,
           line.countryOfOrigin?.trim().toUpperCase() || null, index,
         );
-      });
-      db.exec("COMMIT");
-    } catch (inner) {
-      db.exec("ROLLBACK");
-      throw inner;
-    }
-    const invoice = getInvoiceForShipment(data.shipmentId);
+      }
+    });
+    const invoice = await getInvoiceForShipment(data.shipmentId);
     if (!invoice) return { error: "Invoice saved but could not be reloaded." };
     return { invoice };
   } catch (error) {

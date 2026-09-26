@@ -1,23 +1,23 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { logCustomerNotification } from "@/lib/data/notifications";
 
-export function requestExceptionInfo(
+export async function requestExceptionInfo(
   exceptionId: string,
   infoRequestNote: string,
-): void {
+): Promise<void> {
   try {
     const note = infoRequestNote.trim();
     if (note.length < 5) {
       throw new Error("Info request must be at least 5 characters.");
     }
 
-    const db = getDb();
-    const exception = db
+    const db = await getSql();
+    const exception = (await db
       .prepare(
         `SELECT id, shipment_id, status FROM exception_cases WHERE id = ?`,
       )
-      .get(exceptionId) as
+      .get(exceptionId)) as
       | { id: string; shipment_id: string; status: string }
       | undefined;
 
@@ -27,14 +27,14 @@ export function requestExceptionInfo(
     }
 
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `UPDATE exception_cases
        SET status = 'INFO_REQUIRED', info_request_note = ?, info_requested_at = ?,
            customer_reply = NULL
        WHERE id = ?`,
     ).run(note, now, exceptionId);
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
     ).run(
@@ -44,7 +44,7 @@ export function requestExceptionInfo(
       now,
     );
 
-    const notify = logCustomerNotification({
+    const notify = await logCustomerNotification({
       shipmentId: exception.shipment_id,
       kind: "HOLD",
       subject: "Hulakico — info needed for your shipment",
@@ -64,18 +64,18 @@ export function requestExceptionInfo(
   }
 }
 
-export function submitCustomerReply(
+export async function submitCustomerReply(
   trackingToken: string,
   reply: string,
-): { ok: true } | { error: string } {
+): Promise<{ ok: true } | { error: string }> {
   try {
     const trimmed = reply.trim();
     if (trimmed.length < 3) {
       return { error: "Reply must be at least 3 characters." };
     }
 
-    const db = getDb();
-    const row = db
+    const db = await getSql();
+    const row = (await db
       .prepare(
         `SELECT e.id as exception_id, e.shipment_id
          FROM shipments s
@@ -84,7 +84,7 @@ export function submitCustomerReply(
          ORDER BY e.created_at DESC
          LIMIT 1`,
       )
-      .get(trackingToken) as
+      .get(trackingToken)) as
       | { exception_id: string; shipment_id: string }
       | undefined;
 
@@ -93,11 +93,11 @@ export function submitCustomerReply(
     }
 
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `UPDATE exception_cases SET customer_reply = ? WHERE id = ?`,
     ).run(trimmed, row.exception_id);
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
     ).run(

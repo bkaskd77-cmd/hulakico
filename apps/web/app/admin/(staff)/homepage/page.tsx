@@ -16,9 +16,9 @@ async function saveHomepageAction(
   "use server";
   try {
     const token = await readStaffSessionToken();
-    const access = resolveStaffAccess(token);
+    const access = await resolveStaffAccess(token);
     if (!access.ok) return { error: "Staff sign in required." };
-    const result = saveHomepageContent(content);
+    const result = await saveHomepageContent(content);
     if ("error" in result) return result;
     revalidatePath("/");
     revalidatePath("/admin/homepage");
@@ -33,7 +33,7 @@ async function saveHomepageAction(
 }
 
 export default async function AdminHomepagePage() {
-  const content = getHomepageContent();
+  const content = await getHomepageContent();
   return (
     <>
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--gold)]">

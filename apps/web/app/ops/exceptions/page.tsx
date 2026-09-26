@@ -6,10 +6,10 @@ import { listExceptions } from "@/lib/data/exception-query";
 export const runtime = "nodejs";
 
 export default async function OpsExceptionsPage() {
-  let exceptions: ReturnType<typeof listExceptions> = [];
+  let exceptions: Awaited<ReturnType<typeof listExceptions>> = [];
   let error: string | null = null;
   try {
-    exceptions = listExceptions("ACTIVE");
+    exceptions = await listExceptions("ACTIVE");
   } catch (err) {
     console.error(
       "[ops/exceptions/page.tsx]",

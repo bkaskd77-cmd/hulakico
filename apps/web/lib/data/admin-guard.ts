@@ -8,14 +8,14 @@ export type StaffGateResult =
   | { ok: false; status: 401 | 403; error: string };
 
 /** Any staff (ADMIN or OPS) may access Admin control surfaces. */
-export function resolveStaffAccess(
+export async function resolveStaffAccess(
   staffSessionToken: string | null,
-): StaffGateResult {
+): Promise<StaffGateResult> {
   try {
     if (!staffSessionToken) {
       return { ok: false, status: 401, error: "Staff sign in required." };
     }
-    const staff = getStaffBySessionToken(staffSessionToken);
+    const staff = await getStaffBySessionToken(staffSessionToken);
     if (!staff) {
       return { ok: false, status: 401, error: "Staff sign in required." };
     }
@@ -30,8 +30,8 @@ export function resolveStaffAccess(
 }
 
 /** @deprecated Use resolveStaffAccess — kept name for existing imports. */
-export function resolveAdminAccess(
+export async function resolveAdminAccess(
   staffSessionToken: string | null,
-): StaffGateResult {
-  return resolveStaffAccess(staffSessionToken);
+): Promise<StaffGateResult> {
+  return await resolveStaffAccess(staffSessionToken);
 }

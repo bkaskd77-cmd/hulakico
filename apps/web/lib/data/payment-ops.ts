@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { logCustomerNotification } from "@/lib/data/notifications";
 
 export type AwaitingTransferPayment = {
@@ -11,8 +11,8 @@ export type AwaitingTransferPayment = {
   createdAt: string;
 };
 
-function ensurePaymentsTable(): void {
-  getDb().exec(`
+async function ensurePaymentsTable(): Promise<void> {
+  await (await getSql()).exec(`
     CREATE TABLE IF NOT EXISTS payment_intents (
       id TEXT PRIMARY KEY,
       shipment_id TEXT NOT NULL,
@@ -28,10 +28,10 @@ function ensurePaymentsTable(): void {
   `);
 }
 
-export function listAwaitingTransferPayments(): AwaitingTransferPayment[] {
+export async function listAwaitingTransferPayments(): Promise<AwaitingTransferPayment[]> {
   try {
-    ensurePaymentsTable();
-    const rows = getDb()
+    await ensurePaymentsTable();
+    const rows = (await (await getSql())
       .prepare(
         `SELECT p.id, p.shipment_id, p.amount, p.currency, p.created_at,
                 s.hulakico_awb, s.origin_city, s.destination_city
@@ -40,7 +40,7 @@ export function listAwaitingTransferPayments(): AwaitingTransferPayment[] {
          WHERE p.status = 'AWAITING_PAYMENT'
          ORDER BY p.created_at DESC`,
       )
-      .all() as Array<{
+      .all()) as Array<{
       id: string;
       shipment_id: string;
       amount: number;
@@ -69,25 +69,25 @@ export function listAwaitingTransferPayments(): AwaitingTransferPayment[] {
   }
 }
 
-export function markTransferPaid(
+export async function markTransferPaid(
   paymentId: string,
   note: string,
-): { ok: true } | { error: string } {
+): Promise<{ ok: true } | { error: string }> {
   try {
     const trimmed = note.trim();
     if (trimmed.length < 2) {
       return { error: "Payment note is required." };
     }
-    ensurePaymentsTable();
-    const db = getDb();
-    const pending = db
+    await ensurePaymentsTable();
+    const db = await getSql();
+    const pending = (await db
       .prepare(
         `SELECT p.shipment_id, p.amount, p.currency, s.hulakico_awb
          FROM payment_intents p
          JOIN shipments s ON s.id = p.shipment_id
          WHERE p.id = ? AND p.status = 'AWAITING_PAYMENT'`,
       )
-      .get(paymentId) as
+      .get(paymentId)) as
       | {
           shipment_id: string;
           amount: number;
@@ -99,7 +99,7 @@ export function markTransferPaid(
       return { error: "Payment not found or already settled." };
     }
 
-    const result = db
+    const result = await db
       .prepare(
         `UPDATE payment_intents
          SET status = 'PAID',
@@ -112,7 +112,7 @@ export function markTransferPaid(
     }
 
     const awb = pending.hulakico_awb ?? pending.shipment_id;
-    const notify = logCustomerNotification({
+    const notify = await logCustomerNotification({
       shipmentId: pending.shipment_id,
       kind: "PAID",
       subject: `Hulakico payment received · ${awb}`,

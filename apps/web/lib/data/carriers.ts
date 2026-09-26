@@ -1,11 +1,11 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { CARRIER_SEED } from "@/lib/data/carrier-seed";
 
-export function seedCarriers(): { seeded: boolean; carrierCount: number } {
+export async function seedCarriers(): Promise<{ seeded: boolean; carrierCount: number }> {
   try {
-    const db = getDb();
-    const existing = db.prepare("SELECT COUNT(*) AS c FROM carriers").get() as {
+    const db = await getSql();
+    const existing = (await db.prepare("SELECT COUNT(*) AS c FROM carriers").get()) as {
       c: number;
     };
     if (existing.c > 0) {
@@ -15,7 +15,7 @@ export function seedCarriers(): { seeded: boolean; carrierCount: number } {
     const now = new Date().toISOString();
     for (const carrier of CARRIER_SEED) {
       const carrierId = newId("car");
-      db.prepare(
+      await db.prepare(
         `INSERT INTO carriers
          (id, code, name, transport_mode, scope, is_active, adapter_key, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -32,7 +32,7 @@ export function seedCarriers(): { seeded: boolean; carrierCount: number } {
 
       for (const service of carrier.services) {
         const serviceId = newId("svc");
-        db.prepare(
+        await db.prepare(
           `INSERT INTO carrier_services
            (id, carrier_id, code, name, service_class, eta_days_min, eta_days_max, supports_cod)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -48,7 +48,7 @@ export function seedCarriers(): { seeded: boolean; carrierCount: number } {
         );
 
         for (const rate of service.rates) {
-          db.prepare(
+          await db.prepare(
             `INSERT INTO rate_cards
              (id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label)
              VALUES (?, ?, ?, ?, ?, ?)`,
@@ -64,7 +64,7 @@ export function seedCarriers(): { seeded: boolean; carrierCount: number } {
       }
     }
 
-    const after = db.prepare("SELECT COUNT(*) AS c FROM carriers").get() as {
+    const after = (await db.prepare("SELECT COUNT(*) AS c FROM carriers").get()) as {
       c: number;
     };
     return { seeded: true, carrierCount: after.c };

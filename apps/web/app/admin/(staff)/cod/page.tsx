@@ -1,13 +1,15 @@
 import { CollectCodForm } from "@/app/ops/CollectCodForm";
 import { listCodCollections } from "@/lib/data/cod";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function AdminCodPage() {
-  let items: ReturnType<typeof listCodCollections> = [];
+  await requireStaffPage();
+  let items: Awaited<ReturnType<typeof listCodCollections>> = [];
   let error: string | null = null;
   try {
-    items = listCodCollections("PENDING_COLLECTION");
+    items = await listCodCollections("PENDING_COLLECTION");
   } catch (err) {
     console.error(
       "[admin/cod/page.tsx]",

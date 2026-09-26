@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { seedCarriers } from "@/lib/data/carriers";
 import { rankQuoteOptions } from "@/lib/data/intelligence-client";
 import type { QuoteOptionView } from "@/lib/data/quotes";
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
   calculateQuoteAmount,
@@ -37,24 +37,24 @@ function billableKg(
   return Math.round(Math.max(weightKg, vol) * 100) / 100;
 }
 
-function buildOptions(
+async function buildOptions(
   lane: "DOMESTIC" | "INTERNATIONAL",
   destinationCity: string,
   weightKg: number,
   serviceClass: string,
-): QuoteOptionView[] {
-  seedCarriers();
-  const db = getDb();
+): Promise<QuoteOptionView[]> {
+  await seedCarriers();
+  const db = await getSql();
   const zone = resolveZoneLabel(lane, destinationCity);
   const scopes = lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
-  const services = db
+  const services = (await db
     .prepare(
       `SELECT cs.id as service_id, cs.name as service_name, cs.eta_days_min, cs.eta_days_max,
               c.name as carrier_name, c.scope
        FROM carrier_services cs JOIN carriers c ON c.id = cs.carrier_id
        WHERE c.is_active = 1 AND cs.service_class = ?`,
     )
-    .all(serviceClass) as Array<{
+    .all(serviceClass)) as Array<{
     service_id: string; service_name: string; eta_days_min: number; eta_days_max: number;
     carrier_name: string; scope: string;
   }>;
@@ -62,8 +62,8 @@ function buildOptions(
   for (const service of services) {
     if (!scopes.includes(service.scope)) continue;
     const rates = (
-      db.prepare(`SELECT currency, base_amount, per_kg_amount, zone_label FROM rate_cards WHERE carrier_service_id = ?`)
-        .all(service.service_id) as Array<{ currency: string; base_amount: number; per_kg_amount: number; zone_label: string }>
+      (await db.prepare(`SELECT currency, base_amount, per_kg_amount, zone_label FROM rate_cards WHERE carrier_service_id = ?`)
+        .all(service.service_id)) as Array<{ currency: string; base_amount: number; per_kg_amount: number; zone_label: string }>
     ).map((r) => ({ currency: r.currency, baseAmount: r.base_amount, perKgAmount: r.per_kg_amount, zoneLabel: r.zone_label }));
     const rate = pickRateForZone(rates, zone);
     if (!rate) continue;
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     }
 
     const charged = billableKg(weightKg, lengthCm, widthCm, heightCm, lane);
-    const base = buildOptions(lane, destinationCity, charged, serviceClass);
+    const base = await buildOptions(lane, destinationCity, charged, serviceClass);
     if (base.length === 0) {
       return NextResponse.json({ error: "No rates matched this route." }, { status: 400 });
     }

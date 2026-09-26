@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import {
   HUB_STATUS_FILTERS,
   resolveHubFilter,
@@ -46,11 +46,11 @@ export type MyShipmentsPage = {
   filterCounts: Record<HubFilterKey, number>;
 };
 
-export function listMyShipments(
+export async function listMyShipments(
   userId: string,
   page = 1,
   filters: MyShipmentListFilters = {},
-): MyShipmentsPage {
+): Promise<MyShipmentsPage> {
   const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
   const filter = resolveHubFilter(filters.filter);
   const q = (filters.q ?? "").trim();
@@ -62,13 +62,13 @@ export function listMyShipments(
     filter, q, filterCounts: emptyCounts,
   };
   try {
-    purgeExpiredFinishedShipments();
-    const db = getDb();
+    await purgeExpiredFinishedShipments();
+    const db = await getSql();
     const filterCounts = { ...emptyCounts };
     const retention = retentionWhere();
-    const statusRows = db
+    const statusRows = (await db
       .prepare(`SELECT status, COUNT(*) as count FROM shipments WHERE ${retention.sql} GROUP BY status`)
-      .all(userId, ...retention.params) as Array<{ status: string; count: number }>;
+      .all(userId, ...retention.params)) as Array<{ status: string; count: number }>;
     let allCount = 0;
     for (const row of statusRows) {
       allCount += row.count;
@@ -81,13 +81,13 @@ export function listMyShipments(
 
     const where = shipmentHubWhere(filter, q);
     const total = Number(
-      (db.prepare(`SELECT COUNT(*) as count FROM shipments WHERE ${where.sql}`)
-        .get(userId, ...where.params) as { count: number }).count ?? 0,
+      ((await db.prepare(`SELECT COUNT(*) as count FROM shipments WHERE ${where.sql}`)
+        .get(userId, ...where.params)) as { count: number }).count ?? 0,
     );
     const pageCount = Math.max(1, Math.ceil(total / SHIPMENTS_PAGE_SIZE));
     const pageClamped = Math.min(safePage, pageCount);
     const offset = (pageClamped - 1) * SHIPMENTS_PAGE_SIZE;
-    const rows = db
+    const rows = (await db
       .prepare(
         `SELECT id, status, lane, service_class, package_type, contents,
                 origin_city, destination_city, origin_country, destination_country,
@@ -96,7 +96,7 @@ export function listMyShipments(
          FROM shipments WHERE ${where.sql}
          ORDER BY updated_at DESC LIMIT ? OFFSET ?`,
       )
-      .all(userId, ...where.params, SHIPMENTS_PAGE_SIZE, offset) as Array<{
+      .all(userId, ...where.params, SHIPMENTS_PAGE_SIZE, offset)) as Array<{
       id: string; status: string; lane: string; service_class: string; package_type: string;
       contents: string; origin_city: string; destination_city: string; origin_country: string;
       destination_country: string; origin_contact_name: string | null;
@@ -104,16 +104,22 @@ export function listMyShipments(
       tracking_token: string | null; updated_at: string; created_at: string;
     }>;
 
-    return {
-      rows: rows.map((row) => ({
+    const mapped: MyShipmentRow[] = [];
+    for (const row of rows) {
+      mapped.push({
         id: row.id, status: row.status, lane: row.lane, serviceClass: row.service_class,
         packageType: row.package_type, contents: row.contents, originCity: row.origin_city,
         destinationCity: row.destination_city, originCountry: row.origin_country,
         destinationCountry: row.destination_country, originContactName: row.origin_contact_name,
         destinationContactName: row.destination_contact_name, hulakicoAwb: row.hulakico_awb,
-        trackingToken: row.tracking_token, settleShort: settleShortLabel(getSettleSummary(row.id)),
+        trackingToken: row.tracking_token,
+        settleShort: settleShortLabel(await getSettleSummary(row.id)),
         updatedAt: row.updated_at, createdAt: row.created_at,
-      })),
+      });
+    }
+
+    return {
+      rows: mapped,
       page: pageClamped, pageSize: SHIPMENTS_PAGE_SIZE, total, pageCount, filter, q, filterCounts,
     };
   } catch (error) {

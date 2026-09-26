@@ -1,12 +1,14 @@
 import { listRecentNotifications } from "@/lib/data/notifications";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function AdminNotificationsPage() {
-  let items: ReturnType<typeof listRecentNotifications> = [];
+  await requireStaffPage();
+  let items: Awaited<ReturnType<typeof listRecentNotifications>> = [];
   let error: string | null = null;
   try {
-    items = listRecentNotifications(40);
+    items = await listRecentNotifications(40);
   } catch (err) {
     console.error(
       "[admin/notifications/page.tsx]",

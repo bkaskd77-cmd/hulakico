@@ -10,7 +10,7 @@ export async function POST(
   try {
     const { token } = await context.params;
     const body = (await request.json()) as { reply?: string };
-    const result = submitCustomerReply(token, body.reply ?? "");
+    const result = await submitCustomerReply(token, body.reply ?? "");
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

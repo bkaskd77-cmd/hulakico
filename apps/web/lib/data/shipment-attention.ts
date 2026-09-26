@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 export type AttentionItem = {
   shipmentId: string;
@@ -11,10 +11,10 @@ export type AttentionItem = {
 };
 
 /** Shipments that need customer action: Hold, info request, or unpaid transfer. */
-export function listAttentionItems(userId: string): AttentionItem[] {
+export async function listAttentionItems(userId: string): Promise<AttentionItem[]> {
   try {
-    const db = getDb();
-    db.exec(`
+    const db = await getSql();
+    await db.exec(`
       CREATE TABLE IF NOT EXISTS payment_intents (
         id TEXT PRIMARY KEY,
         shipment_id TEXT NOT NULL,
@@ -30,7 +30,7 @@ export function listAttentionItems(userId: string): AttentionItem[] {
     `);
     const items: AttentionItem[] = [];
 
-    const holds = db
+    const holds = (await db
       .prepare(
         `SELECT s.id, s.hulakico_awb, s.origin_city, s.destination_city, s.tracking_token,
                 e.status as ex_status, e.reason, e.info_request_note
@@ -39,7 +39,7 @@ export function listAttentionItems(userId: string): AttentionItem[] {
          WHERE s.user_id = ? AND e.status IN ('OPEN', 'INFO_REQUIRED')
          ORDER BY e.created_at DESC LIMIT 8`,
       )
-      .all(userId) as Array<{
+      .all(userId)) as Array<{
       id: string;
       hulakico_awb: string | null;
       origin_city: string;
@@ -68,7 +68,7 @@ export function listAttentionItems(userId: string): AttentionItem[] {
       });
     }
 
-    const unpaid = db
+    const unpaid = (await db
       .prepare(
         `SELECT s.id, s.hulakico_awb, s.origin_city, s.destination_city,
                 p.amount, p.currency
@@ -77,7 +77,7 @@ export function listAttentionItems(userId: string): AttentionItem[] {
          WHERE s.user_id = ? AND p.status = 'AWAITING_PAYMENT' AND p.method = 'TRANSFER'
          ORDER BY p.created_at DESC LIMIT 8`,
       )
-      .all(userId) as Array<{
+      .all(userId)) as Array<{
       id: string;
       hulakico_awb: string | null;
       origin_city: string;

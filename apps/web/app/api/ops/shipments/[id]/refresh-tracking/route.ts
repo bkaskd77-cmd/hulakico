@@ -11,7 +11,7 @@ export async function POST(
 ) {
   try {
     const token = await readStaffSessionToken();
-    const access = resolveOpsAccess(token);
+    const access = await resolveOpsAccess(token);
     if (!access.ok) {
       return NextResponse.json({ error: access.error }, { status: access.status });
     }

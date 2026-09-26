@@ -13,7 +13,7 @@ async function requireOwner(shipmentId: string) {
   const token = await readSessionToken();
   const user = token ? await getUserBySessionToken(token) : null;
   if (!user) return { error: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
-  const shipment = getDraftShipmentForUser(user.id, shipmentId);
+  const shipment = await getDraftShipmentForUser(user.id, shipmentId);
   if (!shipment) {
     return { error: NextResponse.json({ error: "Shipment not found." }, { status: 404 }) };
   }
@@ -34,7 +34,7 @@ export async function GET(
         { status: 400 },
       );
     }
-    return NextResponse.json({ invoice: getInvoiceForShipment(id) });
+    return NextResponse.json({ invoice: await getInvoiceForShipment(id) });
   } catch (error) {
     console.error(
       "[bookings/[id]/invoice/route.ts:GET]",
@@ -59,7 +59,7 @@ export async function POST(
       );
     }
     const body = await request.json();
-    const result = upsertCommercialInvoice({
+    const result = await upsertCommercialInvoice({
       shipmentId: id,
       currency: body.currency ?? owned.shipment.currency,
       exportReason: body.exportReason ?? "SALE",

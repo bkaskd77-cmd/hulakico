@@ -21,10 +21,10 @@ export default async function OpsShipmentsPage() {
   const token = await readSessionToken();
   if (!token || !(await getUserBySessionToken(token))) redirect("/signin");
 
-  let shipments: ReturnType<typeof listOpsShipments> = [];
+  let shipments: Awaited<ReturnType<typeof listOpsShipments>> = [];
   let error: string | null = null;
   try {
-    shipments = listOpsShipments();
+    shipments = await listOpsShipments();
   } catch (err) {
     console.error("[ops/page.tsx]", err instanceof Error ? err.message : err);
     error = "Could not load shipments.";

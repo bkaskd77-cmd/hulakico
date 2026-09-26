@@ -1,12 +1,12 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import type { ExceptionCaseRow } from "@/lib/data/exceptions";
 
-export function listExceptions(
+export async function listExceptions(
   status: "OPEN" | "INFO_REQUIRED" | "ACTIVE" | "RESOLVED" | "ALL" = "ACTIVE",
-): ExceptionCaseRow[] {
+): Promise<ExceptionCaseRow[]> {
   try {
-    const db = getDb();
-    const rows = db
+    const db = await getSql();
+    const rows = (await db
       .prepare(
         `SELECT e.id, e.shipment_id, e.status, e.reason, e.previous_status,
                 e.resolution_note, e.info_request_note, e.customer_reply,
@@ -22,7 +22,7 @@ export function listExceptions(
          ORDER BY e.created_at DESC
          LIMIT 100`,
       )
-      .all(status, status, status) as Array<{
+      .all(status, status, status)) as Array<{
       id: string;
       shipment_id: string;
       status: "OPEN" | "INFO_REQUIRED" | "RESOLVED";

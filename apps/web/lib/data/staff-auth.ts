@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import {
   createSessionToken,
   hashSessionToken,
@@ -29,12 +29,12 @@ export async function authenticateStaff(
   password: string,
 ): Promise<{ staff: StaffUser; sessionToken: string } | null> {
   try {
-    const db = getDb();
-    const row = db
+    const db = await getSql();
+    const row = (await db
       .prepare(
         `SELECT id, email, password_hash, name, role FROM staff_users WHERE email = ?`,
       )
-      .get(email.toLowerCase()) as StaffRow | undefined;
+      .get(email.toLowerCase())) as StaffRow | undefined;
     if (!row) return null;
 
     const valid = await verifyPassword(password, row.password_hash);
@@ -42,7 +42,7 @@ export async function authenticateStaff(
 
     const sessionToken = createSessionToken();
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `INSERT INTO staff_sessions (id, staff_user_id, token_hash, expires_at, created_at)
        VALUES (?, ?, ?, ?, ?)`,
     ).run(
@@ -71,17 +71,19 @@ export async function authenticateStaff(
   }
 }
 
-export function getStaffBySessionToken(token: string): StaffUser | null {
+export async function getStaffBySessionToken(
+  token: string,
+): Promise<StaffUser | null> {
   try {
     const now = new Date().toISOString();
-    const row = getDb()
+    const row = (await (await getSql())
       .prepare(
         `SELECT u.id, u.email, u.name, u.role
          FROM staff_sessions s
          JOIN staff_users u ON u.id = s.staff_user_id
          WHERE s.token_hash = ? AND s.expires_at > ?`,
       )
-      .get(hashSessionToken(token), now) as
+      .get(hashSessionToken(token), now)) as
       | { id: string; email: string; name: string; role: StaffRole }
       | undefined;
     if (!row) return null;
@@ -100,9 +102,9 @@ export function getStaffBySessionToken(token: string): StaffUser | null {
   }
 }
 
-export function destroyStaffSession(token: string): void {
+export async function destroyStaffSession(token: string): Promise<void> {
   try {
-    getDb()
+    await (await getSql())
       .prepare("DELETE FROM staff_sessions WHERE token_hash = ?")
       .run(hashSessionToken(token));
   } catch (error) {

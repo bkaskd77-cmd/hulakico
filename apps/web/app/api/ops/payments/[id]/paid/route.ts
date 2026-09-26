@@ -10,7 +10,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const access = resolveOpsAccess(await readStaffSessionToken());
+    const access = await resolveOpsAccess(await readStaffSessionToken());
     if (!access.ok) {
       return NextResponse.json(
         { error: access.error },
@@ -20,7 +20,7 @@ export async function POST(
 
     const { id } = await context.params;
     const body = (await request.json()) as { note?: string };
-    const result = markTransferPaid(id, body.note ?? "");
+    const result = await markTransferPaid(id, body.note ?? "");
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

@@ -13,7 +13,7 @@ export default async function AdminPlatformPage({
 }) {
   const params = await searchParams;
   const token = await readStaffSessionToken();
-  const access = resolveStaffAccess(token);
+  const access = await resolveStaffAccess(token);
 
   if (!access.ok) {
     return (

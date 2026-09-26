@@ -1,4 +1,4 @@
-import { getTurso, type SqlClient } from "@/lib/turso";
+import { getSql, type Sql } from "@/lib/sql";
 import {
   createSessionToken,
   hashSessionToken,
@@ -22,34 +22,33 @@ export type UserRow = {
   account_type: "INDIVIDUAL" | "BUSINESS";
 };
 
-export async function createSession(db: SqlClient, userId: string): Promise<string> {
+export async function createSession(db: Sql, userId: string): Promise<string> {
   const sessionToken = createSessionToken();
-  await db.execute({
-    sql: `INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at)
-          VALUES (?, ?, ?, ?, ?)`,
-    args: [
+  await db
+    .prepare(
+      `INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .run(
       newId("ses"),
       userId,
       hashSessionToken(sessionToken),
       sessionExpiryIso(),
       new Date().toISOString(),
-    ],
-  });
+    );
   return sessionToken;
 }
 
-export async function toPublicUser(db: SqlClient, row: UserRow): Promise<PublicUser> {
-  const result = await db.execute({
-    sql: `SELECT m.role, o.id AS org_id, o.name AS org_name
-          FROM memberships m
-          JOIN organizations o ON o.id = m.organization_id
-          WHERE m.user_id = ?
-          LIMIT 1`,
-    args: [row.id],
-  });
-  const membership = result.rows[0] as unknown as
-    | { role: string; org_id: string; org_name: string }
-    | undefined;
+export async function toPublicUser(db: Sql, row: UserRow): Promise<PublicUser> {
+  const membership = (await db
+    .prepare(
+      `SELECT m.role, o.id AS org_id, o.name AS org_name
+       FROM memberships m
+       JOIN organizations o ON o.id = m.organization_id
+       WHERE m.user_id = ?
+       LIMIT 1`,
+    )
+    .get(row.id)) as { role: string; org_id: string; org_name: string } | undefined;
   return {
     id: row.id,
     email: row.email,
@@ -63,15 +62,15 @@ export async function toPublicUser(db: SqlClient, row: UserRow): Promise<PublicU
 
 export async function getUserBySessionToken(token: string): Promise<PublicUser | null> {
   try {
-    const db = await getTurso();
-    const result = await db.execute({
-      sql: `SELECT u.id, u.email, u.password_hash, u.name, u.account_type
-            FROM sessions s
-            JOIN users u ON u.id = s.user_id
-            WHERE s.token_hash = ? AND s.expires_at > ?`,
-      args: [hashSessionToken(token), new Date().toISOString()],
-    });
-    const row = result.rows[0] as unknown as UserRow | undefined;
+    const db = await getSql();
+    const row = (await db
+      .prepare(
+        `SELECT u.id, u.email, u.password_hash, u.name, u.account_type
+         FROM sessions s
+         JOIN users u ON u.id = s.user_id
+         WHERE s.token_hash = ? AND s.expires_at > ?`,
+      )
+      .get(hashSessionToken(token), new Date().toISOString())) as UserRow | undefined;
     if (!row) return null;
     return await toPublicUser(db, row);
   } catch (error) {
@@ -85,11 +84,8 @@ export async function getUserBySessionToken(token: string): Promise<PublicUser |
 
 export async function destroySession(token: string): Promise<void> {
   try {
-    const db = await getTurso();
-    await db.execute({
-      sql: "DELETE FROM sessions WHERE token_hash = ?",
-      args: [hashSessionToken(token)],
-    });
+    const db = await getSql();
+    await db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashSessionToken(token));
   } catch (error) {
     console.error(
       "[auth-sessions.ts:destroySession]",

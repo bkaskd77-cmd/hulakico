@@ -268,13 +268,15 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 **Why:** On Vercel each function instance has its own `/tmp/hulakico.db`, so data written by one route (e.g. signup) is invisible to others (e.g. `/account`). Human chose Turso over Neon (keeps SQLite SQL).
 
-**How:** `lib/turso.ts` exposes an async `SqlClient`. With `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` set it talks to Turso over HTTPS (`@libsql/client/web`, no native binary — Windows ARM64 safe); without them it wraps the local `node:sqlite` file.
+**How:** `lib/sql` exposes async `getSql()` (`prepare().get/all/run`, `exec`, `transaction`). With `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` set it talks to Turso over HTTPS (`@libsql/client/web`, no native binary — Windows ARM64 safe); without them it wraps the local `node:sqlite` file. On first use, `schema-sync.ts` builds `db-schema.ts` in memory and creates missing tables/columns/indexes in Turso (fingerprint in `_schema_meta`).
+
+**Security note:** Next renders layouts and pages in parallel, so every `admin/(staff)` page calls `requireStaffPage()` itself — never rely on the layout alone.
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 1 | Customer auth (users, orgs, memberships, sessions) on `SqlClient`; session lookup async | **DONE** (awaiting Turso env vars on Vercel) |
-| 2 | Bookings, quotes, invoices, payments, addresses, tracking | Pending |
-| 3 | Staff auth, homepage CMS, contact messages, notifications, ops/admin queries | Pending |
+| 1 | Customer auth on shared DB; session lookup async | **DONE** |
+| 2 | All data modules (bookings, quotes, payments, invoices, tracking, notifications) on `getSql()` | **DONE** (merged with step 3 — booking touches nearly every module) |
+| 3 | Staff auth, homepage CMS, contact messages, ops/admin queries | **DONE** |
 
 ---
 

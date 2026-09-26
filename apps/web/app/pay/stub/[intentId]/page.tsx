@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 async function paySuccessAction(formData: FormData) {
   "use server";
   const intentId = String(formData.get("intentId") || "");
-  const result = markPaymentPaid(intentId);
+  const result = await markPaymentPaid(intentId);
   if ("error" in result) {
     redirect(`/pay/stub/${intentId}?error=${encodeURIComponent(result.error)}`);
   }
@@ -19,7 +19,7 @@ async function paySuccessAction(formData: FormData) {
 async function payCancelAction(formData: FormData) {
   "use server";
   const intentId = String(formData.get("intentId") || "");
-  const intent = getPaymentIntent(intentId);
+  const intent = await getPaymentIntent(intentId);
   if (!intent) notFound();
   redirect(`/book/draft/${intent.shipmentId}?pay=cancel`);
 }
@@ -33,7 +33,7 @@ export default async function StubCheckoutPage({
 }) {
   const { intentId } = await params;
   const { error } = await searchParams;
-  const intent = getPaymentIntent(intentId);
+  const intent = await getPaymentIntent(intentId);
   if (!intent) notFound();
 
   if (intent.status === "PAID") {

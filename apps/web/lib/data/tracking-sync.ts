@@ -1,5 +1,5 @@
 import { getCarrierAdapter } from "@/lib/carriers/adapter";
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { latestHulakicoStatus } from "@/lib/domain/carrier-status-map";
 
@@ -8,15 +8,15 @@ export async function syncTrackingFromCarrier(
   shipmentId: string,
 ): Promise<{ ok: true; status: string; added: number } | { error: string }> {
   try {
-    const db = getDb();
-    const row = db
+    const db = await getSql();
+    const row = (await db
       .prepare(
         `SELECT s.id, s.external_awb, s.status, s.origin_country, c.adapter_key
          FROM shipments s
          LEFT JOIN carriers c ON c.id = s.carrier_id
          WHERE s.id = ?`,
       )
-      .get(shipmentId) as
+      .get(shipmentId)) as
       | {
           id: string;
           external_awb: string | null;
@@ -39,11 +39,11 @@ export async function syncTrackingFromCarrier(
       return { ok: true, status: row.status, added: 0 };
     }
 
-    const existing = db
+    const existing = (await db
       .prepare(
         `SELECT description, occurred_at FROM tracking_events WHERE shipment_id = ?`,
       )
-      .all(shipmentId) as Array<{ description: string; occurred_at: string }>;
+      .all(shipmentId)) as Array<{ description: string; occurred_at: string }>;
     const seen = new Set(
       existing.map((item) => `${item.occurred_at}|${item.description}`),
     );
@@ -56,7 +56,7 @@ export async function syncTrackingFromCarrier(
     for (const event of events) {
       const key = `${event.occurredAt}|${event.description}`;
       if (seen.has(key)) continue;
-      insert.run(
+      await insert.run(
         newId("evt"),
         shipmentId,
         event.status,
@@ -70,7 +70,7 @@ export async function syncTrackingFromCarrier(
 
     const nextStatus = latestHulakicoStatus(events.map((event) => event.status));
     const now = new Date().toISOString();
-    db.prepare(`UPDATE shipments SET status = ?, updated_at = ? WHERE id = ?`).run(
+    await db.prepare(`UPDATE shipments SET status = ?, updated_at = ? WHERE id = ?`).run(
       nextStatus,
       now,
       shipmentId,

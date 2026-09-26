@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 export type PaymentIntent = {
   id: string;
@@ -12,8 +12,8 @@ export type PaymentIntent = {
   createdAt: string;
 };
 
-export function ensurePaymentsTable(): void {
-  getDb().exec(`
+export async function ensurePaymentsTable(): Promise<void> {
+  await (await getSql()).exec(`
     CREATE TABLE IF NOT EXISTS payment_intents (
       id TEXT PRIMARY KEY,
       shipment_id TEXT NOT NULL,
@@ -48,18 +48,18 @@ export function mapPaymentRow(row: {
 }
 
 /** Freight amount from selected quote, else cheapest option on latest quote. */
-export function quoteAmount(
+export async function quoteAmount(
   shipmentId: string,
-): { amount: number; currency: string; quoteOptionId: string | null } | null {
+): Promise<{ amount: number; currency: string; quoteOptionId: string | null } | null> {
   try {
-    const db = getDb();
-    const selected = db
+    const db = await getSql();
+    const selected = (await db
       .prepare(
         `SELECT qo.id, qo.amount, s.currency FROM shipments s
          JOIN quote_options qo ON qo.id = s.selected_quote_option_id
          WHERE s.id = ?`,
       )
-      .get(shipmentId) as
+      .get(shipmentId)) as
       | { id: string; amount: number; currency: string }
       | undefined;
     if (selected && selected.amount > 0) {
@@ -69,14 +69,14 @@ export function quoteAmount(
         quoteOptionId: selected.id,
       };
     }
-    const top = db
+    const top = (await db
       .prepare(
         `SELECT qo.id, qo.amount, qo.currency FROM quote_options qo
          JOIN quotes q ON q.id = qo.quote_id
          WHERE q.shipment_id = ?
          ORDER BY q.created_at DESC, qo.amount ASC LIMIT 1`,
       )
-      .get(shipmentId) as
+      .get(shipmentId)) as
       | { id: string; amount: number; currency: string }
       | undefined;
     if (!top || !(top.amount > 0)) return null;
@@ -94,15 +94,15 @@ export function quoteAmount(
   }
 }
 
-export function getPaymentIntent(intentId: string): PaymentIntent | null {
+export async function getPaymentIntent(intentId: string): Promise<PaymentIntent | null> {
   try {
-    ensurePaymentsTable();
-    const row = getDb()
+    await ensurePaymentsTable();
+    const row = (await (await getSql())
       .prepare(
         `SELECT id, shipment_id, provider, method, status, amount, currency, instructions, created_at
          FROM payment_intents WHERE id = ?`,
       )
-      .get(intentId) as Parameters<typeof mapPaymentRow>[0] | undefined;
+      .get(intentId)) as Parameters<typeof mapPaymentRow>[0] | undefined;
     return row ? mapPaymentRow(row) : null;
   } catch (error) {
     console.error(

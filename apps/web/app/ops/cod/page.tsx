@@ -13,10 +13,10 @@ export default async function OpsCodPage() {
     redirect("/signin");
   }
 
-  let items: ReturnType<typeof listCodCollections> = [];
+  let items: Awaited<ReturnType<typeof listCodCollections>> = [];
   let error: string | null = null;
   try {
-    items = listCodCollections("PENDING_COLLECTION");
+    items = await listCodCollections("PENDING_COLLECTION");
   } catch (err) {
     console.error("[ops/cod/page.tsx]", err instanceof Error ? err.message : err);
     error = "Could not load COD ledger.";

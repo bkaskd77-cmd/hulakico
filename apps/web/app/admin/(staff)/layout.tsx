@@ -11,7 +11,7 @@ export default async function AdminStaffLayout({
   children: React.ReactNode;
 }) {
   const token = await readStaffSessionToken();
-  const access = resolveStaffAccess(token);
+  const access = await resolveStaffAccess(token);
 
   if (!access.ok && access.status === 401) {
     redirect("/admin");

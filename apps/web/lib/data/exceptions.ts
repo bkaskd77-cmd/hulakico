@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { logCustomerNotification } from "@/lib/data/notifications";
 
@@ -17,24 +17,24 @@ export type ExceptionCaseRow = {
   route: string;
 };
 
-export function openException(
+export async function openException(
   userId: string,
   shipmentId: string,
   reason: string,
-): { id: string } {
+): Promise<{ id: string }> {
   try {
     const trimmed = reason.trim();
     if (trimmed.length < 5) {
       throw new Error("Exception reason must be at least 5 characters.");
     }
 
-    const db = getDb();
-    const shipment = db
+    const db = await getSql();
+    const shipment = (await db
       .prepare(`SELECT id, status FROM shipments WHERE id = ?`)
-      .get(shipmentId) as { id: string; status: string } | undefined;
+      .get(shipmentId)) as { id: string; status: string } | undefined;
     if (!shipment) throw new Error("Shipment not found.");
 
-    const existing = db
+    const existing = await db
       .prepare(
         `SELECT id FROM exception_cases
          WHERE shipment_id = ? AND status IN ('OPEN', 'INFO_REQUIRED')`,
@@ -44,17 +44,17 @@ export function openException(
 
     const id = newId("exc");
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `INSERT INTO exception_cases
        (id, shipment_id, opened_by_user_id, status, reason, previous_status, created_at)
        VALUES (?, ?, ?, 'OPEN', ?, ?, ?)`,
     ).run(id, shipmentId, userId, trimmed, shipment.status, now);
 
-    db.prepare(
+    await db.prepare(
       `UPDATE shipments SET status = 'EXCEPTION', updated_at = ? WHERE id = ?`,
     ).run(now, shipmentId);
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, 'HOLD', ?, NULL, ?)`,
     ).run(
@@ -64,7 +64,7 @@ export function openException(
       now,
     );
 
-    const notify = logCustomerNotification({
+    const notify = await logCustomerNotification({
       shipmentId,
       kind: "HOLD",
       subject: "Hulakico shipment on hold",
@@ -83,21 +83,21 @@ export function openException(
   }
 }
 
-export function resolveException(
+export async function resolveException(
   exceptionId: string,
   resolutionNote: string,
-): void {
+): Promise<void> {
   try {
     const note = resolutionNote.trim();
     if (note.length < 3) throw new Error("Resolution note must be at least 3 characters.");
 
-    const db = getDb();
-    const exception = db
+    const db = await getSql();
+    const exception = (await db
       .prepare(
         `SELECT id, shipment_id, status, previous_status
          FROM exception_cases WHERE id = ?`,
       )
-      .get(exceptionId) as
+      .get(exceptionId)) as
       | {
           id: string;
           shipment_id: string;
@@ -117,17 +117,17 @@ export function resolveException(
         : exception.previous_status;
     const now = new Date().toISOString();
 
-    db.prepare(
+    await db.prepare(
       `UPDATE exception_cases
        SET status = 'RESOLVED', resolution_note = ?, resolved_at = ?
        WHERE id = ?`,
     ).run(note, now, exceptionId);
 
-    db.prepare(
+    await db.prepare(
       `UPDATE shipments SET status = ?, updated_at = ? WHERE id = ?`,
     ).run(restoreStatus, now, exception.shipment_id);
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, ?, ?, NULL, ?)`,
     ).run(

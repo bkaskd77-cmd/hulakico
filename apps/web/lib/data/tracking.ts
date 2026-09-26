@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import {
   cleanTimeline,
   noteFor,
@@ -11,18 +11,20 @@ export type { PublicTrackingView, TrackEvent } from "@/lib/data/tracking-types";
 const CONTACT_HINT =
   "Please contact Hulakico for more information so we can clear this hold.";
 
-export function getTrackingByToken(token: string): PublicTrackingView | null {
+export async function getTrackingByToken(
+  token: string,
+): Promise<PublicTrackingView | null> {
   try {
-    const db = getDb();
-    const shipment = db
+    const db = await getSql();
+    const shipment = (await db
       .prepare(
         `SELECT s.id, s.hulakico_awb, s.external_awb, s.status, s.origin_city,
-                s.destination_city, s.lane, s.updated_at, s.partner_label,
-                s.partner_track_url, c.name as carrier_name
+               s.destination_city, s.lane, s.updated_at, s.partner_label,
+               s.partner_track_url, c.name as carrier_name
          FROM shipments s LEFT JOIN carriers c ON c.id = s.carrier_id
          WHERE s.tracking_token = ?`,
       )
-      .get(token) as
+      .get(token)) as
       | {
           id: string;
           hulakico_awb: string | null;
@@ -39,30 +41,30 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
       | undefined;
     if (!shipment?.hulakico_awb) return null;
 
-    const infoRow = db
+    const infoRow = (await db
       .prepare(
         `SELECT info_request_note, customer_reply FROM exception_cases
          WHERE shipment_id = ? AND status = 'INFO_REQUIRED'
          ORDER BY created_at DESC LIMIT 1`,
       )
-      .get(shipment.id) as
+      .get(shipment.id)) as
       | { info_request_note: string | null; customer_reply: string | null }
       | undefined;
 
-    const openHold = db
+    const openHold = (await db
       .prepare(
         `SELECT reason FROM exception_cases
          WHERE shipment_id = ? AND status IN ('OPEN', 'INFO_REQUIRED')
          ORDER BY created_at DESC LIMIT 1`,
       )
-      .get(shipment.id) as { reason: string } | undefined;
+      .get(shipment.id)) as { reason: string } | undefined;
 
-    const rows = db
+    const rows = (await db
       .prepare(
         `SELECT id, status, description, location, occurred_at
          FROM tracking_events WHERE shipment_id = ? ORDER BY occurred_at ASC`,
       )
-      .all(shipment.id) as Array<{
+      .all(shipment.id)) as Array<{
       id: string;
       status: string;
       description: string;
@@ -124,15 +126,15 @@ export function getTrackingByToken(token: string): PublicTrackingView | null {
   }
 }
 
-export function getBookedShipmentForUser(userId: string, shipmentId: string) {
+export async function getBookedShipmentForUser(userId: string, shipmentId: string) {
   try {
     return (
-      (getDb()
+      ((await (await getSql())
         .prepare(
           `SELECT id, status, hulakico_awb, external_awb, tracking_token, origin_city, destination_city
            FROM shipments WHERE id = ? AND user_id = ?`,
         )
-        .get(shipmentId, userId) as {
+        .get(shipmentId, userId)) as {
         id: string;
         status: string;
         hulakico_awb: string | null;

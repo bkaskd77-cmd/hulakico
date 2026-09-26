@@ -11,13 +11,13 @@ export async function POST(
 ) {
   try {
     const token = await readStaffSessionToken();
-    const access = resolveOpsAccess(token);
+    const access = await resolveOpsAccess(token);
     if (!access.ok) {
       return NextResponse.json({ error: access.error }, { status: access.status });
     }
     const { id } = await context.params;
     const body = (await request.json()) as { status?: string };
-    const result = postOpsMilestone(id, body.status ?? "");
+    const result = await postOpsMilestone(id, body.status ?? "");
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

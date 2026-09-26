@@ -1,14 +1,14 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import type { ContactMessageInput } from "@/lib/domain/contact";
 
 /** Stores a public contact-form message for the Hulakico team. */
-export function saveContactMessage(
+export async function saveContactMessage(
   input: ContactMessageInput,
-): { id: string } | { error: string } {
+): Promise<{ id: string } | { error: string }> {
   try {
     const id = newId("msg");
-    getDb()
+    await (await getSql())
       .prepare(
         `INSERT INTO contact_messages
          (id, name, email, phone, topic, reference, message, status, created_at)

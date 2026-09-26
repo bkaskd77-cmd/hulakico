@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { seedCarriers } from "@/lib/data/carriers";
 import { replaceShipmentQuotes } from "@/lib/data/quote-persist";
@@ -34,19 +34,19 @@ type ShipmentRow = {
   wants_cod: number;
 };
 
-export function generateQuotesForShipment(
+export async function generateQuotesForShipment(
   userId: string,
   shipmentId: string,
-): { quoteId: string; shipmentId: string; options: QuoteOptionView[] } {
+): Promise<{ quoteId: string; shipmentId: string; options: QuoteOptionView[] }> {
   try {
-    seedCarriers();
-    const db = getDb();
-    const shipment = db
+    await seedCarriers();
+    const db = await getSql();
+    const shipment = (await db
       .prepare(
         `SELECT id, status, lane, service_class, destination_city, weight_kg, wants_cod
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
-      .get(shipmentId, userId) as ShipmentRow | undefined;
+      .get(shipmentId, userId)) as ShipmentRow | undefined;
 
     if (!shipment) {
       throw new Error("Shipment not found.");
@@ -64,7 +64,7 @@ export function generateQuotesForShipment(
         ? ["DOMESTIC", "BOTH"]
         : ["INTERNATIONAL", "BOTH"];
 
-    const services = db
+    const services = (await db
       .prepare(
         `SELECT cs.id as service_id, cs.name as service_name,
                 cs.eta_days_min, cs.eta_days_max, cs.supports_cod,
@@ -73,7 +73,7 @@ export function generateQuotesForShipment(
          JOIN carriers c ON c.id = cs.carrier_id
          WHERE c.is_active = 1 AND cs.service_class = ?`,
       )
-      .all(shipment.service_class) as Array<{
+      .all(shipment.service_class)) as Array<{
       service_id: string;
       service_name: string;
       eta_days_min: number;
@@ -90,12 +90,12 @@ export function generateQuotesForShipment(
       if (shipment.wants_cod === 1 && service.supports_cod !== 1) continue;
 
       const rates = (
-        db
+        (await db
           .prepare(
             `SELECT currency, base_amount, per_kg_amount, zone_label
              FROM rate_cards WHERE carrier_service_id = ?`,
           )
-          .all(service.service_id) as Array<{
+          .all(service.service_id)) as Array<{
           currency: string;
           base_amount: number;
           per_kg_amount: number;
@@ -136,7 +136,7 @@ export function generateQuotesForShipment(
     options.sort((a, b) => a.amount - b.amount);
     const quoteId = newId("qte");
     const now = new Date().toISOString();
-    replaceShipmentQuotes(db, shipmentId, quoteId, options, now);
+    await replaceShipmentQuotes(db, shipmentId, quoteId, options, now);
 
     return {
       quoteId,

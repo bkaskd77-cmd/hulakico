@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const draft = createDraftShipment(
+    const draft = await createDraftShipment(
       user.id,
       user.organization?.id ?? null,
       parsed.data,

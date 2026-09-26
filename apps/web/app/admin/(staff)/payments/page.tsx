@@ -1,13 +1,15 @@
 import { MarkPaidForm } from "@/app/ops/MarkPaidForm";
 import { listAwaitingTransferPayments } from "@/lib/data/payment-ops";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function AdminPaymentsPage() {
-  let items: ReturnType<typeof listAwaitingTransferPayments> = [];
+  await requireStaffPage();
+  let items: Awaited<ReturnType<typeof listAwaitingTransferPayments>> = [];
   let error: string | null = null;
   try {
-    items = listAwaitingTransferPayments();
+    items = await listAwaitingTransferPayments();
   } catch (err) {
     console.error(
       "[admin/payments/page.tsx]",

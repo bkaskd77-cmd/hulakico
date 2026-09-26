@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import {
   createSessionToken,
   hashPassword,
@@ -25,8 +25,8 @@ export async function registerStaff(input: {
       return { error: "Invalid staff role." };
     }
 
-    const db = getDb();
-    const existing = db
+    const db = await getSql();
+    const existing = await db
       .prepare(`SELECT id FROM staff_users WHERE email = ?`)
       .get(email);
     if (existing) {
@@ -36,13 +36,13 @@ export async function registerStaff(input: {
     const id = newId("stf");
     const now = new Date().toISOString();
     const passwordHash = await hashPassword(input.password);
-    db.prepare(
+    await db.prepare(
       `INSERT INTO staff_users (id, email, password_hash, name, role, created_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(id, email, passwordHash, name, input.role, now);
 
     const sessionToken = createSessionToken();
-    db.prepare(
+    await db.prepare(
       `INSERT INTO staff_sessions (id, staff_user_id, token_hash, expires_at, created_at)
        VALUES (?, ?, ?, ?, ?)`,
     ).run(

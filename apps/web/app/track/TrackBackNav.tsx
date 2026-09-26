@@ -8,7 +8,7 @@ import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 export async function TrackBackNav() {
   try {
     const staffToken = await readStaffSessionToken();
-    if (resolveStaffAccess(staffToken).ok) {
+    if ((await resolveStaffAccess(staffToken)).ok) {
       return (
         <Link
           href="/admin/shipments"

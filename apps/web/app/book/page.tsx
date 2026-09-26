@@ -14,7 +14,7 @@ export default async function BookPage({
 }) {
   const token = await readSessionToken();
   const user = token ? await getUserBySessionToken(token) : null;
-  let addresses: ReturnType<typeof listSavedAddresses> = [];
+  let addresses: Awaited<ReturnType<typeof listSavedAddresses>> = [];
   let initialForm: FormState | undefined;
   let rebookHint: string | null = null;
   let initialStep: 1 | 2 | 3 | 4 = 1;
@@ -26,7 +26,7 @@ export default async function BookPage({
 
   if (user) {
     try {
-      addresses = listSavedAddresses(user.id);
+      addresses = await listSavedAddresses(user.id);
     } catch (error) {
       console.error(
         "[book/page.tsx:addresses]",
@@ -34,7 +34,7 @@ export default async function BookPage({
       );
     }
     if (sourceId) {
-      const loaded = getCopyFormState(user.id, sourceId);
+      const loaded = await getCopyFormState(user.id, sourceId);
       if ("error" in loaded) {
         rebookHint = loaded.error;
       } else {

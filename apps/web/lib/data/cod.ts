@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 
 export type CodCollection = {
@@ -13,19 +13,19 @@ export type CodCollection = {
   collectedAt: string | null;
 };
 
-export function createCodCollection(input: {
+export async function createCodCollection(input: {
   shipmentId: string;
   amount: number;
   currency: string;
-}): { id: string } | { error: string } {
+}): Promise<{ id: string } | { error: string }> {
   try {
     if (!(input.amount > 0)) {
       return { error: "COD amount must be greater than zero." };
     }
-    const db = getDb();
+    const db = await getSql();
     const id = newId("cod");
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `INSERT INTO cod_collections
          (id, shipment_id, amount, currency, status, created_at)
        VALUES (?, ?, ?, ?, 'PENDING_COLLECTION', ?)`,
@@ -40,14 +40,14 @@ export function createCodCollection(input: {
   }
 }
 
-export function listCodCollections(
+export async function listCodCollections(
   status?: "PENDING_COLLECTION" | "COLLECTED",
-): CodCollection[] {
+): Promise<CodCollection[]> {
   try {
-    const db = getDb();
+    const db = await getSql();
     const rows = (
       status
-        ? db.prepare(
+        ? await db.prepare(
             `SELECT c.id, c.shipment_id, c.amount, c.currency, c.status,
                     c.created_at, c.collected_at, s.hulakico_awb,
                     s.origin_city, s.destination_city
@@ -56,7 +56,7 @@ export function listCodCollections(
              WHERE c.status = ?
              ORDER BY c.created_at DESC`,
           ).all(status)
-        : db.prepare(
+        : await db.prepare(
             `SELECT c.id, c.shipment_id, c.amount, c.currency, c.status,
                     c.created_at, c.collected_at, s.hulakico_awb,
                     s.origin_city, s.destination_city
@@ -97,18 +97,18 @@ export function listCodCollections(
   }
 }
 
-export function markCodCollected(
+export async function markCodCollected(
   codId: string,
   note: string,
-): { ok: true } | { error: string } {
+): Promise<{ ok: true } | { error: string }> {
   try {
     const trimmed = note.trim();
     if (trimmed.length < 2) {
       return { error: "Collection note is required." };
     }
-    const db = getDb();
+    const db = await getSql();
     const now = new Date().toISOString();
-    const result = db
+    const result = await db
       .prepare(
         `UPDATE cod_collections
          SET status = 'COLLECTED', collected_at = ?, note = ?

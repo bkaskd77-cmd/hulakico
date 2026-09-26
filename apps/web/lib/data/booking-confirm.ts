@@ -3,7 +3,7 @@ import { getCarrierAdapter } from "@/lib/carriers/adapter";
 import { createCodCollection } from "@/lib/data/cod";
 import { logCustomerNotification } from "@/lib/data/notifications";
 import { canConfirmBooking } from "@/lib/data/payment-wallet";
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 
 export type BookedShipment = {
@@ -21,14 +21,14 @@ export async function confirmShipmentBooking(
   quoteOptionId: string,
 ): Promise<BookedShipment> {
   try {
-    const db = getDb();
-    const shipment = db
+    const db = await getSql();
+    const shipment = (await db
       .prepare(
         `SELECT id, status, lane, origin_country, destination_country, weight_kg,
                 wants_cod, declared_value, currency
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
-      .get(shipmentId, userId) as
+      .get(shipmentId, userId)) as
       | {
           id: string; status: string; lane: string; origin_country: string;
           destination_country: string; weight_kg: number; wants_cod: number;
@@ -40,13 +40,13 @@ export async function confirmShipmentBooking(
     if (shipment.status !== "QUOTED" && shipment.status !== "DRAFT") {
       throw new Error("Shipment is already booked.");
     }
-    if (!canConfirmBooking(shipmentId)) {
+    if (!(await canConfirmBooking(shipmentId))) {
       throw new Error(
         "Payment required before booking unless this is a domestic COD shipment.",
       );
     }
 
-    const option = db
+    const option = (await db
       .prepare(
         `SELECT qo.id, qo.carrier_id, qo.carrier_service_id, qo.carrier_name,
                 qo.amount, cs.code as service_code, c.adapter_key
@@ -56,7 +56,7 @@ export async function confirmShipmentBooking(
          JOIN carrier_services cs ON cs.id = qo.carrier_service_id
          WHERE qo.id = ? AND q.shipment_id = ?`,
       )
-      .get(quoteOptionId, shipmentId) as
+      .get(quoteOptionId, shipmentId)) as
       | {
           id: string; carrier_id: string; carrier_service_id: string;
           carrier_name: string; amount: number; service_code: string;
@@ -77,7 +77,7 @@ export async function confirmShipmentBooking(
     const hulakicoAwb = `HK-${randomBytes(4).toString("hex").toUpperCase()}`;
     const trackingToken = randomBytes(16).toString("base64url");
 
-    db.prepare(
+    await db.prepare(
       `UPDATE shipments SET status = 'BOOKED', hulakico_awb = ?, external_awb = ?,
          selected_quote_option_id = ?, carrier_id = ?, carrier_service_id = ?,
          tracking_token = ?, updated_at = ? WHERE id = ?`,
@@ -86,7 +86,7 @@ export async function confirmShipmentBooking(
       option.carrier_service_id, trackingToken, now, shipmentId,
     );
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(
@@ -100,7 +100,7 @@ export async function confirmShipmentBooking(
         shipment.declared_value && shipment.declared_value > 0
           ? shipment.declared_value
           : option.amount;
-      const cod = createCodCollection({
+      const cod = await createCodCollection({
         shipmentId, amount, currency: shipment.currency,
       });
       if ("error" in cod) {
@@ -108,7 +108,7 @@ export async function confirmShipmentBooking(
       }
     }
 
-    const notify = logCustomerNotification({
+    const notify = await logCustomerNotification({
       shipmentId,
       kind: "BOOKED",
       subject: `Hulakico booking confirmed · ${hulakicoAwb}`,

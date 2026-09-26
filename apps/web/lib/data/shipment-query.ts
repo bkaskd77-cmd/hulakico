@@ -1,9 +1,9 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
-export function getDraftShipmentForUser(userId: string, shipmentId: string) {
+export async function getDraftShipmentForUser(userId: string, shipmentId: string) {
   try {
     return (
-      (getDb()
+      ((await (await getSql())
         .prepare(
           `SELECT id, status, lane, transport_mode, origin_city, destination_city,
                   package_type, wants_cod, service_class, contents, declared_value,
@@ -11,7 +11,7 @@ export function getDraftShipmentForUser(userId: string, shipmentId: string) {
                   origin_country, destination_country
            FROM shipments WHERE id = ? AND user_id = ?`,
         )
-        .get(shipmentId, userId) as
+        .get(shipmentId, userId)) as
         | {
             id: string;
             status: string;

@@ -5,6 +5,7 @@ import {
   resolveOpsFilter,
   type OpsShipmentFilter,
 } from "@/lib/data/ops-shipments";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
@@ -50,13 +51,14 @@ export default async function AdminShipmentsPage({
 }: {
   searchParams: Promise<{ filter?: string }>;
 }) {
+  await requireStaffPage();
   const params = await searchParams;
   const filter = resolveOpsFilter(params.filter ?? "running");
-  let shipments: ReturnType<typeof listOpsShipments> = [];
+  let shipments: Awaited<ReturnType<typeof listOpsShipments>> = [];
   let error: string | null = null;
-  const counts = countOpsShipments();
+  const counts = await countOpsShipments();
   try {
-    shipments = listOpsShipments(filter);
+    shipments = await listOpsShipments(filter);
   } catch (err) {
     console.error(
       "[admin/shipments/page.tsx]",

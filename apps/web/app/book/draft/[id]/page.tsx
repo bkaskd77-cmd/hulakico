@@ -20,14 +20,14 @@ export default async function DraftSavedPage({
   if (!user) redirect("/signin");
 
   const { id } = await params;
-  const shipment = getDraftShipmentForUser(user.id, id);
+  const shipment = await getDraftShipmentForUser(user.id, id);
   if (!shipment) notFound();
 
   let invoice = null;
   try {
     invoice =
       shipment.lane === "INTERNATIONAL"
-        ? getInvoiceForShipment(shipment.id)
+        ? await getInvoiceForShipment(shipment.id)
         : null;
   } catch (error) {
     console.error(

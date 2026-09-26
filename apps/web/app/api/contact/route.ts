@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const result = saveContactMessage(parsed.data);
+    const result = await saveContactMessage(parsed.data);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }

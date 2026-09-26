@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { getInvoiceForShipment } from "@/lib/data/invoices";
 import type { CommercialInvoice } from "@/lib/domain/invoice";
 
@@ -32,13 +32,14 @@ export type InvoiceDocumentShipment = {
 };
 
 /** Load digital invoice document for the owner or an OPS/ADMIN viewer. */
-export function getInvoiceDocument(
+export async function getInvoiceDocument(
   viewerUserId: string,
   shipmentId: string,
   isAuthority: boolean,
-):
+): Promise<
   | { shipment: InvoiceDocumentShipment; invoice: CommercialInvoice | null }
-  | { error: string } {
+  | { error: string }
+> {
   try {
     const sql = `SELECT id, user_id, status, lane, currency,
       origin_country, origin_city, origin_contact_name, origin_company,
@@ -49,16 +50,17 @@ export function getInvoiceDocument(
       destination_line1, destination_line2, destination_postal_code,
       destination_address, hulakico_awb
       FROM shipments WHERE id = ?${isAuthority ? "" : " AND user_id = ?"}`;
+    const db = await getSql();
     const row = (
       isAuthority
-        ? getDb().prepare(sql).get(shipmentId)
-        : getDb().prepare(sql).get(shipmentId, viewerUserId)
+        ? await db.prepare(sql).get(shipmentId)
+        : await db.prepare(sql).get(shipmentId, viewerUserId)
     ) as InvoiceDocumentShipment | undefined;
     if (!row) return { error: "Shipment not found." };
     if (row.lane !== "INTERNATIONAL") {
       return { error: "Digital invoices apply to international shipments only." };
     }
-    return { shipment: row, invoice: getInvoiceForShipment(shipmentId) };
+    return { shipment: row, invoice: await getInvoiceForShipment(shipmentId) };
   } catch (error) {
     console.error(
       "[invoice-document.ts:getInvoiceDocument]",

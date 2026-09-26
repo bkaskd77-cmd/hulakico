@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
   ensurePaymentsTable,
@@ -14,12 +14,13 @@ import {
   type WalletProviderId,
 } from "@/lib/payments/providers";
 
-export function createWalletPaymentIntent(
+export async function createWalletPaymentIntent(
   shipmentId: string,
   provider: WalletProviderId,
-):
+): Promise<
   | { intent: PaymentIntent; checkoutUrl: string }
-  | { error: string } {
+  | { error: string }
+> {
   try {
     if (payProviderMode() === "off") {
       return { error: "Payments are disabled (PAY_PROVIDER=off)." };
@@ -27,8 +28,8 @@ export function createWalletPaymentIntent(
     if (!isWalletProvider(provider)) {
       return { error: "Unknown payment provider." };
     }
-    ensurePaymentsTable();
-    const quote = quoteAmount(shipmentId);
+    await ensurePaymentsTable();
+    const quote = await quoteAmount(shipmentId);
     if (!quote) {
       return { error: "No quote amount available. Generate quotes first." };
     }
@@ -39,8 +40,8 @@ export function createWalletPaymentIntent(
       if ("error" in preflight) return { error: preflight.error };
     }
 
-    const db = getDb();
-    db.prepare(
+    const db = await getSql();
+    await db.prepare(
       `UPDATE payment_intents SET status = 'CANCELLED'
        WHERE shipment_id = ? AND status = 'AWAITING_PAYMENT'`,
     ).run(shipmentId);
@@ -59,7 +60,7 @@ export function createWalletPaymentIntent(
       return { error: resolved.error };
     }
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO payment_intents
        (id, shipment_id, provider, method, status, amount, currency, instructions, created_at)
        VALUES (?, ?, ?, 'CARD', 'AWAITING_PAYMENT', ?, ?, ?, ?)`,
@@ -86,25 +87,25 @@ export function createWalletPaymentIntent(
   }
 }
 
-export function markPaymentPaid(
+export async function markPaymentPaid(
   intentId: string,
-): { ok: true; intent: PaymentIntent } | { error: string } {
+): Promise<{ ok: true; intent: PaymentIntent } | { error: string }> {
   try {
-    ensurePaymentsTable();
-    const existing = getPaymentIntent(intentId);
+    await ensurePaymentsTable();
+    const existing = await getPaymentIntent(intentId);
     if (!existing) return { error: "Payment not found." };
     if (existing.status === "PAID") return { ok: true, intent: existing };
     if (existing.status !== "AWAITING_PAYMENT") {
       return { error: "Payment is not awaiting settlement." };
     }
-    getDb()
+    await (await getSql())
       .prepare(
         `UPDATE payment_intents SET status = 'PAID',
          instructions = instructions || ' | Stub checkout: paid'
          WHERE id = ? AND status = 'AWAITING_PAYMENT'`,
       )
       .run(intentId);
-    const intent = getPaymentIntent(intentId);
+    const intent = await getPaymentIntent(intentId);
     if (!intent) return { error: "Payment not found after update." };
     return { ok: true, intent };
   } catch (error) {
@@ -117,15 +118,16 @@ export function markPaymentPaid(
 }
 
 /** COD domestic may confirm unpaid; otherwise requires a PAID intent. */
-export function canConfirmBooking(shipmentId: string): boolean {
+export async function canConfirmBooking(shipmentId: string): Promise<boolean> {
   try {
-    const row = getDb()
+    const db = await getSql();
+    const row = (await db
       .prepare(`SELECT wants_cod, lane FROM shipments WHERE id = ?`)
-      .get(shipmentId) as { wants_cod: number; lane: string } | undefined;
+      .get(shipmentId)) as { wants_cod: number; lane: string } | undefined;
     if (!row) return false;
     if (row.wants_cod === 1 && row.lane === "DOMESTIC") return true;
-    ensurePaymentsTable();
-    const paid = getDb()
+    await ensurePaymentsTable();
+    const paid = await db
       .prepare(
         `SELECT 1 FROM payment_intents
          WHERE shipment_id = ? AND status = 'PAID' LIMIT 1`,

@@ -10,7 +10,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const access = resolveOpsAccess(await readStaffSessionToken());
+    const access = await resolveOpsAccess(await readStaffSessionToken());
     if (!access.ok) {
       return NextResponse.json(
         { error: access.error },
@@ -27,7 +27,7 @@ export async function POST(
     }
 
     const { id } = await context.params;
-    requestExceptionInfo(id, body.infoRequestNote);
+    await requestExceptionInfo(id, body.infoRequestNote);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(

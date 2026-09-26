@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { createWalletPaymentIntent } from "@/lib/data/payment-wallet";
 import { isWalletProvider } from "@/lib/payments/providers";
 import { readSessionToken } from "@/lib/http/session-cookie";
@@ -19,9 +19,9 @@ export async function POST(
     }
 
     const { id } = await context.params;
-    const owned = getDb()
+    const owned = (await (await getSql())
       .prepare(`SELECT id, status FROM shipments WHERE id = ? AND user_id = ?`)
-      .get(id, user.id) as { id: string; status: string } | undefined;
+      .get(id, user.id)) as { id: string; status: string } | undefined;
     if (!owned) {
       return NextResponse.json({ error: "Shipment not found." }, { status: 404 });
     }
@@ -40,7 +40,7 @@ export async function POST(
       );
     }
 
-    const result = createWalletPaymentIntent(id, body.provider);
+    const result = await createWalletPaymentIntent(id, body.provider);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

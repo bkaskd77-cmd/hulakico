@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { getInvoiceForShipment } from "@/lib/data/invoices";
 import { getSettleSummary, type SettleSummary } from "@/lib/data/settle";
 import type { CommercialInvoice } from "@/lib/domain/invoice";
@@ -74,7 +74,7 @@ function party(row: Record<string, unknown>, side: "origin" | "destination"): Sh
   };
 }
 
-function mapRow(row: Record<string, unknown>): ShipmentSummary {
+async function mapRow(row: Record<string, unknown>): Promise<ShipmentSummary> {
   const lane = String(row.lane);
   const weightKg = Number(row.weight_kg);
   const lengthCm = row.length_cm == null ? null : Number(row.length_cm);
@@ -99,24 +99,24 @@ function mapRow(row: Record<string, unknown>): ShipmentSummary {
     partnerTrackUrl: (row.partner_track_url as string | null) ?? null,
     trackingToken: (row.tracking_token as string | null) ?? null,
     updatedAt: String(row.updated_at), createdAt: String(row.created_at),
-    invoice: lane === "INTERNATIONAL" ? getInvoiceForShipment(String(row.id)) : null,
-    settle: getSettleSummary(String(row.id)),
+    invoice: lane === "INTERNATIONAL" ? await getInvoiceForShipment(String(row.id)) : null,
+    settle: await getSettleSummary(String(row.id)),
     customerEmail: String(row.customer_email),
     customerName: String(row.customer_name),
   };
 }
 
 /** Short shipment details for the signed-in owner (account hub). */
-export function getMyShipmentSummary(
+export async function getMyShipmentSummary(
   userId: string,
   shipmentId: string,
-): ShipmentSummary | { error: string } {
+): Promise<ShipmentSummary | { error: string }> {
   try {
-    const row = getDb()
+    const row = (await (await getSql())
       .prepare(`${SELECT} WHERE s.id = ? AND s.user_id = ?`)
-      .get(shipmentId, userId) as Record<string, unknown> | undefined;
+      .get(shipmentId, userId)) as Record<string, unknown> | undefined;
     if (!row) return { error: "Shipment not found." };
-    return mapRow(row);
+    return await mapRow(row);
   } catch (error) {
     console.error(
       "[shipment-summary.ts:getMyShipmentSummary]",
@@ -127,15 +127,15 @@ export function getMyShipmentSummary(
 }
 
 /** Staff view — any shipment by id (no customer ownership check). */
-export function getStaffShipmentSummary(
+export async function getStaffShipmentSummary(
   shipmentId: string,
-): ShipmentSummary | { error: string } {
+): Promise<ShipmentSummary | { error: string }> {
   try {
-    const row = getDb()
+    const row = (await (await getSql())
       .prepare(`${SELECT} WHERE s.id = ?`)
-      .get(shipmentId) as Record<string, unknown> | undefined;
+      .get(shipmentId)) as Record<string, unknown> | undefined;
     if (!row) return { error: "Shipment not found." };
-    return mapRow(row);
+    return await mapRow(row);
   } catch (error) {
     console.error(
       "[shipment-summary.ts:getStaffShipmentSummary]",

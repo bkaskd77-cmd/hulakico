@@ -11,8 +11,8 @@ const iconClass =
   "flex h-9 w-9 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--off-white)_22%,transparent)]";
 
 /** Public footer: brand + socials, services, company pages, contact details and hours. */
-export function SiteFooter() {
-  const content = getHomepageContent();
+export async function SiteFooter() {
+  const content = await getHomepageContent();
   const c = COMPANY_CONTACT;
   return (
     <footer className="home-footer relative overflow-hidden border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">

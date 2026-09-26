@@ -8,15 +8,15 @@ export const runtime = "nodejs";
 
 export default async function OpsNotificationsPage() {
   const token = await readStaffSessionToken();
-  const access = resolveOpsAccess(token);
+  const access = await resolveOpsAccess(token);
   if (!access.ok) {
     redirect(access.status === 401 ? "/signin" : "/account?ops=denied");
   }
 
-  let items: ReturnType<typeof listRecentNotifications> = [];
+  let items: Awaited<ReturnType<typeof listRecentNotifications>> = [];
   let error: string | null = null;
   try {
-    items = listRecentNotifications(40);
+    items = await listRecentNotifications(40);
   } catch (err) {
     console.error("[ops/notifications/page.tsx]", err instanceof Error ? err.message : err);
     error = "Could not load notifications.";

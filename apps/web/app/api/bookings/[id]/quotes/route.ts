@@ -19,8 +19,8 @@ export async function POST(
     }
 
     const { id } = await context.params;
-    const result = generateQuotesForShipment(user.id, id);
-    const shipment = getDraftShipmentForUser(user.id, id);
+    const result = await generateQuotesForShipment(user.id, id);
+    const shipment = await getDraftShipmentForUser(user.id, id);
     let ranked = result.options.map((option, index) => ({
       ...option,
       rankScore: 1 / (index + 1),

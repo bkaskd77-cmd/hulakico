@@ -1,14 +1,16 @@
 import { RequestInfoForm } from "@/app/ops/RequestInfoForm";
 import { ResolveExceptionForm } from "@/app/ops/ResolveExceptionForm";
 import { listExceptions } from "@/lib/data/exception-query";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
 export default async function AdminExceptionsPage() {
-  let exceptions: ReturnType<typeof listExceptions> = [];
+  await requireStaffPage();
+  let exceptions: Awaited<ReturnType<typeof listExceptions>> = [];
   let error: string | null = null;
   try {
-    exceptions = listExceptions("ACTIVE");
+    exceptions = await listExceptions("ACTIVE");
   } catch (err) {
     console.error(
       "[admin/exceptions/page.tsx]",

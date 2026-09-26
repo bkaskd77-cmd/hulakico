@@ -13,10 +13,10 @@ export default async function OpsCarriersPage() {
     redirect("/signin");
   }
 
-  let carriers: ReturnType<typeof listCarriersWithDetails> = [];
+  let carriers: Awaited<ReturnType<typeof listCarriersWithDetails>> = [];
   let error: string | null = null;
   try {
-    carriers = listCarriersWithDetails();
+    carriers = await listCarriersWithDetails();
   } catch (err) {
     console.error(
       "[ops/carriers/page.tsx]",

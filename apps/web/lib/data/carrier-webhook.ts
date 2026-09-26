@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
   latestHulakicoStatus,
@@ -13,26 +13,28 @@ export type CarrierWebhookEvent = {
 };
 
 /** Ingest partner webhook scans into tracking_events (by partner AWB). */
-export function ingestCarrierWebhook(
+export async function ingestCarrierWebhook(
   externalAwb: string,
   events: CarrierWebhookEvent[],
-): { ok: true; shipmentId: string; status: string; added: number } | { error: string } {
+): Promise<
+  { ok: true; shipmentId: string; status: string; added: number } | { error: string }
+> {
   try {
     const awb = externalAwb.trim().toUpperCase();
     if (!awb || events.length === 0) {
       return { error: "externalAwb and events are required." };
     }
-    const db = getDb();
-    const row = db
+    const db = await getSql();
+    const row = (await db
       .prepare(`SELECT id, status FROM shipments WHERE upper(external_awb) = ?`)
-      .get(awb) as { id: string; status: string } | undefined;
+      .get(awb)) as { id: string; status: string } | undefined;
     if (!row) return { error: "No shipment matches that partner AWB." };
 
-    const existing = db
+    const existing = (await db
       .prepare(
         `SELECT description, occurred_at FROM tracking_events WHERE shipment_id = ?`,
       )
-      .all(row.id) as Array<{ description: string; occurred_at: string }>;
+      .all(row.id)) as Array<{ description: string; occurred_at: string }>;
     const seen = new Set(
       existing.map((item) => `${item.occurred_at}|${item.description}`),
     );
@@ -45,7 +47,7 @@ export function ingestCarrierWebhook(
     for (const event of events) {
       const key = `${event.occurredAt}|${event.description}`;
       if (seen.has(key)) continue;
-      insert.run(
+      await insert.run(
         newId("evt"),
         row.id,
         mapPartnerStatusToHulakico(event.status),
@@ -59,7 +61,7 @@ export function ingestCarrierWebhook(
 
     const nextStatus = latestHulakicoStatus(events.map((event) => event.status));
     const now = new Date().toISOString();
-    db.prepare(`UPDATE shipments SET status = ?, updated_at = ? WHERE id = ?`).run(
+    await db.prepare(`UPDATE shipments SET status = ?, updated_at = ? WHERE id = ?`).run(
       nextStatus,
       now,
       row.id,

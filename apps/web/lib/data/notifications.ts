@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 
 export type NotifyKind =
@@ -22,8 +22,8 @@ export type NotificationRow = {
   createdAt: string;
 };
 
-function ensureNotificationsTable(): void {
-  getDb().exec(`
+async function ensureNotificationsTable(): Promise<void> {
+  await (await getSql()).exec(`
     CREATE TABLE IF NOT EXISTS outbound_notifications (
       id TEXT PRIMARY KEY,
       shipment_id TEXT NOT NULL,
@@ -43,26 +43,26 @@ function ensureNotificationsTable(): void {
 }
 
 /** Stub outbound notify — logs only until EMAIL/SMS provider is wired. */
-export function logCustomerNotification(input: {
+export async function logCustomerNotification(input: {
   shipmentId: string;
   kind: NotifyKind;
   subject: string;
   body: string;
-}): { ok: true; id: string } | { error: string } {
+}): Promise<{ ok: true; id: string } | { error: string }> {
   try {
-    ensureNotificationsTable();
-    const db = getDb();
-    const owner = db
+    await ensureNotificationsTable();
+    const db = await getSql();
+    const owner = (await db
       .prepare(
         `SELECT s.user_id, u.email FROM shipments s
          JOIN users u ON u.id = s.user_id WHERE s.id = ?`,
       )
-      .get(input.shipmentId) as { user_id: string; email: string } | undefined;
+      .get(input.shipmentId)) as { user_id: string; email: string } | undefined;
     if (!owner) return { error: "Shipment owner not found for notification." };
 
     const id = newId("ntf");
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `INSERT INTO outbound_notifications
        (id, shipment_id, user_id, channel, kind, recipient, subject, body, provider, status, created_at)
        VALUES (?, ?, ?, 'EMAIL', ?, ?, ?, ?, 'stub', 'LOGGED', ?)`,
@@ -84,12 +84,12 @@ export function logCustomerNotification(input: {
 }
 
 /** Recent stub/live outbound notices for Ops review. */
-export function listRecentNotifications(limit = 40): NotificationRow[] {
+export async function listRecentNotifications(limit = 40): Promise<NotificationRow[]> {
   try {
-    ensureNotificationsTable();
+    await ensureNotificationsTable();
     const safe =
       Number.isFinite(limit) && limit > 0 ? Math.min(Math.floor(limit), 100) : 40;
-    const rows = getDb()
+    const rows = (await (await getSql())
       .prepare(
         `SELECT n.id, n.shipment_id, n.kind, n.channel, n.recipient, n.subject,
                 n.status, n.provider, n.created_at, s.hulakico_awb
@@ -97,7 +97,7 @@ export function listRecentNotifications(limit = 40): NotificationRow[] {
          LEFT JOIN shipments s ON s.id = n.shipment_id
          ORDER BY n.created_at DESC LIMIT ?`,
       )
-      .all(safe) as Array<{
+      .all(safe)) as Array<{
       id: string; shipment_id: string; kind: string; channel: string;
       recipient: string; subject: string; status: string; provider: string;
       created_at: string; hulakico_awb: string | null;

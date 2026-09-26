@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized webhook." }, { status: 401 });
       }
     }
-    const result = ingestCarrierWebhook(body.externalAwb ?? "", body.events ?? []);
+    const result = await ingestCarrierWebhook(body.externalAwb ?? "", body.events ?? []);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

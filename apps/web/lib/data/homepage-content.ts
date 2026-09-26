@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 export type HomeFeature = { title: string; body: string };
 export type HomeService = { name: string; detail: string };
@@ -131,11 +131,11 @@ function cloneDefault(): HomepageContent {
 }
 
 /** Public homepage copy — DB override or built-in defaults. */
-export function getHomepageContent(): HomepageContent {
+export async function getHomepageContent(): Promise<HomepageContent> {
   try {
-    const row = getDb()
+    const row = (await (await getSql())
       .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
-      .get(SLUG) as { content_json: string } | undefined;
+      .get(SLUG)) as { content_json: string } | undefined;
     if (!row) return cloneDefault();
     return parseContent(row.content_json) ?? cloneDefault();
   } catch (error) {
@@ -148,9 +148,9 @@ export function getHomepageContent(): HomepageContent {
 }
 
 /** Staff save — replaces full homepage JSON. */
-export function saveHomepageContent(
+export async function saveHomepageContent(
   content: HomepageContent,
-): { ok: true } | { error: string } {
+): Promise<{ ok: true } | { error: string }> {
   try {
     if (!content.heroHeadline?.trim() || !content.heroSubhead?.trim()) {
       return { error: "Hero headline and subhead are required." };
@@ -162,7 +162,7 @@ export function saveHomepageContent(
       return { error: "Social links must be full https:// addresses." };
     }
     const now = new Date().toISOString();
-    getDb()
+    await (await getSql())
       .prepare(
         `INSERT INTO site_content (slug, content_json, updated_at)
          VALUES (?, ?, ?)

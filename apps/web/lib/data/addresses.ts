@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 
 export type SavedAddress = {
@@ -31,10 +31,10 @@ export type SavedAddressInput = {
   isResidential?: boolean;
 };
 
-export function createSavedAddress(
+export async function createSavedAddress(
   userId: string,
   input: SavedAddressInput,
-): { id: string } | { error: string } {
+): Promise<{ id: string } | { error: string }> {
   try {
     const label = input.label.trim();
     const contactName = input.contactName.trim();
@@ -47,7 +47,7 @@ export function createSavedAddress(
 
     const id = newId("adr");
     const now = new Date().toISOString();
-    getDb()
+    await (await getSql())
       .prepare(
         `INSERT INTO saved_addresses (
            id, user_id, label, contact_name, company, phone, email,
@@ -80,16 +80,16 @@ export function createSavedAddress(
   }
 }
 
-export function listSavedAddresses(userId: string): SavedAddress[] {
+export async function listSavedAddresses(userId: string): Promise<SavedAddress[]> {
   try {
-    const rows = getDb()
+    const rows = (await (await getSql())
       .prepare(
         `SELECT id, label, contact_name, company, phone, email, country, city,
                 postal_code, line1, line2, is_residential, created_at
          FROM saved_addresses WHERE user_id = ?
          ORDER BY created_at DESC`,
       )
-      .all(userId) as Array<{
+      .all(userId)) as Array<{
       id: string;
       label: string;
       contact_name: string;

@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 export type OpsShipmentRow = {
   id: string;
@@ -51,12 +51,12 @@ export type OpsShipmentCounts = {
 };
 
 /** Counts for Admin shipment filter tabs. */
-export function countOpsShipments(): OpsShipmentCounts {
+export async function countOpsShipments(): Promise<OpsShipmentCounts> {
   try {
-    const db = getDb();
-    const rows = db
+    const db = await getSql();
+    const rows = (await db
       .prepare(`SELECT status, COUNT(*) as count FROM shipments GROUP BY status`)
-      .all() as Array<{ status: string; count: number }>;
+      .all()) as Array<{ status: string; count: number }>;
     const counts: OpsShipmentCounts = {
       all: 0,
       running: 0,
@@ -84,12 +84,12 @@ export function countOpsShipments(): OpsShipmentCounts {
   }
 }
 
-export function listOpsShipments(
+export async function listOpsShipments(
   filter: OpsShipmentFilter = "all",
-): OpsShipmentRow[] {
+): Promise<OpsShipmentRow[]> {
   try {
     const where = statusWhere(filter);
-    const rows = getDb()
+    const rows = (await (await getSql())
       .prepare(
         `SELECT s.id, s.status, s.lane, s.origin_city, s.destination_city,
                 s.hulakico_awb, s.external_awb, s.partner_label, s.updated_at, u.email, u.name,
@@ -104,7 +104,7 @@ export function listOpsShipments(
          ORDER BY s.updated_at DESC
          LIMIT 100`,
       )
-      .all(...where.params) as Array<{
+      .all(...where.params)) as Array<{
       id: string;
       status: string;
       lane: string;

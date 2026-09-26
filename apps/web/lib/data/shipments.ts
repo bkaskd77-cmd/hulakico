@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
   composeAddressLine,
@@ -14,13 +14,13 @@ export type DraftShipment = {
   transportMode: "THIRD_PARTY";
 };
 
-export function createDraftShipment(
+export async function createDraftShipment(
   userId: string,
   organizationId: string | null,
   input: DraftBookingInput,
-): DraftShipment {
+): Promise<DraftShipment> {
   try {
-    const db = getDb();
+    const db = await getSql();
     const id = newId("shp");
     const now = new Date().toISOString();
     const originCountry = normalizeCountry(input.originCountry);
@@ -37,7 +37,7 @@ export function createDraftShipment(
       input.destinationPostalCode,
     );
 
-    db.prepare(
+    await db.prepare(
       `INSERT INTO shipments (
          id, user_id, organization_id, status, transport_mode, lane, package_type,
          service_class, origin_country, origin_city, origin_address,

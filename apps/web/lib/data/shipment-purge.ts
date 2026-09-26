@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 const FINISHED = ["DELIVERED", "CANCELLED", "RTO"] as const;
 const RETENTION_DAYS = 90;
@@ -14,45 +14,40 @@ export function retentionCutoffIso(): string {
 }
 
 /** Deletes finished shipments older than 3 months (and related rows). */
-export function purgeExpiredFinishedShipments(): number {
+export async function purgeExpiredFinishedShipments(): Promise<number> {
   try {
-    const db = getDb();
+    const db = await getSql();
     const cutoff = retentionCutoffIso();
     const placeholders = FINISHED.map(() => "?").join(", ");
-    const expired = db
+    const expired = (await db
       .prepare(
         `SELECT id FROM shipments WHERE status IN (${placeholders}) AND updated_at < ?`,
       )
-      .all(...FINISHED, cutoff) as Array<{ id: string }>;
+      .all(...FINISHED, cutoff)) as Array<{ id: string }>;
     if (expired.length === 0) return 0;
 
-    db.exec("BEGIN");
-    try {
+    await db.transaction(async (tx) => {
       for (const { id } of expired) {
-        const invoices = db
+        const invoices = (await tx
           .prepare(`SELECT id FROM commercial_invoices WHERE shipment_id = ?`)
-          .all(id) as Array<{ id: string }>;
+          .all(id)) as Array<{ id: string }>;
         for (const inv of invoices) {
-          db.prepare(`DELETE FROM commercial_invoice_lines WHERE invoice_id = ?`).run(inv.id);
+          await tx.prepare(`DELETE FROM commercial_invoice_lines WHERE invoice_id = ?`).run(inv.id);
         }
-        db.prepare(`DELETE FROM commercial_invoices WHERE shipment_id = ?`).run(id);
-        const quotes = db
+        await tx.prepare(`DELETE FROM commercial_invoices WHERE shipment_id = ?`).run(id);
+        const quotes = (await tx
           .prepare(`SELECT id FROM quotes WHERE shipment_id = ?`)
-          .all(id) as Array<{ id: string }>;
+          .all(id)) as Array<{ id: string }>;
         for (const quote of quotes) {
-          db.prepare(`DELETE FROM quote_options WHERE quote_id = ?`).run(quote.id);
+          await tx.prepare(`DELETE FROM quote_options WHERE quote_id = ?`).run(quote.id);
         }
-        db.prepare(`DELETE FROM quotes WHERE shipment_id = ?`).run(id);
-        db.prepare(`DELETE FROM tracking_events WHERE shipment_id = ?`).run(id);
-        db.prepare(`DELETE FROM exception_cases WHERE shipment_id = ?`).run(id);
-        db.prepare(`DELETE FROM cod_collections WHERE shipment_id = ?`).run(id);
-        db.prepare(`DELETE FROM shipments WHERE id = ?`).run(id);
+        await tx.prepare(`DELETE FROM quotes WHERE shipment_id = ?`).run(id);
+        await tx.prepare(`DELETE FROM tracking_events WHERE shipment_id = ?`).run(id);
+        await tx.prepare(`DELETE FROM exception_cases WHERE shipment_id = ?`).run(id);
+        await tx.prepare(`DELETE FROM cod_collections WHERE shipment_id = ?`).run(id);
+        await tx.prepare(`DELETE FROM shipments WHERE id = ?`).run(id);
       }
-      db.exec("COMMIT");
-    } catch (inner) {
-      db.exec("ROLLBACK");
-      throw inner;
-    }
+    });
     return expired.length;
   } catch (error) {
     console.error(

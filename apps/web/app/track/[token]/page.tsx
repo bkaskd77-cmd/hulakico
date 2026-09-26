@@ -20,7 +20,7 @@ export default async function PublicTrackPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const tracking = getTrackingByToken(token);
+  const tracking = await getTrackingByToken(token);
   if (!tracking) notFound();
 
   const partnerUrl = effectivePartnerTrackUrl({

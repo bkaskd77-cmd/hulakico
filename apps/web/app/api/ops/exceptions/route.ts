@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const access = resolveOpsAccess(await readStaffSessionToken());
+    const access = await resolveOpsAccess(await readStaffSessionToken());
     if (!access.ok) {
       return NextResponse.json(
         { error: access.error },
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = openException(access.staff.id, body.shipmentId, body.reason);
+    const result = await openException(access.staff.id, body.shipmentId, body.reason);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error(

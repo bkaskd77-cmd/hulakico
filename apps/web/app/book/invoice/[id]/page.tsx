@@ -20,12 +20,12 @@ export default async function DigitalInvoicePage({
   const customerToken = await readSessionToken();
   const staffToken = await readStaffSessionToken();
   const user = customerToken ? await getUserBySessionToken(customerToken) : null;
-  const isAuthority = resolveOpsAccess(staffToken).ok;
+  const isAuthority = (await resolveOpsAccess(staffToken)).ok;
   if (!user && !isAuthority) redirect("/signin");
 
   const { id } = await params;
   await searchParams;
-  const loaded = getInvoiceDocument(user?.id ?? "staff", id, isAuthority);
+  const loaded = await getInvoiceDocument(user?.id ?? "staff", id, isAuthority);
   if ("error" in loaded) notFound();
   const { shipment: s, invoice } = loaded;
   const backHref =

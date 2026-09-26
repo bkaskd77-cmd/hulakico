@@ -13,7 +13,7 @@ export default async function Home() {
   const token = await readSessionToken();
   const user = token ? await getUserBySessionToken(token) : null;
   const bookHref = user ? "/book" : "/signup";
-  const content = getHomepageContent();
+  const content = await getHomepageContent();
 
   return (
     <div className="shell-sky">

@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 
 export type SettleSummary = {
   mode: "COD" | "TRANSFER" | "NONE";
@@ -15,12 +15,12 @@ export type SettleSummary = {
 };
 
 /** Customer-facing pay/settle snapshot for one shipment. */
-export function getSettleSummary(shipmentId: string): SettleSummary {
+export async function getSettleSummary(shipmentId: string): Promise<SettleSummary> {
   try {
-    const db = getDb();
-    const shipment = db
+    const db = await getSql();
+    const shipment = (await db
       .prepare(`SELECT wants_cod, currency, status FROM shipments WHERE id = ?`)
-      .get(shipmentId) as
+      .get(shipmentId)) as
       | { wants_cod: number; currency: string; status: string }
       | undefined;
     if (!shipment) {
@@ -35,12 +35,12 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
     }
 
     if (shipment.wants_cod === 1) {
-      const cod = db
+      const cod = (await db
         .prepare(
           `SELECT amount, currency, status FROM cod_collections
            WHERE shipment_id = ? ORDER BY created_at DESC LIMIT 1`,
         )
-        .get(shipmentId) as
+        .get(shipmentId)) as
         | { amount: number; currency: string; status: string }
         | undefined;
       if (!cod) {
@@ -76,13 +76,13 @@ export function getSettleSummary(shipmentId: string): SettleSummary {
     const booked = !["DRAFT", "QUOTED", "CANCELLED"].includes(shipment.status);
     if (booked) {
       // Read-only: never INSERT payment intents from settle/list views.
-      const pay = db
+      const pay = (await db
         .prepare(
           `SELECT amount, currency, status, instructions FROM payment_intents
            WHERE shipment_id = ? AND status != 'CANCELLED'
            ORDER BY created_at DESC LIMIT 1`,
         )
-        .get(shipmentId) as
+        .get(shipmentId)) as
         | {
             amount: number;
             currency: string;

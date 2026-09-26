@@ -15,7 +15,7 @@ export async function copyShipmentAction(formData: FormData) {
     const shipmentId = String(formData.get("shipmentId") ?? "").trim();
     if (!shipmentId) redirect("/account?copy=missing");
 
-    const loaded = getCopyFormState(user.id, shipmentId);
+    const loaded = await getCopyFormState(user.id, shipmentId);
     if ("error" in loaded) {
       redirect(`/account?copy=${encodeURIComponent(loaded.error)}`);
     }

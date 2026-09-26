@@ -2,20 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ShipmentDetailPanels } from "@/app/account/ShipmentDetailPanels";
 import { AdminShipmentOps } from "@/app/admin/(staff)/AdminShipmentOps";
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { getStaffShipmentSummary } from "@/lib/data/shipment-summary";
+import { requireStaffPage } from "@/lib/http/require-staff";
 
 export const runtime = "nodejs";
 
-function openExceptionIdFor(shipmentId: string): string | null {
+async function openExceptionIdFor(shipmentId: string): Promise<string | null> {
   try {
-    const row = getDb()
+    const row = (await (await getSql())
       .prepare(
         `SELECT id FROM exception_cases
          WHERE shipment_id = ? AND status = 'OPEN'
          ORDER BY created_at DESC LIMIT 1`,
       )
-      .get(shipmentId) as { id: string } | undefined;
+      .get(shipmentId)) as { id: string } | undefined;
     return row?.id ?? null;
   } catch (error) {
     console.error(
@@ -33,11 +34,13 @@ export default async function AdminShipmentDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ ops?: string }>;
 }) {
+  await requireStaffPage();
   const { id } = await params;
   const query = await searchParams;
-  const loaded = getStaffShipmentSummary(id);
+  const loaded = await getStaffShipmentSummary(id);
   if ("error" in loaded) notFound();
   const s = loaded;
+  const openExceptionId = await openExceptionIdFor(s.id);
   const trackHref = s.trackingToken ? `/track/${s.trackingToken}` : null;
   const startOpen = query.ops === "1";
 
@@ -106,7 +109,7 @@ export default async function AdminShipmentDetailPage({
         <AdminShipmentOps
           shipmentId={s.id}
           status={s.status}
-          openExceptionId={openExceptionIdFor(s.id)}
+          openExceptionId={openExceptionId}
           externalAwb={s.externalAwb}
           partnerLabel={s.partnerLabel}
           startOpen={startOpen}

@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { logCustomerNotification } from "@/lib/data/notifications";
 
@@ -44,22 +44,22 @@ export function milestoneRank(status: string): number {
 }
 
 /** Ops: set Hulakico status forward (may skip steps); never move backward. */
-export function postOpsMilestone(
+export async function postOpsMilestone(
   shipmentId: string,
   status: string,
-): { ok: true; status: OpsMilestone } | { error: string } {
+): Promise<{ ok: true; status: OpsMilestone } | { error: string }> {
   try {
     if (!(MILESTONES as readonly string[]).includes(status)) {
       return { error: "Unknown Hulakico milestone." };
     }
     const milestone = status as OpsMilestone;
-    const db = getDb();
-    const row = db
+    const db = await getSql();
+    const row = (await db
       .prepare(
         `SELECT id, status, origin_city, destination_city, hulakico_awb
          FROM shipments WHERE id = ?`,
       )
-      .get(shipmentId) as
+      .get(shipmentId)) as
       | {
           id: string;
           status: string;
@@ -87,10 +87,10 @@ export function postOpsMilestone(
         : row.origin_city;
 
     const now = new Date().toISOString();
-    db.prepare(
+    await db.prepare(
       `UPDATE shipments SET status = ?, updated_at = ? WHERE id = ?`,
     ).run(milestone, now, shipmentId);
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(
@@ -104,7 +104,7 @@ export function postOpsMilestone(
 
     if (milestone === "HANDOVER_PENDING" || milestone === "DELIVERED") {
       const awb = row.hulakico_awb ?? shipmentId;
-      const notify = logCustomerNotification({
+      const notify = await logCustomerNotification({
         shipmentId,
         kind: milestone === "DELIVERED" ? "DELIVERED" : "HANDED_OVER",
         subject:

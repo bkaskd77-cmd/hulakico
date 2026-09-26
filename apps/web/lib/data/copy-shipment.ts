@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import type { DraftBookingInput } from "@/lib/domain/booking";
 import { detectLane } from "@/lib/domain/booking";
 import type { FormState } from "@/app/book/form-types";
@@ -26,7 +26,7 @@ function text(value: string | null | undefined, fallback: string): string {
   return trimmed || fallback;
 }
 
-function loadCopyRow(userId: string, shipmentId: string): Row | null {
+async function loadCopyRow(userId: string, shipmentId: string): Promise<Row | null> {
   const sql = `SELECT package_type, service_class,
     origin_country, origin_city, origin_address,
     origin_contact_name, origin_company, origin_phone, origin_email,
@@ -37,7 +37,7 @@ function loadCopyRow(userId: string, shipmentId: string): Row | null {
     weight_kg, length_cm, width_cm, height_cm, declared_value,
     currency, contents, wants_cod
     FROM shipments WHERE id = ? AND user_id = ?`;
-  return (getDb().prepare(sql).get(shipmentId, userId) as Row | undefined) ?? null;
+  return ((await (await getSql()).prepare(sql).get(shipmentId, userId)) as Row | undefined) ?? null;
 }
 
 function toDraftInput(row: Row): DraftBookingInput | { error: string } {
@@ -79,12 +79,12 @@ function toDraftInput(row: Row): DraftBookingInput | { error: string } {
 }
 
 /** Prefill booking wizard from a past shipment (review Route → Package → Review). */
-export function getCopyFormState(
+export async function getCopyFormState(
   userId: string,
   shipmentId: string,
-): FormState | { error: string } {
+): Promise<FormState | { error: string }> {
   try {
-    const row = loadCopyRow(userId, shipmentId);
+    const row = await loadCopyRow(userId, shipmentId);
     if (!row) return { error: "Shipment not found." };
     const input = toDraftInput(row);
     if ("error" in input) return input;

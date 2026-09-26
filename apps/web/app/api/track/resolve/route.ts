@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { query?: string };
-    const result = resolveTrackingQuery(String(body.query ?? ""));
+    const result = await resolveTrackingQuery(String(body.query ?? ""));
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }

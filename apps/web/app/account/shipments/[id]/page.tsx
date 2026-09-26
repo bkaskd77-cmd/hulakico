@@ -18,7 +18,7 @@ export default async function OpenShipmentPage({
   if (!user) redirect("/signin");
 
   const { id } = await params;
-  const loaded = getMyShipmentSummary(user.id, id);
+  const loaded = await getMyShipmentSummary(user.id, id);
   if ("error" in loaded) notFound();
   const s = loaded;
 

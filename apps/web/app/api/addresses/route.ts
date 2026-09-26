@@ -15,7 +15,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "Sign in required." }, { status: 401 });
     }
-    const addresses = listSavedAddresses(user.id);
+    const addresses = await listSavedAddresses(user.id);
     return NextResponse.json({ addresses });
   } catch (error) {
     console.error(
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = createSavedAddress(user.id, {
+    const result = await createSavedAddress(user.id, {
       label: body.label,
       contactName: body.contactName,
       company: body.company,

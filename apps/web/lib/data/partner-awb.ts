@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
   isPartnerKey,
@@ -15,34 +15,35 @@ const BOOKED_STATUSES = [
   "EXCEPTION",
 ] as const;
 
-function ensurePartnerTrackColumns(): void {
-  const db = getDb();
-  const columns = db.prepare("PRAGMA table_info(shipments)").all() as Array<{
+async function ensurePartnerTrackColumns(): Promise<void> {
+  const db = await getSql();
+  const columns = (await db.prepare("PRAGMA table_info(shipments)").all()) as Array<{
     name: string;
   }>;
   const names = new Set(columns.map((c) => c.name));
   if (!names.has("partner_label")) {
-    db.exec(`ALTER TABLE shipments ADD COLUMN partner_label TEXT`);
+    await db.exec(`ALTER TABLE shipments ADD COLUMN partner_label TEXT`);
   }
   if (!names.has("partner_track_url")) {
-    db.exec(`ALTER TABLE shipments ADD COLUMN partner_track_url TEXT`);
+    await db.exec(`ALTER TABLE shipments ADD COLUMN partner_track_url TEXT`);
   }
 }
 
 /** Ops: set fulfillment partner, AWB, and track URL (auto or override). */
-export function updatePartnerTracking(input: {
+export async function updatePartnerTracking(input: {
   shipmentId: string;
   partnerKey: string;
   externalAwb: string;
   trackUrl?: string | null;
-}):
+}): Promise<
   | {
       ok: true;
       externalAwb: string;
       partnerLabel: string;
       partnerTrackUrl: string | null;
     }
-  | { error: string } {
+  | { error: string }
+> {
   try {
     if (!isPartnerKey(input.partnerKey)) {
       return { error: "Choose a shipment partner (DHL, FedEx, or Other)." };
@@ -68,13 +69,13 @@ export function updatePartnerTracking(input: {
       return { error: "Tracking URL must be a valid http(s) link." };
     }
 
-    ensurePartnerTrackColumns();
-    const db = getDb();
-    const row = db
+    await ensurePartnerTrackColumns();
+    const db = await getSql();
+    const row = (await db
       .prepare(
         `SELECT id, status, external_awb, origin_country FROM shipments WHERE id = ?`,
       )
-      .get(input.shipmentId) as
+      .get(input.shipmentId)) as
       | {
           id: string;
           status: string;
@@ -89,7 +90,7 @@ export function updatePartnerTracking(input: {
 
     const now = new Date().toISOString();
     const previous = row.external_awb?.trim() || null;
-    db.prepare(
+    await db.prepare(
       `UPDATE shipments
        SET external_awb = ?, partner_label = ?, partner_track_url = ?, updated_at = ?
        WHERE id = ?`,
@@ -98,7 +99,7 @@ export function updatePartnerTracking(input: {
     const description = previous
       ? `Partner tracking updated (${partnerLabel}): ${previous} → ${awb}.`
       : `Partner tracking attached (${partnerLabel}): ${awb}.`;
-    db.prepare(
+    await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(

@@ -1,4 +1,4 @@
-import { getTurso, type SqlStatement } from "@/lib/turso";
+import { getSql } from "@/lib/sql";
 import {
   hashPassword,
   newId,
@@ -21,46 +21,40 @@ export async function registerUser(input: SignupInput): Promise<PublicUser> {
       throw new Error("Organization name is required for business accounts.");
     }
 
-    const db = await getTurso();
+    const db = await getSql();
     const email = input.email.toLowerCase();
-    const existing = await db.execute({
-      sql: "SELECT id FROM users WHERE email = ?",
-      args: [email],
-    });
-    if (existing.rows.length > 0) {
+    const existing = await db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    if (existing) {
       throw new Error("An account with this email already exists.");
     }
 
     const userId = newId("usr");
     const passwordHash = await hashPassword(input.password);
     const createdAt = new Date().toISOString();
-    const statements: SqlStatement[] = [
-      {
-        sql: `INSERT INTO users (id, email, password_hash, name, account_type, created_at)
-              VALUES (?, ?, ?, ?, ?, ?)`,
-        args: [userId, email, passwordHash, input.name, input.accountType, createdAt],
-      },
-    ];
-
     let organization: PublicUser["organization"] = null;
-    if (input.accountType === "BUSINESS" && input.organizationName) {
-      const orgId = newId("org");
-      statements.push(
-        {
-          sql: "INSERT INTO organizations (id, name, created_at) VALUES (?, ?, ?)",
-          args: [orgId, input.organizationName, createdAt],
-        },
-        {
-          sql: `INSERT INTO memberships (id, user_id, organization_id, role)
-                VALUES (?, ?, ?, ?)`,
-          args: [newId("mem"), userId, orgId, "OWNER"],
-        },
-      );
-      organization = { id: orgId, name: input.organizationName, role: "OWNER" };
-    }
 
     try {
-      await db.batch(statements);
+      await db.transaction(async (tx) => {
+        await tx
+          .prepare(
+            `INSERT INTO users (id, email, password_hash, name, account_type, created_at)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+          )
+          .run(userId, email, passwordHash, input.name, input.accountType, createdAt);
+        if (input.accountType === "BUSINESS" && input.organizationName) {
+          const orgId = newId("org");
+          await tx
+            .prepare("INSERT INTO organizations (id, name, created_at) VALUES (?, ?, ?)")
+            .run(orgId, input.organizationName, createdAt);
+          await tx
+            .prepare(
+              `INSERT INTO memberships (id, user_id, organization_id, role)
+               VALUES (?, ?, ?, ?)`,
+            )
+            .run(newId("mem"), userId, orgId, "OWNER");
+          organization = { id: orgId, name: input.organizationName, role: "OWNER" };
+        }
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (message.includes("UNIQUE")) {
@@ -84,12 +78,10 @@ export async function authenticateUser(
   password: string,
 ): Promise<{ user: PublicUser; sessionToken: string } | null> {
   try {
-    const db = await getTurso();
-    const result = await db.execute({
-      sql: `SELECT id, email, password_hash, name, account_type FROM users WHERE email = ?`,
-      args: [email.toLowerCase()],
-    });
-    const row = result.rows[0] as unknown as UserRow | undefined;
+    const db = await getSql();
+    const row = (await db
+      .prepare(`SELECT id, email, password_hash, name, account_type FROM users WHERE email = ?`)
+      .get(email.toLowerCase())) as UserRow | undefined;
     if (!row) return null;
 
     const valid = await verifyPassword(password, row.password_hash);
