@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { applyStaffPasswordReset } from "@/lib/data/staff-password-reset";
 import { getSql } from "@/lib/sql";
 import {
   createSessionToken,
@@ -31,6 +32,7 @@ export async function authenticateStaff(
 ): Promise<{ staff: StaffUser; sessionToken: string } | null> {
   try {
     const db = await getSql();
+    await applyStaffPasswordReset(db);
     const row = (await db
       .prepare(
         `SELECT id, email, password_hash, name, role FROM staff_users WHERE email = ?`,
