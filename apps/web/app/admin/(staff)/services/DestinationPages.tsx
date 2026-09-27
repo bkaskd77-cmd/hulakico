@@ -11,16 +11,24 @@ const label = "block text-[11px] font-semibold uppercase tracking-[0.18em] text-
 
 type SaveResult = { ok: true } | { error: string };
 
-/** Destination writing, shown only inside the International Shipping editor. */
+/** Destination writing, shown inside International Shipping or Domestic Courier. */
 export function DestinationPages({
   lanes,
   initialSlug,
   saveAction,
+  heading = "Destination pages",
+  intro = "Pick a lane and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters.",
+  kind = "country",
+  savedNotice = "Saved. The public lane page now uses this writing.",
 }: {
   lanes: LaneCopy[];
   initialSlug?: string;
   saved?: string;
   saveAction: (formData: FormData) => Promise<SaveResult>;
+  heading?: string;
+  intro?: string;
+  kind?: "country" | "city";
+  savedNotice?: string;
 }) {
   const [slug, setSlug] = useState(initialSlug && lanes.some((lane) => lane.slug === initialSlug) ? initialSlug : lanes[0]?.slug);
   const selected = lanes.find((lane) => lane.slug === slug) ?? lanes[0];
@@ -28,11 +36,9 @@ export function DestinationPages({
 
   return (
     <section id="destination-pages" className="mt-12 border-t border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pt-8">
-      <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">Destination pages</h2>
-      <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-        Pick a lane and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters.
-      </p>
-      <CountryAdd saveAction={saveAction} onAdded={setSlug} />
+      <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">{heading}</h2>
+      <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">{intro}</p>
+      <CountryAdd saveAction={saveAction} onAdded={setSlug} kind={kind} />
       <div className="mt-4 flex flex-wrap gap-2">
         {lanes.map((lane) => (
           <button
@@ -45,12 +51,20 @@ export function DestinationPages({
           </button>
         ))}
       </div>
-      <LaneDraft key={selected.slug} lane={selected} saveAction={saveAction} />
+      <LaneDraft key={selected.slug} lane={selected} saveAction={saveAction} savedNotice={savedNotice} />
     </section>
   );
 }
 
-function LaneDraft({ lane, saveAction }: { lane: LaneCopy; saveAction: (formData: FormData) => Promise<SaveResult> }) {
+function LaneDraft({
+  lane,
+  saveAction,
+  savedNotice,
+}: {
+  lane: LaneCopy;
+  saveAction: (formData: FormData) => Promise<SaveResult>;
+  savedNotice: string;
+}) {
   const [image, setImage] = useState(lane.image);
   const [facts, setFacts] = useState<LaneFact[]>(lane.facts);
   const [notice, setNotice] = useState<string | null>(null);
@@ -67,7 +81,7 @@ function LaneDraft({ lane, saveAction }: { lane: LaneCopy; saveAction: (formData
       try {
         const result = await saveAction(data);
         setFailed("error" in result);
-        setNotice("error" in result ? result.error : "Saved. The public lane page now uses this writing.");
+        setNotice("error" in result ? result.error : savedNotice);
       } catch (error) {
         console.error("[DestinationPages.tsx:onSubmit]", error instanceof Error ? error.message : error);
         setFailed(true);

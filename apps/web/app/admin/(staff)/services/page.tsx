@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { ServicesEditor } from "@/app/admin/(staff)/services/ServicesEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { getCityCopies } from "@/lib/data/city-content";
 import { getLaneCopies, saveLaneCopy, type LaneCopy } from "@/lib/data/lane-content";
 import { getServices, saveServices, type ServiceItem } from "@/lib/data/services-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
@@ -74,12 +75,13 @@ async function saveLaneAction(formData: FormData): Promise<{ ok: true } | { erro
 export default async function AdminServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ lane?: string; saved?: string }>;
+  searchParams: Promise<{ lane?: string; city?: string; saved?: string }>;
 }) {
   await requireStaffPage("content");
   const query = await searchParams;
   const items = await getServices();
   const lanes = await getLaneCopies();
+  const cities = await getCityCopies();
 
   return (
     <>
@@ -95,6 +97,8 @@ export default async function AdminServicesPage({
         initialLane={query.lane}
         laneSaved={query.saved}
         saveLaneAction={saveLaneAction}
+        cities={cities}
+        initialCity={query.city}
       />
     </>
   );

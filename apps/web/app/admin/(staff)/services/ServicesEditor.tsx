@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DestinationPages } from "@/app/admin/(staff)/services/DestinationPages";
 import { ServiceEditForm } from "@/app/admin/(staff)/services/ServiceEditForm";
 import { ServicesCardGrid } from "@/app/admin/(staff)/services/ServicesCardGrid";
+import { saveCityAction } from "@/app/admin/(staff)/services/city-action";
 import type { LaneCopy } from "@/lib/data/lane-content";
 import { blankService, type ServiceItem } from "@/lib/domain/service-catalogue";
 
@@ -18,6 +19,8 @@ export function ServicesEditor({
   initialLane,
   laneSaved,
   saveLaneAction,
+  cities,
+  initialCity,
 }: {
   initial: ServiceItem[];
   saveAction: SaveAction;
@@ -25,10 +28,14 @@ export function ServicesEditor({
   initialLane?: string;
   laneSaved?: string;
   saveLaneAction: (formData: FormData) => Promise<{ ok: true } | { error: string }>;
+  cities: LaneCopy[];
+  initialCity?: string;
 }) {
   const internationalIndex = initial.findIndex((item) => item.slug === "international");
+  const domesticIndex = initial.findIndex((item) => item.slug === "domestic");
+  const opened = initialLane && internationalIndex >= 0 ? internationalIndex : initialCity && domesticIndex >= 0 ? domesticIndex : null;
   const [items, setItems] = useState(initial);
-  const [open, setOpen] = useState<number | null>(initialLane && internationalIndex >= 0 ? internationalIndex : null);
+  const [open, setOpen] = useState<number | null>(opened);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +107,17 @@ export function ServicesEditor({
           />
           {current.slug === "international" ? (
             <DestinationPages lanes={lanes} initialSlug={initialLane} saved={laneSaved} saveAction={saveLaneAction} />
+          ) : null}
+          {current.slug === "domestic" ? (
+            <DestinationPages
+              lanes={cities}
+              initialSlug={initialCity}
+              saveAction={saveCityAction}
+              heading="City pages"
+              intro="Pick a city and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters."
+              kind="city"
+              savedNotice="Saved. The public city page now uses this writing."
+            />
           ) : null}
         </>
       ) : (

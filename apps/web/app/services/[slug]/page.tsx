@@ -5,6 +5,7 @@ import { QuoteLink } from "@/app/home/QuoteLink";
 import { SiteFooter } from "@/app/home/SiteFooter";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
+import { DomesticLayout } from "@/app/services/domestic/DomesticLayout";
 import { InternationalLayout } from "@/app/services/international/InternationalLayout";
 import { getServices } from "@/lib/data/services-content";
 
@@ -59,6 +60,8 @@ export default async function ServicePageView({ params }: { params: Promise<{ sl
 
       {page.slug === "international" ? (
         <InternationalLayout highlights={page.highlights} needs={page.needs} howItWorks={page.howItWorks} />
+      ) : page.slug === "domestic" ? (
+        <DomesticLayout highlights={page.highlights} needs={page.needs} howItWorks={page.howItWorks} />
       ) : (
         <>
           <section className="mx-auto grid max-w-[78rem] gap-6 px-6 py-16 sm:px-12 lg:grid-cols-3">

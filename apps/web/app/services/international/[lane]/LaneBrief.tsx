@@ -1,4 +1,4 @@
-import { getLaneCopy } from "@/lib/data/lane-content";
+import { getLaneCopy, type LaneCopy } from "@/lib/data/lane-content";
 import type { ShippingLane } from "@/lib/domain/international-lanes";
 
 const prose = "whitespace-pre-wrap text-sm leading-relaxed text-[var(--off-white)]/85";
@@ -8,8 +8,18 @@ function lines(value: string): string[] {
 }
 
 /** Lane page chrome, with the writing loaded from the staff editor. */
-export async function LaneBrief({ lane }: { lane: ShippingLane }) {
-  const copy = await getLaneCopy(lane.slug);
+export async function LaneBrief({
+  lane,
+  loadCopy = getLaneCopy,
+  kicker = "Lane from Kathmandu",
+  captionFrom = "Kathmandu",
+}: {
+  lane: ShippingLane;
+  loadCopy?: (slug: string) => Promise<LaneCopy | null>;
+  kicker?: string;
+  captionFrom?: string;
+}) {
+  const copy = await loadCopy(lane.slug);
   const summary = copy?.summary ?? lane.summary;
   const points = lines(copy?.transit ?? lane.transit);
   const paperwork = copy?.paperwork ?? lane.paperwork;
@@ -21,7 +31,7 @@ export async function LaneBrief({ lane }: { lane: ShippingLane }) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">Lane from Kathmandu</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">{kicker}</p>
       <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold leading-tight text-[var(--off-white)] sm:text-5xl">
         {lane.title}
       </h1>
@@ -43,7 +53,7 @@ export async function LaneBrief({ lane }: { lane: ShippingLane }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="" className="h-72 w-full object-cover object-center sm:h-96" />
           <figcaption className="bg-[var(--navy-elevated)] px-4 py-3 text-xs uppercase tracking-[0.18em] text-[var(--off-white)]/70">
-            Handover starts in Kathmandu · delivery in {lane.to}
+            Handover starts in {captionFrom} · delivery in {lane.to}
           </figcaption>
         </figure>
       ) : null}
