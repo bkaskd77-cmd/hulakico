@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { DestinationPages } from "@/app/admin/(staff)/services/DestinationPages";
 import { ServiceEditForm } from "@/app/admin/(staff)/services/ServiceEditForm";
 import { ServicesCardGrid } from "@/app/admin/(staff)/services/ServicesCardGrid";
+import type { LaneCopy } from "@/lib/data/lane-content";
 import { blankService, type ServiceItem } from "@/lib/domain/service-catalogue";
 
 type SaveAction = (items: ServiceItem[]) => Promise<{ ok: true } | { error: string }>;
@@ -12,12 +14,21 @@ type SaveAction = (items: ServiceItem[]) => Promise<{ ok: true } | { error: stri
 export function ServicesEditor({
   initial,
   saveAction,
+  lanes,
+  initialLane,
+  laneSaved,
+  saveLaneAction,
 }: {
   initial: ServiceItem[];
   saveAction: SaveAction;
+  lanes: LaneCopy[];
+  initialLane?: string;
+  laneSaved?: string;
+  saveLaneAction: (formData: FormData) => Promise<void>;
 }) {
+  const internationalIndex = initial.findIndex((item) => item.slug === "international");
   const [items, setItems] = useState(initial);
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(initialLane && internationalIndex >= 0 ? internationalIndex : null);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,16 +87,21 @@ export function ServicesEditor({
       {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
       {message ? <p className="mt-4 text-sm text-[var(--gold)]">{message}</p> : null}
       {current && open !== null ? (
-        <ServiceEditForm
-          item={current}
-          canRemove={items.length > 1}
-          onBack={() => setOpen(null)}
-          onChange={(item) => update(items.map((row, i) => (i === open ? item : row)))}
-          onRemove={() => {
-            update(items.filter((_, i) => i !== open));
-            setOpen(null);
-          }}
-        />
+        <>
+          <ServiceEditForm
+            item={current}
+            canRemove={items.length > 1}
+            onBack={() => setOpen(null)}
+            onChange={(item) => update(items.map((row, i) => (i === open ? item : row)))}
+            onRemove={() => {
+              update(items.filter((_, i) => i !== open));
+              setOpen(null);
+            }}
+          />
+          {current.slug === "international" ? (
+            <DestinationPages lanes={lanes} initialSlug={initialLane} saved={laneSaved} saveAction={saveLaneAction} />
+          ) : null}
+        </>
       ) : (
         <ServicesCardGrid items={items} onOpen={setOpen} onChange={update} onAdd={add} />
       )}
