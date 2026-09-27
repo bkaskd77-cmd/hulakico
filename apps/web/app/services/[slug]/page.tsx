@@ -5,6 +5,7 @@ import { QuoteLink } from "@/app/home/QuoteLink";
 import { SiteFooter } from "@/app/home/SiteFooter";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
+import { InternationalLayout } from "@/app/services/international/InternationalLayout";
 import { getServices } from "@/lib/data/services-content";
 
 export const dynamicParams = true;
@@ -56,43 +57,48 @@ export default async function ServicePageView({ params }: { params: Promise<{ sl
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[78rem] gap-6 px-6 py-16 sm:px-12 lg:grid-cols-3">
-        {page.highlights.map((item, index) => (
-          <div key={item} className={`${panelClass} hub-rank-item`} style={{ animationDelay: `${index * 90}ms` }}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--teal)_24%,transparent)] text-sm font-bold text-[var(--gold)]">
-              ✓
-            </span>
-            <p className="mt-4 text-sm leading-relaxed text-[var(--off-white)]/90">{item}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="mx-auto grid max-w-[78rem] gap-6 px-6 pb-16 sm:px-12 lg:grid-cols-2">
-        <div className={panelClass}>
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">What you need</h2>
-          <ul className="mt-5 space-y-3">
-            {page.needs.map((item) => (
-              <li key={item} className="flex gap-3 text-sm leading-relaxed text-[var(--off-white)]/85">
-                <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--gold)]" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className={panelClass}>
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How it works</h2>
-          <ol className="mt-5 space-y-4">
-            {page.howItWorks.map((step, index) => (
-              <li key={step} className="flex gap-4 text-sm leading-relaxed text-[var(--off-white)]/85">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--teal)] text-xs font-bold text-[var(--teal)]">
-                  {index + 1}
+      {page.slug === "international" ? (
+        <InternationalLayout highlights={page.highlights} needs={page.needs} howItWorks={page.howItWorks} />
+      ) : (
+        <>
+          <section className="mx-auto grid max-w-[78rem] gap-6 px-6 py-16 sm:px-12 lg:grid-cols-3">
+            {page.highlights.map((item, index) => (
+              <div key={item} className={`${panelClass} hub-rank-item`} style={{ animationDelay: `${index * 90}ms` }}>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--teal)_24%,transparent)] text-sm font-bold text-[var(--gold)]">
+                  ✓
                 </span>
-                <span className="pt-1">{step}</span>
-              </li>
+                <p className="mt-4 text-sm leading-relaxed text-[var(--off-white)]/90">{item}</p>
+              </div>
             ))}
-          </ol>
-        </div>
-      </section>
+          </section>
+          <section className="mx-auto grid max-w-[78rem] gap-6 px-6 pb-16 sm:px-12 lg:grid-cols-2">
+            <div className={panelClass}>
+              <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">What you need</h2>
+              <ul className="mt-5 space-y-3">
+                {page.needs.map((item) => (
+                  <li key={item} className="flex gap-3 text-sm leading-relaxed text-[var(--off-white)]/85">
+                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--gold)]" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={panelClass}>
+              <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How it works</h2>
+              <ol className="mt-5 space-y-4">
+                {page.howItWorks.map((step, index) => (
+                  <li key={step} className="flex gap-4 text-sm leading-relaxed text-[var(--off-white)]/85">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--teal)] text-xs font-bold text-[var(--teal)]">
+                      {index + 1}
+                    </span>
+                    <span className="pt-1">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+        </>
+      )}
 
       <section className="mx-auto max-w-[78rem] px-6 pb-20 sm:px-12">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">More services</p>
