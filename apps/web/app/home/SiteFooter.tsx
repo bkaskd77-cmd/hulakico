@@ -26,7 +26,8 @@ export async function SiteFooter() {
 
       <div className="relative mx-auto grid max-w-[78rem] gap-10 px-6 pb-10 pt-16 sm:grid-cols-2 sm:px-12 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
         <div>
-          <p className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-[var(--off-white)]">Hulakico</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/hulakico-logo.png" alt="Hulakico" className="h-14 w-auto rounded-md bg-white px-2 py-1" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--off-white)]/85">{content.footerTagline}</p>
           <ul className="mt-6 flex gap-2" aria-label="Social media">
             {SOCIAL_NETWORKS.map((network) => {
