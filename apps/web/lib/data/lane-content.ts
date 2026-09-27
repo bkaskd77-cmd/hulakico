@@ -6,12 +6,7 @@ import { getSql } from "@/lib/sql";
 
 const SLUG = "international-lanes";
 const MAX = 100_000;
-const STEPS = [
-  "Send the destination city, the weight, and whether the box is documents or goods.",
-  "The desk ranks partner options on price, speed, and the chance of a hold.",
-  "Book, complete the invoice, and hand the box over in Kathmandu.",
-  "Follow one Hulakico timeline. A customs question shows on that same page.",
-];
+const STEPS = "Send the destination city, the weight, and whether the box is documents or goods.\nThe desk ranks partner options on price, speed, and the chance of a hold.\nBook, complete the invoice, and hand the box over in Kathmandu.\nFollow one Hulakico timeline. A customs question shows on that same page.";
 
 export type LaneFact = { label: string; value: string };
 
@@ -52,7 +47,7 @@ function seed(lane: ShippingLane): Omit<LaneCopy, "slug" | "title" | "to"> {
     summary: lane.summary,
     transit: `${lane.transit}\nName the receiving city when you quote. The window on that quote is the one to trust.`,
     paperwork: lane.paperwork,
-    steps: STEPS.join("\n"),
+    steps: STEPS,
     story: "",
     handover: `${address}\n\nBring the box to the desk, or ask for a pickup when you request the quote.`,
     image: lane.image,
@@ -60,7 +55,7 @@ function seed(lane: ShippingLane): Omit<LaneCopy, "slug" | "title" | "to"> {
     facts: [
       { label: "Route", value: `Kathmandu, Nepal → ${lane.to}` },
       { label: "Rate", value: "No fixed fare. The quote uses the higher of actual weight and volumetric weight (length × width × height in cm ÷ 5000)." },
-      { label: "Record", value: "One Hulakico airway bill for the journey. A partner bill is added after pickup." },
+      { label: "Record", value: "One Hulakico airway bill. A partner bill is added after pickup." },
     ],
   };
 }
@@ -87,9 +82,7 @@ function fromSaved(lane: ShippingLane, raw: unknown): LaneCopy {
 
 async function loadSaved(): Promise<Record<string, unknown>> {
   try {
-    const row = (await (await getSql())
-      .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
-      .get(SLUG)) as { content_json: string } | undefined;
+    const row = (await (await getSql()).prepare(`SELECT content_json FROM site_content WHERE slug = ?`).get(SLUG)) as { content_json: string } | undefined;
     if (!row) return {};
     const parsed = JSON.parse(row.content_json) as { lanes?: Record<string, unknown> };
     return parsed.lanes ?? {};
@@ -99,9 +92,19 @@ async function loadSaved(): Promise<Record<string, unknown>> {
   }
 }
 
+function customBase(slug: string, raw: unknown): ShippingLane | null {
+  const row = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+  const to = typeof row?.to === "string" ? row.to.trim().slice(0, 80) : "";
+  if (to.length < 2) return null;
+  const title = typeof row.title === "string" && row.title.trim() ? row.title.trim().slice(0, 120) : `Nepal to ${to}`;
+  return { slug, to, title, summary: `Shipments from Kathmandu to ${to}.`, image: "/home/feature-1.jpg", transit: "The quote shows the delivery window before you book.", paperwork: `A full receiver address in ${to}.` };
+}
+
 async function loadCopies(): Promise<LaneCopy[]> {
   const saved = await loadSaved();
-  return INTERNATIONAL_LANES.map((lane) => fromSaved(lane, saved[lane.slug]));
+  const seeds = INTERNATIONAL_LANES.map((lane) => fromSaved(lane, saved[lane.slug]));
+  const extras = Object.keys(saved).flatMap((slug) => INTERNATIONAL_LANES.some((lane) => lane.slug === slug) ? [] : [customBase(slug, saved[slug])].filter((lane): lane is ShippingLane => !!lane).map((lane) => fromSaved(lane, saved[slug])));
+  return seeds.concat(extras);
 }
 
 export const getLaneCopies = cache(loadCopies);
@@ -113,22 +116,20 @@ export async function getLaneCopy(slug: string): Promise<LaneCopy | null> {
 
 export async function saveLaneCopy(copy: LaneCopy): Promise<{ ok: true } | { error: string }> {
   try {
-    const lane = INTERNATIONAL_LANES.find((item) => item.slug === copy.slug);
-    if (!lane) return { error: "That destination is not on the international page." };
+    const known = INTERNATIONAL_LANES.some((item) => item.slug === copy.slug);
+    const slugOk = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(copy.slug);
     const fields = [copy.summary, copy.transit, copy.paperwork, copy.steps, copy.story, copy.handover];
     if (fields.some((field) => field.length > MAX)) return { error: "Each box can hold up to 100,000 characters." };
     if (copy.image && !isAllowedImageUrl(copy.image)) return { error: "Upload the photo through the editor." };
     const saved = await loadSaved();
-    saved[lane.slug] = {
-      summary: copy.summary,
-      transit: copy.transit,
-      paperwork: copy.paperwork,
-      steps: copy.steps,
-      story: copy.story,
-      handover: copy.handover,
-      image: copy.image,
-      facts: copy.facts.slice(0, 20),
-    };
+    const previous = saved[copy.slug] && typeof saved[copy.slug] === "object" ? (saved[copy.slug] as Record<string, unknown>) : undefined;
+    if (!known && !slugOk) return { error: "Use letters and numbers for the country." };
+    const to = copy.to.trim().slice(0, 80) || (typeof previous?.to === "string" ? previous.to : "");
+    const title = copy.title.trim().slice(0, 120) || (typeof previous?.title === "string" ? previous.title : to ? `Nepal to ${to}` : "");
+    if (!known && to.length < 2) return { error: "Enter the country name." };
+    if (!known && !previous && Object.keys(saved).length >= 40) return { error: "Up to 40 destinations." };
+    const body = { summary: copy.summary, transit: copy.transit, paperwork: copy.paperwork, steps: copy.steps, story: copy.story, handover: copy.handover, image: copy.image, facts: copy.facts.slice(0, 20) };
+    saved[copy.slug] = known ? body : { ...body, to, title };
     await (await getSql())
       .prepare(
         `INSERT INTO site_content (slug, content_json, updated_at)

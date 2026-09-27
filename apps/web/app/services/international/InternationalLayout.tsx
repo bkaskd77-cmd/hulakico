@@ -1,11 +1,16 @@
-import { INTERNATIONAL_LANES } from "@/lib/domain/international-lanes";
 import { LaneBoard } from "@/app/services/international/LaneBoard";
+import { getLaneCopies } from "@/lib/data/lane-content";
+import type { ShippingLane } from "@/lib/domain/international-lanes";
 
 const panelClass =
   "rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)] p-5";
 
 /** Lane cards on the left. Existing service facts stay stacked on the right. */
-export function InternationalLayout({
+function asLane(copy: { slug: string; to: string; title: string; summary: string; image: string; defaultImage: string; transit: string; paperwork: string }): ShippingLane {
+  return { slug: copy.slug, to: copy.to, title: copy.title, summary: copy.summary, image: copy.image || copy.defaultImage, transit: copy.transit, paperwork: copy.paperwork };
+}
+
+export async function InternationalLayout({
   highlights,
   needs,
   howItWorks,
@@ -14,9 +19,10 @@ export function InternationalLayout({
   needs: string[];
   howItWorks: string[];
 }) {
+  const lanes = (await getLaneCopies()).map(asLane);
   return (
     <section className="mx-auto grid max-w-[78rem] gap-8 px-6 py-16 sm:px-12 lg:grid-cols-[minmax(0,1.7fr)_minmax(16rem,0.72fr)]">
-      <LaneBoard lanes={INTERNATIONAL_LANES} />
+      <LaneBoard lanes={lanes} />
       <aside className="space-y-4">
         {highlights.map((item) => (
           <div key={item} className={panelClass}>

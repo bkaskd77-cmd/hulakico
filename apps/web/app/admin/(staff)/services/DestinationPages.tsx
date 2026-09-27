@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { CountryAdd } from "@/app/admin/(staff)/services/CountryAdd";
 import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
 import type { LaneCopy, LaneFact } from "@/lib/data/lane-content";
 
@@ -31,6 +32,7 @@ export function DestinationPages({
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
         Pick a lane and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters.
       </p>
+      <CountryAdd saveAction={saveAction} onAdded={setSlug} />
       <div className="mt-4 flex flex-wrap gap-2">
         {lanes.map((lane) => (
           <button

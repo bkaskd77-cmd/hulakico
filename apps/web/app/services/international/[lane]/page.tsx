@@ -4,24 +4,33 @@ import { notFound } from "next/navigation";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { SiteFooter } from "@/app/home/SiteFooter";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
-import { getShippingLane, INTERNATIONAL_LANES } from "@/lib/domain/international-lanes";
+import { getLaneCopies } from "@/lib/data/lane-content";
+import { INTERNATIONAL_LANES, type ShippingLane } from "@/lib/domain/international-lanes";
 import { LaneBrief } from "@/app/services/international/[lane]/LaneBrief";
 import { LaneRail } from "@/app/services/international/[lane]/LaneRail";
+
+function asLane(copy: { slug: string; to: string; title: string; summary: string; image: string; defaultImage: string; transit: string; paperwork: string }): ShippingLane {
+  return { slug: copy.slug, to: copy.to, title: copy.title, summary: copy.summary, image: copy.image || copy.defaultImage, transit: copy.transit, paperwork: copy.paperwork };
+}
 
 export function generateStaticParams() {
   return INTERNATIONAL_LANES.map((lane) => ({ lane: lane.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ lane: string }> }): Promise<Metadata> {
-  const lane = getShippingLane((await params).lane);
+  const slug = (await params).lane;
+  const lanes = (await getLaneCopies()).map(asLane);
+  const lane = lanes.find((item) => item.slug === slug);
   return lane ? { title: `${lane.title} · Hulakico`, description: lane.summary } : {};
 }
 
 /** One international destination: a full lane brief beside the quote desk. */
 export default async function ShippingLanePage({ params }: { params: Promise<{ lane: string }> }) {
-  const lane = getShippingLane((await params).lane);
+  const slug = (await params).lane;
+  const lanes = (await getLaneCopies()).map(asLane);
+  const lane = lanes.find((item) => item.slug === slug);
   if (!lane) notFound();
-  const others = INTERNATIONAL_LANES.filter((item) => item.slug !== lane.slug);
+  const others = lanes.filter((item) => item.slug !== lane.slug);
 
   return (
     <div className="shell-sky min-h-dvh">

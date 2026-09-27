@@ -45,10 +45,12 @@ async function saveLaneAction(formData: FormData): Promise<{ ok: true } | { erro
       console.error("[services/page.tsx:saveLaneAction] facts", error instanceof Error ? error.message : error);
       return { error: "Could not read the lane facts." };
     }
+    const copies = formData.get("create") === "1" ? await getLaneCopies() : [];
+    if (copies.some((lane) => lane.slug === slug)) return { error: "That country is already on the list." };
     const result = await saveLaneCopy({
       slug,
-      title: "",
-      to: "",
+      title: String(formData.get("title") ?? ""),
+      to: String(formData.get("to") ?? ""),
       summary: String(formData.get("summary") ?? ""),
       transit: String(formData.get("transit") ?? ""),
       paperwork: String(formData.get("paperwork") ?? ""),
@@ -60,6 +62,7 @@ async function saveLaneAction(formData: FormData): Promise<{ ok: true } | { erro
       facts,
     });
     if ("error" in result) return result;
+    revalidatePath("/services/international");
     revalidatePath(`/services/international/${slug}`);
     return { ok: true };
   } catch (error) {
