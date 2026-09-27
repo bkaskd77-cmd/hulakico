@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AdminIdentity } from "@/app/admin/AdminIdentity";
 import { AdminNav } from "@/app/admin/AdminNav";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
 import { canAccess, ROLE_LABELS } from "@/lib/domain/staff-permissions";
@@ -26,23 +26,12 @@ export default async function AdminStaffLayout({
     <div className="shell-sky min-h-dvh px-6 py-12 sm:px-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[color-mix(in_srgb,var(--off-white)_18%,transparent)] pb-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold)]">
-              Hulakico Admin
-            </p>
-            <p className="mt-1 text-sm font-medium text-[var(--off-white)]">
-              Signed in as {access.staff.email}
-              <span className="text-[color-mix(in_srgb,var(--off-white)_72%,transparent)]">
-                {" "}
-                ({ROLE_LABELS[access.staff.role]})
-              </span>
-            </p>
-            {canAccess(access.staff.role, "team") ? (
-              <Link href="/admin/signup" className="mt-1 inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
-                + Add staff account
-              </Link>
-            ) : null}
-          </div>
+          <AdminIdentity
+            name={access.staff.name}
+            email={access.staff.email}
+            roleLabel={ROLE_LABELS[access.staff.role]}
+            showTeamLink={canAccess(access.staff.role, "team")}
+          />
           <AdminNav role={access.staff.role} />
         </div>
         {children}

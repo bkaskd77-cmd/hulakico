@@ -99,10 +99,6 @@ export default function SigninPage() {
           {pending ? "Signing in…" : "Sign in"}
         </button>
         <p className="mt-4 text-center text-sm text-[var(--muted)]">
-          <Link href="/" className="text-[var(--off-white)] underline">
-            Cancel
-          </Link>
-          {" · "}
           New here?{" "}
           <Link href="/signup" className="text-[var(--teal)] underline">
             Create account

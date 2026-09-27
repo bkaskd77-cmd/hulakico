@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminMark } from "@/app/admin/AdminMark";
 
 export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
   const router = useRouter();
@@ -19,6 +20,7 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: String(form.get("name") || ""),
           email: String(form.get("email") || ""),
           password: String(form.get("password") || ""),
         }),
@@ -44,10 +46,8 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
       className="w-full max-w-md rounded-lg border border-[color-mix(in_srgb,var(--gold)_28%,transparent)] bg-[var(--navy-elevated)] p-8"
       suppressHydrationWarning
     >
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--gold)]">
-        Hulakico Admin
-      </p>
-      <p className="font-display mt-2 text-2xl font-bold text-[var(--off-white)]">
+      <AdminMark />
+      <p className="font-display mt-5 text-2xl font-bold text-[var(--off-white)]">
         Staff sign in
       </p>
       <p className="mt-2 text-sm text-[var(--muted)]">
@@ -61,6 +61,18 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
       ) : null}
 
       <label className="mt-6 block text-sm text-[var(--muted)]">
+        Your name
+        <input
+          name="name"
+          autoComplete="name"
+          minLength={2}
+          maxLength={80}
+          required
+          suppressHydrationWarning
+          className="mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-[var(--off-white)]"
+        />
+      </label>
+      <label className="mt-4 block text-sm text-[var(--muted)]">
         Staff email
         <input
           name="email"

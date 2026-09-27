@@ -103,6 +103,24 @@ async function loadStaffBySessionToken(
   }
 }
 
+export async function updateStaffName(staffId: string, name: string): Promise<void> {
+  const holder = name.trim().replace(/\s+/g, " ");
+  if (holder.length < 2 || holder.length > 80) {
+    throw new Error("Enter the admin holder name (2–80 characters).");
+  }
+  try {
+    await (await getSql())
+      .prepare("UPDATE staff_users SET name = ? WHERE id = ?")
+      .run(holder, staffId);
+  } catch (error) {
+    console.error(
+      "[staff-auth.ts:updateStaffName]",
+      error instanceof Error ? error.message : error,
+    );
+    throw new Error("Could not save the admin name.");
+  }
+}
+
 export async function destroyStaffSession(token: string): Promise<void> {
   try {
     await (await getSql())

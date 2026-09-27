@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { signinSchema } from "@/lib/domain/auth";
-import { authenticateStaff } from "@/lib/data/staff-auth";
+import { authenticateStaff, updateStaffName } from "@/lib/data/staff-auth";
 import { setStaffSessionCookie } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
@@ -25,6 +25,17 @@ export async function POST(request: Request) {
         { error: "Invalid email or password." },
         { status: 401 },
       );
+    }
+
+    const holderName = typeof body?.name === "string" ? body.name : "";
+    if (holderName.trim()) {
+      try {
+        await updateStaffName(result.staff.id, holderName);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Could not save the admin name.";
+        return NextResponse.json({ error: message }, { status: 400 });
+      }
+      result.staff.name = holderName.trim().replace(/\s+/g, " ");
     }
 
     await setStaffSessionCookie(result.sessionToken);
