@@ -96,7 +96,8 @@ function customBase(slug: string, raw: unknown): ShippingLane | null {
   const row = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
   const to = typeof row?.to === "string" ? row.to.trim().slice(0, 80) : "";
   if (to.length < 2) return null;
-  const title = typeof row.title === "string" && row.title.trim() ? row.title.trim().slice(0, 120) : `Nepal to ${to}`;
+  const stored = row && typeof row.title === "string" ? row.title.trim() : "";
+  const title = stored ? stored.slice(0, 120) : `Nepal to ${to}`;
   return { slug, to, title, summary: `Shipments from Kathmandu to ${to}.`, image: "/home/feature-1.jpg", transit: "The quote shows the delivery window before you book.", paperwork: `A full receiver address in ${to}.` };
 }
 
