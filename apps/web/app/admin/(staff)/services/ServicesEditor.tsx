@@ -24,7 +24,7 @@ export function ServicesEditor({
   lanes: LaneCopy[];
   initialLane?: string;
   laneSaved?: string;
-  saveLaneAction: (formData: FormData) => Promise<void>;
+  saveLaneAction: (formData: FormData) => Promise<{ ok: true } | { error: string }>;
 }) {
   const internationalIndex = initial.findIndex((item) => item.slug === "international");
   const [items, setItems] = useState(initial);

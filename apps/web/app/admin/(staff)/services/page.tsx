@@ -1,8 +1,7 @@
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { ServicesEditor } from "@/app/admin/(staff)/services/ServicesEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
-import { getLaneCopies, saveLaneCopy } from "@/lib/data/lane-content";
+import { getLaneCopies, saveLaneCopy, type LaneCopy } from "@/lib/data/lane-content";
 import { getServices, saveServices, type ServiceItem } from "@/lib/data/services-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -29,37 +28,44 @@ async function saveServicesAction(items: ServiceItem[]): Promise<{ ok: true } | 
   }
 }
 
-async function saveLaneAction(formData: FormData) {
+async function saveLaneAction(formData: FormData): Promise<{ ok: true } | { error: string }> {
   "use server";
   const slug = String(formData.get("slug") ?? "");
-  let flag = "error";
   try {
     const token = await readStaffSessionToken();
     const access = await resolveStaffAccess(token);
     if (!access.ok || !canAccess(access.staff.role, "content")) {
-      flag = "denied";
-    } else {
-      const result = await saveLaneCopy({
-        slug,
-        title: "",
-        to: "",
-        summary: String(formData.get("summary") ?? ""),
-        transit: String(formData.get("transit") ?? ""),
-        paperwork: String(formData.get("paperwork") ?? ""),
-        steps: String(formData.get("steps") ?? ""),
-        story: String(formData.get("story") ?? ""),
-      });
-      if ("error" in result) flag = "error";
-      else {
-        flag = "saved";
-        revalidatePath(`/services/international/${slug}`);
-      }
+      return { error: "Your staff role cannot edit website content." };
     }
+    let facts: LaneCopy["facts"] = [];
+    try {
+      const parsed = JSON.parse(String(formData.get("facts") ?? "[]"));
+      facts = Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error("[services/page.tsx:saveLaneAction] facts", error instanceof Error ? error.message : error);
+      return { error: "Could not read the lane facts." };
+    }
+    const result = await saveLaneCopy({
+      slug,
+      title: "",
+      to: "",
+      summary: String(formData.get("summary") ?? ""),
+      transit: String(formData.get("transit") ?? ""),
+      paperwork: String(formData.get("paperwork") ?? ""),
+      steps: String(formData.get("steps") ?? ""),
+      story: String(formData.get("story") ?? ""),
+      handover: String(formData.get("handover") ?? ""),
+      image: String(formData.get("image") ?? ""),
+      defaultImage: "",
+      facts,
+    });
+    if ("error" in result) return result;
+    revalidatePath(`/services/international/${slug}`);
+    return { ok: true };
   } catch (error) {
     console.error("[services/page.tsx:saveLaneAction]", error instanceof Error ? error.message : error);
-    flag = "error";
+    return { error: "Could not save this destination page." };
   }
-  redirect(`/admin/services?lane=${encodeURIComponent(slug)}&saved=${flag}`);
 }
 
 export default async function AdminServicesPage({

@@ -1,23 +1,23 @@
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 import { getLaneCopy } from "@/lib/data/lane-content";
 import type { ShippingLane } from "@/lib/domain/international-lanes";
 
 const prose = "whitespace-pre-wrap text-sm leading-relaxed text-[var(--off-white)]/85";
 
+function lines(value: string): string[] {
+  return value.split("\n").map((line) => line.trim()).filter(Boolean);
+}
+
 /** Lane page chrome, with the writing loaded from the staff editor. */
 export async function LaneBrief({ lane }: { lane: ShippingLane }) {
   const copy = await getLaneCopy(lane.slug);
   const summary = copy?.summary ?? lane.summary;
-  const transit = copy?.transit ?? lane.transit;
+  const points = lines(copy?.transit ?? lane.transit);
   const paperwork = copy?.paperwork ?? lane.paperwork;
-  const steps = (copy?.steps ?? "").split("\n").map((step) => step.trim()).filter(Boolean);
+  const steps = lines(copy?.steps ?? "");
   const story = copy?.story?.trim() ?? "";
-  const facts = [
-    ["Route", `Kathmandu, Nepal → ${lane.to}`],
-    ["Rate", "No fixed fare. The quote uses the higher of actual weight and volumetric weight (length × width × height in cm ÷ 5000)."],
-    ["Record", "One Hulakico airway bill for the journey. A partner bill is added after pickup."],
-  ];
-  const address = COMPANY_CONTACT.address.join(", ");
+  const handover = copy?.handover?.trim() ?? "";
+  const facts = (copy?.facts ?? []).filter((fact) => fact.label.trim() || fact.value.trim());
+  const image = copy?.image ?? lane.image;
 
   return (
     <div>
@@ -38,39 +38,49 @@ export async function LaneBrief({ lane }: { lane: ShippingLane }) {
         <p className={`mt-2 text-base text-[var(--off-white)] ${prose}`}>{summary}</p>
       </aside>
 
-      <figure className="mt-8 overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={lane.image} alt="" className="h-72 w-full object-cover object-center sm:h-96" />
-        <figcaption className="bg-[var(--navy-elevated)] px-4 py-3 text-xs uppercase tracking-[0.18em] text-[var(--off-white)]/70">
-          Handover starts in Kathmandu · delivery in {lane.to}
-        </figcaption>
-      </figure>
+      {image ? (
+        <figure className="mt-8 overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="" className="h-72 w-full object-cover object-center sm:h-96" />
+          <figcaption className="bg-[var(--navy-elevated)] px-4 py-3 text-xs uppercase tracking-[0.18em] text-[var(--off-white)]/70">
+            Handover starts in Kathmandu · delivery in {lane.to}
+          </figcaption>
+        </figure>
+      ) : null}
 
-      <section className="mt-10">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How this lane moves</h2>
-        <p className={`mt-4 ${prose}`}>{transit}</p>
-      </section>
+      {points.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How this lane moves</h2>
+          <ul className="mt-4 space-y-3">
+            {points.map((point, index) => (
+              <li key={`${index}-${point.slice(0, 24)}`} className="flex gap-3 text-sm leading-relaxed text-[var(--off-white)]/85">
+                <span aria-hidden className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[var(--gold)]" />
+                <span className="whitespace-pre-wrap">{point}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-      <section className="mt-10">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">Lane facts</h2>
-        <dl className="mt-4 border-y border-[color-mix(in_srgb,var(--off-white)_14%,transparent)]">
-          {facts.map(([label, value]) => (
-            <div key={label} className="grid gap-1 border-b border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] py-3 last:border-b-0 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-6">
-              <dt className="text-sm font-semibold text-[var(--gold)]">{label}</dt>
-              <dd className={prose}>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+      {facts.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">Lane facts</h2>
+          <dl className="mt-4 border-y border-[color-mix(in_srgb,var(--off-white)_14%,transparent)]">
+            {facts.map((fact, index) => (
+              <div key={`${fact.label}-${index}`} className="grid gap-1 border-b border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] py-3 last:border-b-0 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-6">
+                <dt className="text-sm font-semibold text-[var(--gold)]">{fact.label}</dt>
+                <dd className={prose}>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <section className="rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">Handover</p>
           <h3 className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">Kathmandu</h3>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--off-white)]/85">{address}</p>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--off-white)]/85">
-            Bring the box to the desk, or ask for a pickup when you request the quote.
-          </p>
+          <p className={`mt-3 ${prose}`}>{handover}</p>
         </section>
         <section className="rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold)]">Receiver</p>

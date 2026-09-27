@@ -54,8 +54,12 @@ export function ImageField({
       <span className={LABEL}>{label}</span>
       <div className="mt-2 flex flex-wrap items-start gap-4">
         <div className={`${FRAMES[frame]} border border-[color-mix(in_srgb,var(--off-white)_18%,transparent)]`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value || defaultValue} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+          {value ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={value} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center text-xs text-[var(--muted)]">No photo</span>
+          )}
         </div>
         <div className="flex flex-col items-start gap-1.5">
           <label className={`cursor-pointer rounded-md border border-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--gold)] transition hover:bg-[color-mix(in_srgb,var(--gold)_18%,transparent)] ${pending ? "pointer-events-none opacity-60" : ""}`}>
