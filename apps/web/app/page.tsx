@@ -11,13 +11,18 @@ import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
 
-function renderSection(key: HomeSectionKey, content: HomepageContent, services: ServiceItem[]) {
+function renderSection(
+  key: HomeSectionKey,
+  content: HomepageContent,
+  services: ServiceItem[],
+  bookHref: string,
+) {
   if (key === "track") {
     return <HomeTrackSection key={key} title={content.trackTitle} placeholder={content.hubTrackPlaceholder} />;
   }
   if (key === "highlights") return <HomeHighlights key={key} items={content.towerAlerts} />;
   if (key === "services") return <HomeServices key={key} content={content} services={services} />;
-  return <HomeFeatures key={key} content={content} />;
+  return <HomeFeatures key={key} content={content} bookHref={bookHref} />;
 }
 
 export default async function Home() {
@@ -32,7 +37,7 @@ export default async function Home() {
       <HomeHero bookHref={bookHref} signedIn={Boolean(user)} content={content} />
       {content.sectionOrder
         .filter((key) => !content.hiddenSections.includes(key))
-        .map((key) => renderSection(key, content, services))}
+        .map((key) => renderSection(key, content, services, bookHref))}
       <SiteFooter />
       <HomeQuoteForm bookHref={bookHref} />
       <WhatsAppButton />

@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { QuoteLink } from "@/app/home/QuoteLink";
 import type { HomepageContent } from "@/lib/data/homepage-content";
 import type { ServiceItem } from "@/lib/domain/service-catalogue";
+
+const FEATURE_HREFS = ["/book", "#quote", "/#track"] as const;
 
 const cardClass =
   "overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)]";
@@ -61,7 +64,45 @@ export function HomeServices({ content, services }: { content: HomepageContent; 
   );
 }
 
-export function HomeFeatures({ content }: { content: HomepageContent }) {
+function featureHref(index: number, bookHref: string): string {
+  const dest = FEATURE_HREFS[index] ?? "/book";
+  return dest === "/book" ? bookHref : dest;
+}
+
+function featureCue(href: string): string {
+  if (href === "#quote") return "Get a quote →";
+  if (href === "/#track") return "Track a shipment →";
+  return "Start booking →";
+}
+
+function FeatureCard({
+  item,
+  href,
+}: {
+  item: HomepageContent["features"][number];
+  href: string;
+}) {
+  const body = (
+    <>
+      <div className="relative h-40 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={item.image} alt="" className="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-105" />
+      </div>
+      <div className="p-5">
+        <p className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">{item.title}</p>
+        <p className="mt-2 text-sm text-[var(--off-white)]/85">{item.body}</p>
+        <p className="mt-4 text-sm font-semibold text-[var(--gold)]">{featureCue(href)}</p>
+      </div>
+    </>
+  );
+  const className = `group flex h-full flex-col text-left ${cardClass} transition hover:-translate-y-1 hover:border-[color-mix(in_srgb,var(--gold)_55%,transparent)]`;
+  if (href === "#quote") {
+    return <QuoteLink onHome className={className}>{body}</QuoteLink>;
+  }
+  return <Link href={href} className={className}>{body}</Link>;
+}
+
+export function HomeFeatures({ content, bookHref }: { content: HomepageContent; bookHref: string }) {
   return (
     <section id="features" className="home-section scroll-mt-6 border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-6 py-24 sm:px-12">
       <div className="mx-auto max-w-6xl">
@@ -70,15 +111,8 @@ export function HomeFeatures({ content }: { content: HomepageContent }) {
         <p className="mt-4 max-w-lg text-base text-[var(--off-white)]/90">{content.featuresIntro}</p>
         <ul className="mt-14 grid gap-8 sm:grid-cols-3">
           {content.features.map((item, index) => (
-            <li key={`${index}-${item.title}`} className={cardClass}>
-              <div className="relative h-40 overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.image} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
-              </div>
-              <div className="p-5">
-                <p className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">{item.title}</p>
-                <p className="mt-2 text-sm text-[var(--off-white)]/85">{item.body}</p>
-              </div>
+            <li key={`${index}-${item.title}`}>
+              <FeatureCard item={item} href={featureHref(index, bookHref)} />
             </li>
           ))}
         </ul>
