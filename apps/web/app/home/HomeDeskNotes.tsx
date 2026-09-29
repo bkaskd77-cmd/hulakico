@@ -8,9 +8,9 @@ export async function HomeDeskNotes() {
   const stories = notes.filter((note) => note.kind === "story").slice(0, 2);
   if (updates.length === 0 && stories.length === 0) return null;
   return (
-    <section className="border-t border-black/10 bg-white px-6 py-20 sm:px-12">
+    <section className="border-t border-black/10 px-6 py-20 sm:px-12">
       <div className="mx-auto max-w-6xl">
-        <h2 className="font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-[#191919] sm:text-4xl">
+        <h2 className="font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-[#26343d] sm:text-4xl">
           From the Kathmandu desk
         </h2>
         <p className="mt-3 max-w-xl text-base text-[#3f3f3f]">
@@ -22,7 +22,7 @@ export async function HomeDeskNotes() {
               <Link href={`/notes/${note.slug}`} className="flex h-full gap-3 rounded-lg border border-black/10 bg-white p-4 transition hover:border-[#ffcc00]">
                 <span aria-hidden className="mt-1 h-3 w-3 shrink-0 bg-[#ffcc00]" />
                 <span>
-                  <span className="block font-semibold text-[#191919]">{note.title}</span>
+                  <span className="block font-semibold text-[#26343d]">{note.title}</span>
                   <span className="mt-1 block text-sm leading-relaxed text-[#3f3f3f]">{note.excerpt}</span>
                 </span>
               </Link>
@@ -39,7 +39,7 @@ export async function HomeDeskNotes() {
                 </div>
                 <div className="p-5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a6a12]">{story.kicker}</p>
-                  <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[#191919]">{story.title}</p>
+                  <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[#26343d]">{story.title}</p>
                   <p className="mt-2 text-sm leading-relaxed text-[#3f3f3f]">{story.excerpt}</p>
                   <p className="mt-4 text-sm font-semibold text-[#0e3d38]">Read the note →</p>
                 </div>

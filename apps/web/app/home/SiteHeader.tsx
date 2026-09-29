@@ -38,9 +38,15 @@ export function SiteHeader({ onHome = false, signedIn, services }: Props) {
   return (
     <header className="site-bar relative z-30 px-6 py-3.5 sm:px-12">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
-        <Link href="/" className="inline-flex shrink-0 rounded-md bg-[#CDE7F8] px-2 py-1" aria-label="Hulakico">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/hulakico-logo.png" alt="" className="h-10 w-auto sm:h-12" />
+        <Link href="/" className="inline-flex shrink-0 rounded-md bg-[#ffcc00] px-2.5 py-1 leading-none" aria-label="Hulakico">
+          <span className="font-[family-name:var(--font-display)] text-lg font-extrabold uppercase leading-none tracking-tight text-[#011f4b] sm:text-xl">
+            HULAKICO
+            <span className="mt-[0.2em] flex w-0 min-w-full justify-between text-[0.28em] font-bold leading-none tracking-normal">
+              {"DELIVERED TO YOUR DOOR".split("").map((char, index) => (
+                <span key={index}>{char === " " ? "\u00a0" : char}</span>
+              ))}
+            </span>
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm lg:flex" aria-label="Main">

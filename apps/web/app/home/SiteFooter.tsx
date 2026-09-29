@@ -26,8 +26,16 @@ export async function SiteFooter() {
 
       <div className="relative mx-auto grid max-w-[78rem] gap-10 px-6 pb-10 pt-16 sm:grid-cols-2 sm:px-12 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/hulakico-logo.png" alt="Hulakico" className="h-14 w-auto rounded-md bg-[#CDE7F8] px-2 py-1" />
+          <p className="inline-flex rounded-md bg-[#ffcc00] px-3 py-1.5 leading-none">
+            <span className="font-[family-name:var(--font-display)] text-2xl font-extrabold uppercase leading-none tracking-tight text-[#011f4b]">
+              HULAKICO
+              <span className="mt-[0.22em] flex w-0 min-w-full justify-between text-[0.28em] font-bold leading-none tracking-normal">
+                {"DELIVERED TO YOUR DOOR".split("").map((char, index) => (
+                  <span key={index}>{char === " " ? "\u00a0" : char}</span>
+                ))}
+              </span>
+            </span>
+          </p>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--off-white)]/85">{content.footerTagline}</p>
           <ul className="mt-6 flex gap-2" aria-label="Social media">
             {SOCIAL_NETWORKS.map((network) => {

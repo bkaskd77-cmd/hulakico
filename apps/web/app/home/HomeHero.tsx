@@ -11,7 +11,7 @@ function Headline({ text, accent }: { text: string; accent: string }) {
   return (
     <>
       {text.slice(0, index)}
-      <span className="text-[#b8860b]">{accent}</span>
+      <span className="text-[#d5a33e]">{accent}</span>
       {text.slice(index + accent.length)}
     </>
   );
@@ -73,12 +73,12 @@ export function HomeHero({
           </div>
           {content.showHeroTimeline && steps.length > 0 ? (
             <div className="absolute -bottom-6 left-4 w-64 rounded-xl border border-black/10 bg-[#ffcc00] p-4 shadow-xl sm:-left-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#191919]">{content.heroTimelineTitle}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#26343d]">{content.heroTimelineTitle}</p>
               <ol className="mt-3 space-y-2.5">
                 {steps.map((step, index) => (
                   <li key={`${index}-${step.label}`} className="hub-rank-item flex items-center gap-3 text-sm" style={{ animationDelay: `${600 + index * 180}ms` }}>
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${step.done ? "bg-[#191919]" : "border-2 border-[#191919]"} ${index === activeIndex ? "home-node" : ""}`} />
-                    <span className="font-medium text-[#191919]">{step.label}</span>
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${step.done ? "bg-[#26343d]" : "border-2 border-[#26343d]"} ${index === activeIndex ? "home-node" : ""}`} />
+                    <span className="font-medium text-[#26343d]">{step.label}</span>
                   </li>
                 ))}
               </ol>

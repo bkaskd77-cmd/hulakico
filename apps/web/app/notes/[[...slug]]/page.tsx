@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<NotesParams
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="shell-sky min-h-dvh bg-white">
+    <div className="shell-sky min-h-dvh">
       <PublicHeader />
       {children}
       <SiteFooter />

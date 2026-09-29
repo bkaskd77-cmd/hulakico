@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* White page. #FFCC00 is the top bar, not the whole screen. */
+  /* Soft ivory page. #FFCC00 stays the top bar and the yellow cards. */
   --navy: #0e3d38;
   --navy-elevated: #16564d;
   --teal: #0c6b62;
   --teal-fill: #0f766e;
   --teal-ink: #0c6b62;
   --gold: #191919;
-  --off-white: #191919;
+  --off-white: #26343d;
 
-  --background: #ffffff;
+  --background: #f8f6f0;
   --foreground: var(--off-white);
   --muted: #3f3f3f;
   --accent: #ffcc00;
@@ -21,8 +21,8 @@
   --font-display: var(--font-manrope), system-ui, sans-serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
 
-  --gradient-sky: linear-gradient(#ffffff, #ffffff);
-  --gradient-glow: linear-gradient(#ffffff, #ffffff);
+  --gradient-sky: linear-gradient(#f8f6f0, #f8f6f0);
+  --gradient-glow: linear-gradient(#f8f6f0, #f8f6f0);
 }
 
 @theme inline {
@@ -130,7 +130,7 @@ body {
   font-family: var(--font-body);
 }
 
-/* Dark panels and photo heroes keep ivory type. The page itself stays black on white. */
+/* Dark panels and photo heroes keep light type. The page itself stays deep slate on soft ivory. */
 [class*="bg-[var(--navy)]"],
 [class*="bg-[var(--navy-elevated)]"],
 [class*="bg-[color-mix(in_srgb,var(--navy)"],
@@ -144,6 +144,8 @@ body {
 /* Yellow is the top bar, and the button sitting on a photo. Other actions stay emerald. */
 .site-bar {
   background: #ffcc00;
+  --off-white: #26343d;
+  --gold: #26343d;
 }
 
 .hero-ink {
