@@ -23,9 +23,9 @@ const LINKS: ReadonlyArray<{ href: string; label: string; area: StaffArea }> = [
 const BASE =
   "rounded-md border px-3 py-1.5 text-sm font-semibold transition";
 const IDLE =
-  "border-[color-mix(in_srgb,var(--off-white)_28%,transparent)] bg-[color-mix(in_srgb,var(--navy)_55%,transparent)] text-[var(--off-white)] hover:border-[var(--gold)] hover:bg-[color-mix(in_srgb,var(--gold)_22%,transparent)] hover:text-[var(--gold)]";
+  "border-[#e0b000] bg-[#ffcc00] text-[#191919] hover:brightness-95";
 const ACTIVE =
-  "border-[var(--gold)] bg-[color-mix(in_srgb,var(--gold)_28%,transparent)] text-[var(--gold)]";
+  "border-[#191919] bg-[#ffcc00] text-[#191919] ring-2 ring-[#191919]";
 const PENDING = "opacity-60 pointer-events-none";
 
 /** Instant click feedback — does not wait for the next RSC payload. */
