@@ -1,42 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  /* Brighter sky shell — high-contrast text tokens · Manrope + Inter */
-  --navy: #153a52;
-  --navy-elevated: #1f5470;
-  /* Default accent: light mint — readable on navy + sky shell */
-  --teal: #9ff5ec;
-  /* Fills / solid buttons (paired with off-white label text) */
+  /* White page. #FFCC00 is the top bar, not the whole screen. */
+  --navy: #0e3d38;
+  --navy-elevated: #16564d;
+  --teal: #0c6b62;
   --teal-fill: #0f766e;
-  /* Text / links on white or pale cards only */
-  --teal-ink: #0f766e;
-  --gold: #f0c45c;
-  --off-white: #f7fbfd;
+  --teal-ink: #0c6b62;
+  --gold: #191919;
+  --off-white: #191919;
 
-  --background: var(--navy);
+  --background: #ffffff;
   --foreground: var(--off-white);
-  --muted: #d4e6f0;
-  --accent: var(--gold);
-  --accent-soft: color-mix(in srgb, var(--gold) 22%, transparent);
+  --muted: #3f3f3f;
+  --accent: #ffcc00;
+  --accent-soft: color-mix(in srgb, #ffcc00 28%, transparent);
   --ring: var(--teal);
-  --danger: #f07160;
+  --danger: #b42318;
 
   --font-display: var(--font-manrope), system-ui, sans-serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
 
-  --gradient-sky: linear-gradient(
-    158deg,
-    #2a7a9a 0%,
-    #1f6b8c 28%,
-    #1a5f82 52%,
-    #178a86 78%,
-    color-mix(in srgb, var(--teal-fill) 45%, #153a52) 100%
-  );
-  --gradient-glow: radial-gradient(
-    ellipse 75% 55% at 78% 12%,
-    color-mix(in srgb, #9ff5ec 38%, transparent),
-    transparent 68%
-  );
+  --gradient-sky: linear-gradient(#ffffff, #ffffff);
+  --gradient-glow: linear-gradient(#ffffff, #ffffff);
 }
 
 @theme inline {
@@ -137,11 +123,43 @@
 
 body {
   min-height: 100dvh;
-  background-color: var(--navy);
+  background-color: var(--background);
   background-image: var(--gradient-glow), var(--gradient-sky);
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-body);
+}
+
+/* Dark panels and photo heroes keep ivory type. The page itself stays black on white. */
+[class*="bg-[var(--navy)]"],
+[class*="bg-[var(--navy-elevated)]"],
+[class*="bg-[color-mix(in_srgb,var(--navy)"],
+.home-footer {
+  --off-white: #f6f1e7;
+  --teal: #b7ead9;
+  --muted: #d9d1c4;
+  --gold: #e4c27a;
+}
+
+/* Yellow is the top bar, and the button sitting on a photo. Other actions stay emerald. */
+.site-bar {
+  background: #ffcc00;
+}
+
+.hero-ink {
+  --off-white: #f6f1e7;
+  --teal: #b7ead9;
+  --gold: #e4c27a;
+}
+
+.hero-ink [class*="bg-[var(--gold)]"] {
+  background-color: #ffcc00 !important;
+  color: #191919 !important;
+}
+
+[class*="bg-[var(--gold)]"] {
+  background-color: #0e3d38 !important;
+  color: #fff8e6 !important;
 }
 
 /* Filled teal buttons: keep deep fill + light label (not the glow token). */
@@ -181,10 +199,8 @@ body {
 }
 
 .home-hero-aurora {
-  background:
-    radial-gradient(ellipse 55% 40% at 18% 72%, color-mix(in srgb, var(--gold) 28%, transparent), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 88% 28%, color-mix(in srgb, #9fe0dc 42%, transparent), transparent 65%);
-  animation: home-aurora-drift 14s ease-in-out infinite;
+  background: none;
+  animation: none;
 }
 
 .home-lane {
@@ -208,8 +224,8 @@ body {
 .home-services-glow {
   background: radial-gradient(
     ellipse 60% 50% at 50% 0%,
-    color-mix(in srgb, var(--teal) 16%, transparent),
-    transparent 70%
+    color-mix(in srgb, #ffcc00 10%, transparent),
+    transparent 72%
   );
 }
 

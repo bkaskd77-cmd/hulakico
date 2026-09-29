@@ -36,9 +36,9 @@ export function SiteHeader({ onHome = false, signedIn, services }: Props) {
   );
 
   return (
-    <header className="relative z-30 px-6 py-5 sm:px-12">
+    <header className="site-bar relative z-30 px-6 py-3.5 sm:px-12">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
-        <Link href="/" className="inline-flex shrink-0 rounded-md bg-white px-2 py-1" aria-label="Hulakico">
+        <Link href="/" className="inline-flex shrink-0 rounded-md bg-[#CDE7F8] px-2 py-1" aria-label="Hulakico">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/hulakico-logo.png" alt="" className="h-10 w-auto sm:h-12" />
         </Link>

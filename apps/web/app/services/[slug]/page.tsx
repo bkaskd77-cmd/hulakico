@@ -41,7 +41,7 @@ export default async function ServicePageView({ params }: { params: Promise<{ sl
         <img src={page.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[var(--navy)] via-[color-mix(in_srgb,var(--navy)_80%,transparent)] to-[color-mix(in_srgb,var(--navy)_35%,transparent)]" />
         <div className="relative"><PublicHeader /></div>
-        <div className="relative mx-auto max-w-[78rem] px-6 pb-20 pt-12 sm:px-12">
+        <div className="hero-ink relative mx-auto max-w-[78rem] px-6 pb-20 pt-12 sm:px-12">
           <p className="shell-rise text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">Services</p>
           <h1 className="shell-rise mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-6xl">
             {page.title}

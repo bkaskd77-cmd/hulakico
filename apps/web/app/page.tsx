@@ -1,4 +1,5 @@
 import { HomeFeatures, HomeHighlights, HomeServices } from "@/app/home/HomeContentSections";
+import { HomeDeskNotes } from "@/app/home/HomeDeskNotes";
 import { HomeHero } from "@/app/home/HomeHero";
 import { HomeQuoteForm } from "@/app/home/HomeQuoteForm";
 import { HomeTrackSection } from "@/app/home/HomeTrackSection";
@@ -38,6 +39,7 @@ export default async function Home() {
       {content.sectionOrder
         .filter((key) => !content.hiddenSections.includes(key))
         .map((key) => renderSection(key, content, services, bookHref))}
+      <HomeDeskNotes />
       <SiteFooter />
       <HomeQuoteForm bookHref={bookHref} />
       <WhatsAppButton />
