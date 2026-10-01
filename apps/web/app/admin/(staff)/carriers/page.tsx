@@ -1,9 +1,9 @@
 import { revalidatePath } from "next/cache";
-import { RateCardEditor, type EditableRate } from "@/app/admin/(staff)/carriers/RateCardEditor";
+import { RateCardEditor, type EditableService } from "@/app/admin/(staff)/carriers/RateCardEditor";
 import { listAdapterKeys } from "@/lib/carriers/adapter";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
 import { listCarriersWithDetails } from "@/lib/data/carriers-query";
-import { updateRateCard } from "@/lib/data/rate-cards";
+import { insertRateCard, updateRateCard } from "@/lib/data/rate-cards";
 import { canAccess } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
@@ -33,17 +33,42 @@ async function saveRateAction(input: {
   }
 }
 
-function ratesFor(services: Awaited<ReturnType<typeof listCarriersWithDetails>>[number]["services"]): EditableRate[] {
-  return services.flatMap((service) =>
-    service.rates.map((rate) => ({
+async function addRateAction(input: {
+  carrierServiceId: string;
+  zoneLabel: string;
+  currency: string;
+  baseAmount: number;
+  perKgAmount: number;
+}): Promise<{ ok: true } | { error: string }> {
+  "use server";
+  try {
+    const access = await resolveStaffAccess(await readStaffSessionToken());
+    if (!access.ok) return { error: "Staff sign in required." };
+    if (!canAccess(access.staff.role, "carriers")) {
+      return { error: "Your staff role cannot edit rate cards." };
+    }
+    const result = await insertRateCard(input);
+    if ("error" in result) return result;
+    revalidatePath("/admin/carriers");
+    return { ok: true };
+  } catch (error) {
+    console.error("[carriers/page.tsx:addRateAction]", error instanceof Error ? error.message : error);
+    return { error: "Could not add the rate card." };
+  }
+}
+
+function servicesFor(services: Awaited<ReturnType<typeof listCarriersWithDetails>>[number]["services"]): EditableService[] {
+  return services.map((service) => ({
+    id: service.id,
+    name: service.name,
+    rates: service.rates.map((rate) => ({
       id: rate.id,
-      serviceName: service.name,
       zoneLabel: rate.zoneLabel,
       currency: rate.currency,
       baseAmount: rate.baseAmount,
       perKgAmount: rate.perKgAmount,
     })),
-  );
+  }));
 }
 
 export default async function AdminCarriersPage() {
@@ -75,7 +100,7 @@ export default async function AdminCarriersPage() {
               <p className="text-xs text-[var(--muted)]">
                 {carrier.code} · {carrier.transportMode} · {carrier.scope} · {carrier.isActive ? "active" : "inactive"} · adapter {carrier.adapterKey}
               </p>
-              <RateCardEditor rates={ratesFor(carrier.services)} saveAction={saveRateAction} />
+              <RateCardEditor services={servicesFor(carrier.services)} saveAction={saveRateAction} addAction={addRateAction} />
             </li>
           ))}
         </ul>
