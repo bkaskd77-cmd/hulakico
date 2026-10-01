@@ -30,12 +30,13 @@ type Body = {
 async function buildOptions(
   lane: "DOMESTIC" | "INTERNATIONAL",
   destinationCity: string,
+  destinationCountry: string,
   weightKg: number,
   serviceClass: string,
 ): Promise<QuoteOptionView[]> {
   await seedCarriers();
   const db = await getSql();
-  const zone = resolveZoneLabel(lane, destinationCity);
+  const zone = resolveZoneLabel(lane, destinationCity, destinationCountry);
   const scopes = lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
   const services = (await db
     .prepare(
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
     }
 
     const charged = billableKg(weightKg, lengthCm, widthCm, heightCm, lane);
-    const base = await buildOptions(lane, destinationCity, charged, ratedClass);
+    const base = await buildOptions(lane, destinationCity, destinationCountry, charged, ratedClass);
     if (base.length === 0) {
       return NextResponse.json({ error: "No rates matched this route." }, { status: 400 });
     }

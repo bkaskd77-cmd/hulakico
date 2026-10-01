@@ -31,6 +31,7 @@ type ShipmentRow = {
   lane: "DOMESTIC" | "INTERNATIONAL";
   service_class: string;
   destination_city: string;
+  destination_country: string;
   weight_kg: number;
   length_cm: number | null;
   width_cm: number | null;
@@ -47,8 +48,8 @@ export async function generateQuotesForShipment(
     const db = await getSql();
     const shipment = (await db
       .prepare(
-        `SELECT id, status, lane, service_class, destination_city, weight_kg,
-                length_cm, width_cm, height_cm, wants_cod
+        `SELECT id, status, lane, service_class, destination_city, destination_country,
+                weight_kg, length_cm, width_cm, height_cm, wants_cod
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
       .get(shipmentId, userId)) as ShipmentRow | undefined;
@@ -60,7 +61,7 @@ export async function generateQuotesForShipment(
       throw new Error("Quotes only allowed for draft or quoted shipments.");
     }
 
-    const preferredZone = resolveZoneLabel(shipment.lane, shipment.destination_city);
+    const preferredZone = resolveZoneLabel(shipment.lane, shipment.destination_city, shipment.destination_country);
     const scopes =
       shipment.lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
     const charged = billableKg(shipment.weight_kg, shipment.length_cm ?? 0, shipment.width_cm ?? 0, shipment.height_cm ?? 0, shipment.lane);

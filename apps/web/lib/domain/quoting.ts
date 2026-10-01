@@ -30,12 +30,37 @@ export function resolveDomesticZone(destinationCity: string): string {
   return "nationwide";
 }
 
+const INTERNATIONAL_ZONES: Record<string, string> = {
+  IN: "india",
+  AE: "gulf",
+  QA: "gulf",
+  SA: "gulf",
+  CN: "east_asia",
+  JP: "east_asia",
+  KR: "east_asia",
+  SG: "east_asia",
+  TH: "east_asia",
+  MY: "east_asia",
+  GB: "europe",
+  DE: "europe",
+  FR: "europe",
+  NO: "europe",
+  US: "americas",
+  CA: "americas",
+  AU: "oceania",
+};
+
+export function resolveInternationalZone(countryCode: string): string {
+  return INTERNATIONAL_ZONES[countryCode.trim().toUpperCase()] ?? "world";
+}
+
 export function resolveZoneLabel(
   lane: "DOMESTIC" | "INTERNATIONAL",
   destinationCity: string,
+  destinationCountry = "NP",
 ): string {
   if (lane === "INTERNATIONAL") {
-    return "world";
+    return resolveInternationalZone(destinationCountry);
   }
   return resolveDomesticZone(destinationCity);
 }
@@ -112,5 +137,5 @@ export function pickRateForZone<T extends { zoneLabel: string }>(
       null
     );
   }
-  return rates[0] ?? null;
+  return rates.find((rate) => rate.zoneLabel === "world") ?? rates[0] ?? null;
 }
