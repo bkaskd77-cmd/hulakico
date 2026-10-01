@@ -86,7 +86,7 @@ function AddRate({
   addAction: (input: AddInput) => Promise<{ ok: true } | { error: string }>;
 }) {
   const open = RATE_ZONES.filter((zone) => !taken.includes(zone));
-  const [zoneLabel, setZoneLabel] = useState(open[0] ?? "");
+  const [zoneLabel, setZoneLabel] = useState<string>(open[0] ?? "");
   const [currency, setCurrency] = useState("NPR");
   const [baseAmount, setBaseAmount] = useState("");
   const [perKgAmount, setPerKgAmount] = useState("");
