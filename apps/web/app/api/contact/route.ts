@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { saveContactMessage } from "@/lib/data/contact-messages";
+import { sendInquiryEmail } from "@/lib/data/inquiry-mail";
 import { contactMessageSchema } from "@/lib/domain/contact";
 
 export const runtime = "nodejs";
@@ -17,6 +18,10 @@ export async function POST(request: Request) {
     const result = await saveContactMessage(parsed.data);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+    const mailed = await sendInquiryEmail(parsed.data);
+    if ("error" in mailed) {
+      return NextResponse.json({ error: mailed.error }, { status: 502 });
     }
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {
