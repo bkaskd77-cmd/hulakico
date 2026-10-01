@@ -66,7 +66,7 @@ export function PaymentStep({
             : "Quote unavailable"}
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Freight from the top-ranked carrier option. Live wallet APIs come later.
+          This quoted price is tentative. It is not a live partner rate, and it can change at booking if the measured weight or dimensions differ from what you entered.
         </p>
       </div>
 

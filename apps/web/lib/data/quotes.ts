@@ -3,6 +3,7 @@ import { newId } from "@/lib/domain/auth";
 import { seedCarriers } from "@/lib/data/carriers";
 import { replaceShipmentQuotes } from "@/lib/data/quote-persist";
 import {
+  billableKg,
   calculateQuoteAmount,
   pickRateForZone,
   resolveZoneLabel,
@@ -31,6 +32,9 @@ type ShipmentRow = {
   service_class: string;
   destination_city: string;
   weight_kg: number;
+  length_cm: number | null;
+  width_cm: number | null;
+  height_cm: number | null;
   wants_cod: number;
 };
 
@@ -43,7 +47,8 @@ export async function generateQuotesForShipment(
     const db = await getSql();
     const shipment = (await db
       .prepare(
-        `SELECT id, status, lane, service_class, destination_city, weight_kg, wants_cod
+        `SELECT id, status, lane, service_class, destination_city, weight_kg,
+                length_cm, width_cm, height_cm, wants_cod
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
       .get(shipmentId, userId)) as ShipmentRow | undefined;
@@ -55,14 +60,10 @@ export async function generateQuotesForShipment(
       throw new Error("Quotes only allowed for draft or quoted shipments.");
     }
 
-    const preferredZone = resolveZoneLabel(
-      shipment.lane,
-      shipment.destination_city,
-    );
+    const preferredZone = resolveZoneLabel(shipment.lane, shipment.destination_city);
     const scopes =
-      shipment.lane === "DOMESTIC"
-        ? ["DOMESTIC", "BOTH"]
-        : ["INTERNATIONAL", "BOTH"];
+      shipment.lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
+    const charged = billableKg(shipment.weight_kg, shipment.length_cm ?? 0, shipment.width_cm ?? 0, shipment.height_cm ?? 0, shipment.lane);
 
     const services = (await db
       .prepare(
@@ -118,11 +119,7 @@ export async function generateQuotesForShipment(
         carrierName: service.carrier_name,
         serviceName: service.service_name,
         currency: rate.currency,
-        amount: calculateQuoteAmount(
-          rate.baseAmount,
-          rate.perKgAmount,
-          shipment.weight_kg,
-        ),
+        amount: calculateQuoteAmount(rate.baseAmount, rate.perKgAmount, charged),
         etaDaysMin: service.eta_days_min,
         etaDaysMax: service.eta_days_max,
         zoneLabel: rate.zoneLabel,
@@ -141,15 +138,11 @@ export async function generateQuotesForShipment(
     return {
       quoteId,
       shipmentId,
-      options: options.map(
-        ({ carrierId: _c, carrierServiceId: _s, ...view }) => view,
-      ),
+      options: options.map(({ carrierId: _c, carrierServiceId: _s, ...view }) => view),
     };
   } catch (error) {
-    console.error(
-      "[quotes.ts:generateQuotesForShipment]",
-      error instanceof Error ? error.message : error,
-    );
-    throw error instanceof Error ? error : new Error("Quote generation failed.");
+    const message = error instanceof Error ? error.message : "Quote generation failed.";
+    console.error("[quotes.ts:generateQuotesForShipment]", message);
+    throw error instanceof Error ? error : new Error(message);
   }
 }

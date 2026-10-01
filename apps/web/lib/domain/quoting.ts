@@ -49,6 +49,21 @@ export function calculateQuoteAmount(
   return Math.round(amount * 100) / 100;
 }
 
+/** Higher of scale weight and volumetric weight, rounded up to the next 0.5 kg. */
+export function billableKg(
+  weightKg: number,
+  lengthCm: number,
+  widthCm: number,
+  heightCm: number,
+  lane: "DOMESTIC" | "INTERNATIONAL",
+): number {
+  const divisor = lane === "INTERNATIONAL" ? 5000 : 6000;
+  const volumetric = (lengthCm * widthCm * heightCm) / divisor;
+  const raw = Math.max(weightKg, Number.isFinite(volumetric) ? volumetric : 0);
+  const halfSteps = Math.ceil(raw * 2 - 1e-9);
+  return Math.round((halfSteps / 2) * 100) / 100;
+}
+
 export function pickRateForZone<T extends { zoneLabel: string }>(
   rates: T[],
   preferredZone: string,

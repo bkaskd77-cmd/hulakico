@@ -5,6 +5,7 @@ import type { QuoteOptionView } from "@/lib/data/quotes";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import {
+  billableKg,
   calculateQuoteAmount,
   pickRateForZone,
   resolveZoneLabel,
@@ -25,17 +26,6 @@ type Body = {
   packageType?: string;
   contents?: string;
 };
-
-function billableKg(
-  weightKg: number,
-  lengthCm: number,
-  widthCm: number,
-  heightCm: number,
-  lane: "DOMESTIC" | "INTERNATIONAL",
-): number {
-  const vol = (lengthCm * widthCm * heightCm) / (lane === "INTERNATIONAL" ? 5000 : 6000);
-  return Math.round(Math.max(weightKg, vol) * 100) / 100;
-}
 
 async function buildOptions(
   lane: "DOMESTIC" | "INTERNATIONAL",
@@ -105,12 +95,13 @@ export async function POST(request: Request) {
     if (![lengthCm, widthCm, heightCm].every((n) => Number.isFinite(n) && n > 0)) {
       return NextResponse.json({ error: "Enter length, width, and height (cm)." }, { status: 400 });
     }
-    if (serviceClass !== "EXPRESS" && serviceClass !== "STANDARD") {
+    const ratedClass = serviceClass === "STANDARD" ? "ECONOMY" : serviceClass;
+    if (ratedClass !== "EXPRESS" && ratedClass !== "ECONOMY") {
       return NextResponse.json({ error: "Invalid service class." }, { status: 400 });
     }
 
     const charged = billableKg(weightKg, lengthCm, widthCm, heightCm, lane);
-    const base = await buildOptions(lane, destinationCity, charged, serviceClass);
+    const base = await buildOptions(lane, destinationCity, charged, ratedClass);
     if (base.length === 0) {
       return NextResponse.json({ error: "No rates matched this route." }, { status: 400 });
     }

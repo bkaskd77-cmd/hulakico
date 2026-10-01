@@ -127,7 +127,7 @@ export function HomeQuoteFields({
         <label className="text-xs text-[var(--muted)]">Service
           <select name="serviceClass" defaultValue="EXPRESS" className={QUOTE_FIELD}>
             <option value="EXPRESS">Express</option>
-            <option value="STANDARD">Standard</option>
+            <option value="ECONOMY">Standard</option>
           </select></label>
         <label className="text-xs text-[var(--muted)]">Package
           <select
