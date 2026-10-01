@@ -4,9 +4,9 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StaffRole } from "@/lib/data/staff-auth";
-import { ROLE_HINTS, ROLE_LABELS } from "@/lib/domain/staff-permissions";
+import { ROLE_HINTS, ROLE_LABELS, STAFF_LIMITS } from "@/lib/domain/staff-permissions";
 
-const ROLES: StaffRole[] = ["ADMIN", "EDITOR", "SUB_ADMIN"];
+const ROLES: StaffRole[] = ["EDITOR", "SUB_ADMIN"];
 const INPUT =
   "mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-[var(--off-white)]";
 
@@ -65,7 +65,7 @@ export function StaffSignupForm({ mode }: { mode: "first" | "admin" }) {
       <p className="mt-2 text-sm text-[var(--muted)]">
         {mode === "first"
           ? "No staff exist yet. This first account gets full Admin access."
-          : "Choose what this person can do. Share the password with them securely."}
+          : `One Admin already exists and cannot be added again. Up to ${STAFF_LIMITS.EDITOR} editors (content only) and ${STAFF_LIMITS.SUB_ADMIN} sub-admins (shipments, exceptions, COD, payments, and notifications). Share the password securely.`}
       </p>
 
       {mode === "admin" ? (

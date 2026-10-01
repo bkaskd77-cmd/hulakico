@@ -7,6 +7,7 @@ import {
   sessionExpiryIso,
 } from "@/lib/domain/auth";
 import type { StaffRole, StaffUser } from "@/lib/data/staff-auth";
+import { ROLE_LABELS, STAFF_LIMITS } from "@/lib/domain/staff-permissions";
 
 export async function countStaff(): Promise<number> {
   try {
@@ -42,6 +43,16 @@ export async function registerStaff(input: {
     }
 
     const db = await getSql();
+    const counts = (await db
+      .prepare(`SELECT role, COUNT(*) AS c FROM staff_users GROUP BY role`)
+      .all()) as Array<{ role: StaffRole; c: number }>;
+    const held = counts.find((row) => row.role === input.role)?.c ?? 0;
+    const limit = STAFF_LIMITS[input.role];
+    if (held >= limit) {
+      if (input.role === "ADMIN") return { error: "Only one Admin account is allowed." };
+      return { error: `${ROLE_LABELS[input.role]} limit is ${limit}.` };
+    }
+
     const existing = await db
       .prepare(`SELECT id FROM staff_users WHERE email = ?`)
       .get(email);

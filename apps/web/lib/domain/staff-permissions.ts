@@ -20,6 +20,13 @@ export const ROLE_HINTS: Record<StaffRole, string> = {
   SUB_ADMIN: "Shipments, exceptions, COD, payments and notifications",
 };
 
+/** Hard caps. A second Admin is never allowed. */
+export const STAFF_LIMITS: Record<StaffRole, number> = {
+  ADMIN: 1,
+  EDITOR: 4,
+  SUB_ADMIN: 3,
+};
+
 export function canAccess(role: StaffRole, area: StaffArea): boolean {
   return ROLE_AREAS[role]?.includes(area) ?? false;
 }
