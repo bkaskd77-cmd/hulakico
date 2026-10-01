@@ -22,7 +22,6 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rankedByAi, setRankedByAi] = useState(false);
   const [options, setOptions] = useState<RankedOption[]>([]);
   useQuoteReveal(setOpen);
 
@@ -30,7 +29,6 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
     setOpen(false);
     setError(null);
     setOptions([]);
-    setRankedByAi(false);
   }
 
   async function requestQuote(payload: QuoteSpecPayload) {
@@ -68,7 +66,6 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
         setError(data.error || "Could not get quotes.");
         return;
       }
-      setRankedByAi(Boolean(data.rankedByAi));
       setOptions(data.options as RankedOption[]);
     } catch (err) {
       console.error("[HomeQuoteForm.tsx:requestQuote]", err);
@@ -108,8 +105,8 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
         {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
         {options.length > 0 ? (
           <div className="mt-8 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-6">
-            <p className="text-sm text-[var(--muted)]">
-              {rankedByAi ? "Ranked by Hulakico AI." : "Price order (AI offline)."}
+            <p className="text-sm leading-relaxed text-[var(--off-white)]/85">
+              This quoted price is tentative. It is not a live partner rate, and it can change at booking if the measured weight or dimensions differ from what you entered.
             </p>
             <ul className="mt-4 space-y-3">
               {options.map((o) => (

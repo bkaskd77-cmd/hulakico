@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { BOOKING_COUNTRIES } from "@/app/book/countries";
-import { contentsHint, contentsPlaceholder } from "@/app/book/contents-hint";
 import { PlaceSuggestControls } from "@/app/book/PlaceSuggestControls";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
 
@@ -96,7 +95,7 @@ export function HomeQuoteFields({
           heightCm: Number(form.get("heightCm")),
           serviceClass: String(form.get("serviceClass") ?? "EXPRESS"),
           packageType,
-          contents: String(form.get("contents") ?? ""),
+          contents: "",
         });
       }}
     >
@@ -140,16 +139,6 @@ export function HomeQuoteFields({
             <option value="PARCEL">Parcel</option>
             <option value="DOCUMENT">Document</option>
           </select></label>
-        <label className="text-xs text-[var(--muted)] sm:col-span-2">Specs / contents
-          <input
-            name="contents"
-            placeholder={contentsPlaceholder(packageType)}
-            className={QUOTE_FIELD}
-          />
-          <span className="mt-1.5 block text-xs text-[var(--teal)]">
-            {contentsHint(packageType)}
-          </span>
-        </label>
       </div>
       <button type="submit" disabled={pending} className="rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold text-[var(--navy)] disabled:opacity-60">
         {pending ? "Ranking carriers…" : "Get the Quote"}

@@ -21,7 +21,6 @@ type RankedOption = {
 export function HomeQuoteInline({ bookHref }: { bookHref: string }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rankedByAi, setRankedByAi] = useState(false);
   const [options, setOptions] = useState<RankedOption[]>([]);
 
   async function requestQuote(payload: QuoteSpecPayload) {
@@ -59,7 +58,6 @@ export function HomeQuoteInline({ bookHref }: { bookHref: string }) {
         setError(data.error || "Could not get quotes.");
         return;
       }
-      setRankedByAi(Boolean(data.rankedByAi));
       setOptions(data.options as RankedOption[]);
     } catch (err) {
       console.error("[HomeQuoteInline.tsx:requestQuote]", err);
@@ -72,15 +70,15 @@ export function HomeQuoteInline({ bookHref }: { bookHref: string }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">AI quote</p>
-      <p className="mt-2 text-sm text-[var(--muted)]">Estimate cost — ranked when intelligence is online.</p>
+      <p className="mt-2 text-sm text-[var(--muted)]">Estimate cost for this route.</p>
       <div className="mt-4 max-h-[min(52vh,28rem)] overflow-y-auto pr-1">
         <HomeQuoteFields pending={pending} onSubmit={requestQuote} />
       </div>
       {error ? <p className="mt-3 text-sm text-[var(--danger)]">{error}</p> : null}
       {options.length > 0 ? (
         <div className="mt-5 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-4">
-          <p className={`text-sm ${rankedByAi ? "hub-ai-pulse text-[var(--teal)]" : "text-[var(--muted)]"}`}>
-            {rankedByAi ? "Ranked by Hulakico AI" : "Price order (AI offline)"}
+          <p className="text-sm leading-relaxed text-[var(--off-white)]/85">
+            This quoted price is tentative. It is not a live partner rate, and it can change at booking if the measured weight or dimensions differ from what you entered.
           </p>
           <ul className="mt-3 space-y-2">
             {options.map((o, i) => (
