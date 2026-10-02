@@ -105,9 +105,20 @@ export async function SiteFooter() {
       </div>
 
       <div className="relative border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-6 py-5 sm:px-12">
-        <p className="mx-auto max-w-6xl text-xs text-[var(--off-white)]/65">
-          © {new Date().getFullYear()} Hulakico · Kathmandu, Nepal
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-1 text-xs text-[var(--off-white)]/65 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Hulakico · Kathmandu, Nepal</p>
+          <p className="text-right">
+            crafted by{" "}
+            <a
+              href="https://softterotech.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-2 hover:underline"
+            >
+              Softtero
+            </a>
+          </p>
+        </div>
       </div>
     </footer>
   );
