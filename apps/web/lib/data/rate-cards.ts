@@ -1,3 +1,4 @@
+import { ensureCarrierService } from "@/lib/data/carrier-admin";
 import { newId } from "@/lib/domain/auth";
 import { normalizePlaceName } from "@/lib/domain/quoting";
 import { getSql } from "@/lib/sql";
@@ -42,37 +43,29 @@ export async function updateRateCard(
   }
 }
 
-function laneFits(scope: string, lane: string): boolean {
-  return scope === "BOTH" || scope === lane;
-}
-
 export async function insertCityRate(
-  input: Money & { carrierServiceId: string; lane: string; placeName: string },
+  input: Money & { carrierId: string; serviceClass: string; lane: string; placeName: string },
 ): Promise<{ ok: true } | { error: string }> {
   try {
-    const serviceId = input.carrierServiceId.trim();
     const lane = input.lane.trim().toUpperCase();
     const placeName = input.placeName.trim().replace(/\s+/g, " ");
     const zoneLabel = normalizePlaceName(placeName);
     const money = readMoney(input);
     if ("error" in money) return money;
-    if (!serviceId || !LANES.has(lane) || zoneLabel.length < 2 || zoneLabel.length > 80) {
+    if (!LANES.has(lane) || zoneLabel.length < 2 || zoneLabel.length > 80) {
       return { error: "Choose a service, National or International, and a city." };
     }
     if (!/^[\p{L}\p{N}][\p{L}\p{N} .'-]*$/u.test(placeName)) {
       return { error: "Enter a city name." };
     }
+    const ready = await ensureCarrierService({
+      carrierId: input.carrierId,
+      serviceClass: input.serviceClass,
+      lane,
+    });
+    if ("error" in ready) return ready;
+    const serviceId = ready.serviceId;
     const db = await getSql();
-    const service = (await db
-      .prepare(
-        `SELECT c.scope AS scope FROM carrier_services cs
-         JOIN carriers c ON c.id = cs.carrier_id WHERE cs.id = ?`,
-      )
-      .get(serviceId)) as { scope: string } | undefined;
-    if (!service) return { error: "Carrier service not found." };
-    if (!laneFits(service.scope, lane)) {
-      return { error: "That carrier does not cover this National or International choice." };
-    }
     const duplicate = await db
       .prepare(
         `SELECT id FROM rate_cards

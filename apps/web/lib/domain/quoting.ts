@@ -3,6 +3,18 @@ export function normalizePlaceName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** Lowest amount in the lane currency when that currency exists, otherwise the lowest amount. */
+export function lowestQuoteOption<T extends { amount: number; currency: string }>(
+  options: T[],
+  lane: "DOMESTIC" | "INTERNATIONAL",
+): T | null {
+  if (options.length === 0) return null;
+  const preferred = lane === "INTERNATIONAL" ? "USD" : "NPR";
+  const same = options.filter((option) => option.currency === preferred);
+  const pool = same.length > 0 ? same : options;
+  return pool.reduce((best, option) => (option.amount < best.amount ? option : best));
+}
+
 export function pickRateForCity<T extends { zoneLabel: string; lane: string | null }>(
   rates: T[],
   lane: "DOMESTIC" | "INTERNATIONAL",

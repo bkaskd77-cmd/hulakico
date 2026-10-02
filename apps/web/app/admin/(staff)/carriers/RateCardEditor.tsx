@@ -14,55 +14,40 @@ export type DeskCarrier = {
 };
 
 const SAVE = "rounded-md bg-[#ffcc00] px-3 py-2.5 text-sm font-semibold text-[#191919] disabled:opacity-60";
-
-function lanesFor(scope: DeskCarrier["scope"]): Array<"DOMESTIC" | "INTERNATIONAL"> {
-  if (scope === "INTERNATIONAL") return ["INTERNATIONAL"];
-  if (scope === "BOTH") return ["DOMESTIC", "INTERNATIONAL"];
-  return ["DOMESTIC"];
-}
-
-function laneLabel(lane: string): string {
-  return lane === "INTERNATIONAL" ? "International" : "National";
-}
+const SERVICES = [
+  { value: "EXPRESS", label: "Express" },
+  { value: "ECONOMY", label: "Standard" },
+] as const;
+const LANES = [
+  { value: "DOMESTIC", label: "National" },
+  { value: "INTERNATIONAL", label: "International" },
+] as const;
 
 export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
   const [carrierId, setCarrierId] = useState(carriers[0]?.id ?? "");
   const carrier = carriers.find((item) => item.id === carrierId) ?? carriers[0];
-  const lanes = carrier ? lanesFor(carrier.scope) : [];
-  const [serviceId, setServiceId] = useState(carrier?.services[0]?.id ?? "");
-  const [lane, setLane] = useState<string>(lanes[0] ?? "DOMESTIC");
+  const [serviceClass, setServiceClass] = useState<string>("EXPRESS");
+  const [lane, setLane] = useState<string>("INTERNATIONAL");
   const [placeName, setPlaceName] = useState("");
-  const [currency, setCurrency] = useState(lanes[0] === "INTERNATIONAL" ? "USD" : "NPR");
+  const [currency, setCurrency] = useState("USD");
   const [baseAmount, setBaseAmount] = useState("");
   const [perKgAmount, setPerKgAmount] = useState("");
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   if (!carrier) return <p className="mt-8 text-sm text-[var(--muted)]">Add a carrier to set city rates.</p>;
 
-  const service = carrier.services.find((item) => item.id === serviceId) ?? carrier.services[0];
-  const activeLane = lanes.includes(lane as "DOMESTIC" | "INTERNATIONAL") ? lane : lanes[0];
-
   function chooseCarrier(nextId: string) {
-    const next = carriers.find((item) => item.id === nextId);
-    const nextLanes = next ? lanesFor(next.scope) : [];
-    const nextLane = nextLanes[0] ?? "DOMESTIC";
     setCarrierId(nextId);
-    setServiceId(next?.services[0]?.id ?? "");
-    setLane(nextLane);
-    setCurrency(nextLane === "INTERNATIONAL" ? "USD" : "NPR");
     setMessage("");
   }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!service) {
-      setMessage("This carrier has no Express or Standard service.");
-      return;
-    }
     setPending(true);
     const result = await addCityRateAction({
-      carrierServiceId: service.id,
-      lane: activeLane,
+      carrierId: carrier.id,
+      serviceClass,
+      lane,
       placeName,
       currency,
       baseAmount: Number(baseAmount),
@@ -89,13 +74,13 @@ export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
       </label>
       <form onSubmit={onSubmit} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block"><span className={LABEL}>Service</span>
-          <select className={FIELD} value={service?.id ?? ""} onChange={(event) => setServiceId(event.target.value)}>
-            {carrier.services.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          <select className={FIELD} value={serviceClass} onChange={(event) => setServiceClass(event.target.value)}>
+            {SERVICES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <label className="block"><span className={LABEL}>Coverage</span>
-          <select className={FIELD} value={activeLane} onChange={(event) => { setLane(event.target.value); setCurrency(event.target.value === "INTERNATIONAL" ? "USD" : "NPR"); }}>
-            {lanes.map((item) => <option key={item} value={item}>{laneLabel(item)}</option>)}
+          <select className={FIELD} value={lane} onChange={(event) => { setLane(event.target.value); setCurrency(event.target.value === "INTERNATIONAL" ? "USD" : "NPR"); }}>
+            {LANES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <label className="block"><span className={LABEL}>City</span>
@@ -112,7 +97,7 @@ export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
         <label className="block"><span className={LABEL}>Per extra kg</span>
           <input className={FIELD} inputMode="decimal" required value={perKgAmount} onChange={(event) => setPerKgAmount(event.target.value)} />
         </label>
-        <button type="submit" disabled={pending || !service} className={SAVE}>{pending ? "Adding…" : "Add city rate"}</button>
+        <button type="submit" disabled={pending} className={SAVE}>{pending ? "Adding…" : "Add city rate"}</button>
       </form>
       {message ? <p className="mt-3 text-xs text-[var(--muted)]">{message}</p> : null}
       <ul className="mt-6 space-y-3">

@@ -36,7 +36,8 @@ export async function saveRateAction(input: {
 }
 
 export async function addCityRateAction(input: {
-  carrierServiceId: string;
+  carrierId: string;
+  serviceClass: string;
   lane: string;
   placeName: string;
   currency: string;

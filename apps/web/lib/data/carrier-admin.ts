@@ -62,3 +62,55 @@ export async function insertCarrier(input: {
     return { error: "Could not add the carrier." };
   }
 }
+
+/** Adds Express or Standard on an existing carrier, and opens the other lane when used. */
+export async function ensureCarrierService(input: {
+  carrierId: string;
+  serviceClass: string;
+  lane: string;
+}): Promise<{ serviceId: string } | { error: string }> {
+  try {
+    const carrierId = input.carrierId.trim();
+    const serviceClass = input.serviceClass.trim().toUpperCase();
+    const lane = input.lane.trim().toUpperCase();
+    if (!carrierId || (serviceClass !== "EXPRESS" && serviceClass !== "ECONOMY")) {
+      return { error: "Choose Express or Standard." };
+    }
+    if (lane !== "DOMESTIC" && lane !== "INTERNATIONAL") {
+      return { error: "Choose National or International." };
+    }
+    const db = await getSql();
+    const carrier = (await db
+      .prepare("SELECT id, code, name, scope FROM carriers WHERE id = ?")
+      .get(carrierId)) as { id: string; code: string; name: string; scope: string } | undefined;
+    if (!carrier) return { error: "Carrier not found." };
+    if (carrier.scope !== "BOTH" && carrier.scope !== lane) {
+      await db.prepare("UPDATE carriers SET scope = 'BOTH' WHERE id = ?").run(carrierId);
+    }
+    const existing = (await db
+      .prepare("SELECT id FROM carrier_services WHERE carrier_id = ? AND service_class = ?")
+      .get(carrierId, serviceClass)) as { id: string } | undefined;
+    if (existing) return { serviceId: existing.id };
+    const express = serviceClass === "EXPRESS";
+    const serviceId = newId("svc");
+    await db
+      .prepare(
+        `INSERT INTO carrier_services
+         (id, carrier_id, code, name, service_class, eta_days_min, eta_days_max, supports_cod)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+      )
+      .run(
+        serviceId,
+        carrierId,
+        `${carrier.code}_${serviceClass}`,
+        `${carrier.name} ${express ? "Express" : "Standard"}`,
+        serviceClass,
+        express ? 2 : 4,
+        express ? 5 : 8,
+      );
+    return { serviceId };
+  } catch (error) {
+    console.error("[carrier-admin.ts:ensureCarrierService]", error instanceof Error ? error.message : error);
+    return { error: "Could not prepare that Express or Standard price list." };
+  }
+}

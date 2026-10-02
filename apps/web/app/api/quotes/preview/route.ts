@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { seedCarriers } from "@/lib/data/carriers";
-import { rankQuoteOptions } from "@/lib/data/intelligence-client";
 import type { QuoteOptionView } from "@/lib/data/quotes";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
-import { billableKg, calculateQuoteAmount, pickRateForCity } from "@/lib/domain/quoting";
+import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRateForCity } from "@/lib/domain/quoting";
 
 export const runtime = "nodejs";
 
@@ -96,27 +95,25 @@ export async function POST(request: Request) {
 
     const charged = billableKg(weightKg, lengthCm, widthCm, heightCm, lane);
     const base = await buildOptions(lane, destinationCity, charged, ratedClass);
-    if (base.length === 0) {
+    const chosen = lowestQuoteOption(base, lane);
+    if (!chosen) {
       return NextResponse.json({ error: "No rate is set for this city yet." }, { status: 400 });
     }
-
-    let options = base.map((option, index) => ({
-      ...option, rank: index + 1, rankScore: 0, rankReason: "Sorted by price",
-    }));
-    let rankedByAi = false;
-    try {
-      options = await rankQuoteOptions({ options: base, wantsCod: false });
-      rankedByAi = true;
-    } catch (error) {
-      console.error("[quotes/preview/route.ts:POST]", error instanceof Error ? error.message : error);
-    }
+    const option = {
+      ...chosen,
+      serviceName: ratedClass === "EXPRESS" ? "Express" : "Standard",
+      rank: 1,
+      rankScore: 0,
+      rankReason: "",
+    };
 
     return NextResponse.json({
       originCity, destinationCity, originCountry, destinationCountry, lane,
       weightKg, billableKg: charged, lengthCm, widthCm, heightCm,
       packageType: (body.packageType ?? "PARCEL").trim(),
       contents: (body.contents ?? "").trim(),
-      rankedByAi, options,
+      rankedByAi: false,
+      options: [option],
     });
   } catch (error) {
     console.error("[quotes/preview/route.ts:POST]", error instanceof Error ? error.message : error);

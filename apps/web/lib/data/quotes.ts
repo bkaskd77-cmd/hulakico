@@ -2,7 +2,7 @@ import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { seedCarriers } from "@/lib/data/carriers";
 import { replaceShipmentQuotes } from "@/lib/data/quote-persist";
-import { billableKg, calculateQuoteAmount, pickRateForCity } from "@/lib/domain/quoting";
+import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRateForCity } from "@/lib/domain/quoting";
 
 export type QuoteOptionView = {
   id: string;
@@ -124,20 +124,15 @@ export async function generateQuotesForShipment(
       });
     }
 
-    if (options.length === 0) {
-      throw new Error("No rate is set for this city yet.");
-    }
-
-    options.sort((a, b) => a.amount - b.amount);
+    const chosen = lowestQuoteOption(options, shipment.lane);
+    if (!chosen) throw new Error("No rate is set for this city yet.");
+    chosen.serviceName = shipment.service_class === "EXPRESS" ? "Express" : "Standard";
     const quoteId = newId("qte");
     const now = new Date().toISOString();
-    await replaceShipmentQuotes(db, shipmentId, quoteId, options, now);
+    await replaceShipmentQuotes(db, shipmentId, quoteId, [chosen], now);
+    const { carrierId: _c, carrierServiceId: _s, ...view } = chosen;
 
-    return {
-      quoteId,
-      shipmentId,
-      options: options.map(({ carrierId: _c, carrierServiceId: _s, ...view }) => view),
-    };
+    return { quoteId, shipmentId, options: [view] };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Quote generation failed.";
     console.error("[quotes.ts:generateQuotesForShipment]", message);

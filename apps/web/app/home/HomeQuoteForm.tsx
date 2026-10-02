@@ -108,22 +108,17 @@ export function HomeQuoteForm({ bookHref }: { bookHref: string }) {
             <p className="text-sm leading-relaxed text-[var(--off-white)]/85">
               This quoted price is tentative. It is not a live partner rate, and it can change at booking if the measured weight or dimensions differ from what you entered.
             </p>
-            <ul className="mt-4 space-y-3">
-              {options.map((o) => (
-                <li key={o.id} className="flex flex-wrap justify-between gap-3 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-4">
-                  <div>
-                    <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">
-                      #{o.rank} {o.carrierName}
-                    </p>
-                    <p className="text-sm text-[var(--muted)]">
-                      {o.serviceName} · ETA {o.etaDaysMin}–{o.etaDaysMax}d
-                      {o.rankReason ? ` · ${o.rankReason}` : ""}
-                    </p>
-                  </div>
-                  <p className="text-sm font-semibold text-[var(--gold)]">{o.currency} {o.amount.toFixed(2)}</p>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 flex flex-wrap justify-between gap-3 border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-4">
+              <div>
+                <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">
+                  {options[0].serviceName}
+                </p>
+                <p className="text-sm text-[var(--muted)]">
+                  ETA {options[0].etaDaysMin}–{options[0].etaDaysMax}d
+                </p>
+              </div>
+              <p className="text-sm font-semibold text-[var(--gold)]">{options[0].currency} {options[0].amount.toFixed(2)}</p>
+            </div>
             <Link href={bookHref} onClick={dismiss} className="mt-8 inline-flex rounded-md bg-[var(--teal)] px-6 py-3 text-sm font-semibold text-[var(--off-white)]">
               Book with these details
             </Link>
