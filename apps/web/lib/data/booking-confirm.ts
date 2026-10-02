@@ -74,7 +74,7 @@ export async function confirmShipmentBooking(
     });
 
     const now = new Date().toISOString();
-    const hulakicoAwb = `HK-${randomBytes(4).toString("hex").toUpperCase()}`;
+    const hulakicoAwb = `HK-${randomBytes(16).toString("hex").toUpperCase()}`;
     const trackingToken = randomBytes(16).toString("base64url");
 
     await db.prepare(

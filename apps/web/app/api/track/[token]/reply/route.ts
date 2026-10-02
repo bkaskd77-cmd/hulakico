@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { submitCustomerReply } from "@/lib/data/exception-info";
+import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -8,6 +9,10 @@ export async function POST(
   context: { params: Promise<{ token: string }> },
 ) {
   try {
+    const ipLimit = await enforceRateLimit("track-reply", requestIp(request), 8, 60 * 60 * 1000);
+    if ("retry" in ipLimit) {
+      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+    }
     const { token } = await context.params;
     const body = (await request.json()) as { reply?: string };
     const result = await submitCustomerReply(token, body.reply ?? "");

@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   ingestCarrierWebhook,
@@ -6,26 +7,31 @@ import {
 
 export const runtime = "nodejs";
 
-/**
- * Partner push endpoint: POST { externalAwb, events[], secret? }
- * Protect with CARRIER_WEBHOOK_SECRET when set.
- */
+function secretMatches(provided: string, expected: string): boolean {
+  const left = createHash("sha256").update(provided).digest();
+  const right = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(left, right);
+}
+
+/** Partner push. Refuses every call until CARRIER_WEBHOOK_SECRET is set. */
 export async function POST(request: Request) {
   try {
     const expected = process.env.CARRIER_WEBHOOK_SECRET?.trim();
+    if (!expected) {
+      console.error("[api/webhooks/carrier/route.ts:POST] CARRIER_WEBHOOK_SECRET is not set.");
+      return NextResponse.json({ error: "Unauthorized webhook." }, { status: 401 });
+    }
     const body = (await request.json()) as {
       externalAwb?: string;
       events?: CarrierWebhookEvent[];
       secret?: string;
     };
-    if (expected) {
-      const header = request.headers.get("x-hulakico-webhook-secret")?.trim();
-      const provided = header || body.secret?.trim();
-      if (provided !== expected) {
-        return NextResponse.json({ error: "Unauthorized webhook." }, { status: 401 });
-      }
+    const provided = request.headers.get("x-hulakico-webhook-secret")?.trim() || body.secret?.trim() || "";
+    if (!secretMatches(provided, expected)) {
+      return NextResponse.json({ error: "Unauthorized webhook." }, { status: 401 });
     }
-    const result = await ingestCarrierWebhook(body.externalAwb ?? "", body.events ?? []);
+    const events = Array.isArray(body.events) ? body.events.slice(0, 20) : [];
+    const result = await ingestCarrierWebhook(body.externalAwb ?? "", events);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

@@ -233,6 +233,24 @@ export function ensureSchema(database: DatabaseSync): void {
   bootstrapStaffAdmin(database);
   ensureSiteContentTable(database);
   ensureContactMessagesTable(database);
+  ensureRateLimitTable(database);
+}
+
+function ensureRateLimitTable(database: DatabaseSync): void {
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        bucket TEXT PRIMARY KEY,
+        hits INTEGER NOT NULL,
+        window_start INTEGER NOT NULL
+      );
+    `);
+  } catch (error) {
+    console.error(
+      "[db-schema.ts:ensureRateLimitTable]",
+      error instanceof Error ? error.message : error,
+    );
+  }
 }
 
 function ensureContactMessagesTable(database: DatabaseSync): void {

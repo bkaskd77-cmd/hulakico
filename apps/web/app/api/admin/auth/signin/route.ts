@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { signinSchema } from "@/lib/domain/auth";
 import { authenticateStaff, updateStaffName } from "@/lib/data/staff-auth";
+import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 import { setStaffSessionCookie } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    const ipLimit = await enforceRateLimit("staff-signin", requestIp(request), 5, 15 * 60 * 1000);
+    if ("retry" in ipLimit) {
+      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+    }
     const body = await request.json();
     const parsed = signinSchema.safeParse(body);
     if (!parsed.success) {
@@ -16,6 +21,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const emailLimit = await enforceRateLimit("staff-signin-email", parsed.data.email.toLowerCase(), 5, 15 * 60 * 1000);
+    if ("retry" in emailLimit) {
+      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+    }
     const result = await authenticateStaff(
       parsed.data.email,
       parsed.data.password,

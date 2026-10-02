@@ -4,6 +4,7 @@ import type { QuoteOptionView } from "@/lib/data/quotes";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRateForCity } from "@/lib/domain/quoting";
+import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -66,6 +67,10 @@ async function buildOptions(
 
 export async function POST(request: Request) {
   try {
+    const ipLimit = await enforceRateLimit("quote-preview", requestIp(request), 30, 15 * 60 * 1000);
+    if ("retry" in ipLimit) {
+      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+    }
     const body = (await request.json()) as Body;
     const originCity = (body.originCity ?? "").trim();
     const destinationCity = (body.destinationCity ?? "").trim();

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
 import { countStaff, registerStaff } from "@/lib/data/staff-register";
 import { canAccess } from "@/lib/domain/staff-permissions";
+import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 import {
   readStaffSessionToken,
   setStaffSessionCookie,
@@ -20,6 +21,10 @@ const staffSignupSchema = z.object({
 /** First account bootstraps an Admin; after that only a signed-in Admin can create staff. */
 export async function POST(request: Request) {
   try {
+    const ipLimit = await enforceRateLimit("staff-signup", requestIp(request), 8, 60 * 60 * 1000);
+    if ("retry" in ipLimit) {
+      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+    }
     const body = await request.json();
     const parsed = staffSignupSchema.safeParse(body);
     if (!parsed.success) {
