@@ -55,4 +55,6 @@ export type RateCardRecord = {
   baseAmount: number;
   perKgAmount: number;
   zoneLabel: string;
+  lane: string | null;
+  placeName: string | null;
 };

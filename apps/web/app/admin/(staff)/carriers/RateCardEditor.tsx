@@ -1,151 +1,124 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent } from "react";
 import { FIELD, LABEL } from "@/app/admin/(staff)/homepage/AdminFields";
+import { addCityRateAction } from "@/app/admin/(staff)/carriers/actions";
+import { CityRateRow, type DeskRate } from "@/app/admin/(staff)/carriers/CityRateRow";
 
-const RATE_ZONES = ["valley", "major_city", "nationwide", "india", "gulf", "east_asia", "europe", "americas", "oceania", "world"] as const;
-
-export type EditableRate = {
+export type DeskCarrier = {
   id: string;
-  zoneLabel: string;
-  currency: string;
-  baseAmount: number;
-  perKgAmount: number;
+  name: string;
+  scope: "DOMESTIC" | "INTERNATIONAL" | "BOTH";
+  services: Array<{ id: string; label: string }>;
+  rates: DeskRate[];
 };
-
-export type EditableService = { id: string; name: string; rates: EditableRate[] };
-
-type Money = { currency: string; baseAmount: number; perKgAmount: number };
-type SaveInput = Money & { id: string };
-type AddInput = Money & { carrierServiceId: string; zoneLabel: string };
 
 const SAVE = "rounded-md bg-[#ffcc00] px-3 py-2.5 text-sm font-semibold text-[#191919] disabled:opacity-60";
 
-export function RateCardEditor({
-  services,
-  saveAction,
-  addAction,
-}: {
-  services: EditableService[];
-  saveAction: (input: SaveInput) => Promise<{ ok: true } | { error: string }>;
-  addAction: (input: AddInput) => Promise<{ ok: true } | { error: string }>;
-}) {
-  return (
-    <div className="mt-4 space-y-5">
-      {services.map((service) => (
-        <section key={service.id}>
-          <p className="text-sm font-semibold text-[var(--off-white)]">{service.name}</p>
-          <ul className="mt-2 space-y-3">
-            {service.rates.map((rate) => (
-              <RateRow key={rate.id} rate={rate} saveAction={saveAction} />
-            ))}
-          </ul>
-          <AddRate serviceId={service.id} taken={service.rates.map((rate) => rate.zoneLabel)} addAction={addAction} />
-        </section>
-      ))}
-    </div>
-  );
+function lanesFor(scope: DeskCarrier["scope"]): Array<"DOMESTIC" | "INTERNATIONAL"> {
+  if (scope === "INTERNATIONAL") return ["INTERNATIONAL"];
+  if (scope === "BOTH") return ["DOMESTIC", "INTERNATIONAL"];
+  return ["DOMESTIC"];
 }
 
-function RateRow({
-  rate,
-  saveAction,
-}: {
-  rate: EditableRate;
-  saveAction: (input: SaveInput) => Promise<{ ok: true } | { error: string }>;
-}) {
-  const [currency, setCurrency] = useState(rate.currency);
-  const [baseAmount, setBaseAmount] = useState(String(rate.baseAmount));
-  const [perKgAmount, setPerKgAmount] = useState(String(rate.perKgAmount));
-  const [message, setMessage] = useState("");
-  const [pending, setPending] = useState(false);
-
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    setPending(true);
-    const result = await saveAction({ id: rate.id, currency, baseAmount: Number(baseAmount), perKgAmount: Number(perKgAmount) });
-    setPending(false);
-    setMessage("error" in result ? result.error : "Saved.");
-  }
-
-  return (
-    <li className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] p-3">
-      <MoneyForm currency={currency} baseAmount={baseAmount} perKgAmount={perKgAmount} pending={pending} label={pending ? "Saving…" : "Save"} onCurrency={setCurrency} onBase={setBaseAmount} onPerKg={setPerKgAmount} onSubmit={onSubmit} extra={<p className="text-sm text-[var(--off-white)] sm:col-span-4">{rate.zoneLabel}</p>} />
-      {message ? <p className="mt-2 text-xs text-[var(--muted)]">{message}</p> : null}
-    </li>
-  );
+function laneLabel(lane: string): string {
+  return lane === "INTERNATIONAL" ? "International" : "National";
 }
 
-function AddRate({
-  serviceId,
-  taken,
-  addAction,
-}: {
-  serviceId: string;
-  taken: string[];
-  addAction: (input: AddInput) => Promise<{ ok: true } | { error: string }>;
-}) {
-  const open = RATE_ZONES.filter((zone) => !taken.includes(zone));
-  const [zoneLabel, setZoneLabel] = useState<string>(open[0] ?? "");
-  const [currency, setCurrency] = useState("NPR");
+export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
+  const [carrierId, setCarrierId] = useState(carriers[0]?.id ?? "");
+  const carrier = carriers.find((item) => item.id === carrierId) ?? carriers[0];
+  const lanes = carrier ? lanesFor(carrier.scope) : [];
+  const [serviceId, setServiceId] = useState(carrier?.services[0]?.id ?? "");
+  const [lane, setLane] = useState<string>(lanes[0] ?? "DOMESTIC");
+  const [placeName, setPlaceName] = useState("");
+  const [currency, setCurrency] = useState(lanes[0] === "INTERNATIONAL" ? "USD" : "NPR");
   const [baseAmount, setBaseAmount] = useState("");
   const [perKgAmount, setPerKgAmount] = useState("");
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
-  if (open.length === 0) return null;
+  if (!carrier) return <p className="mt-8 text-sm text-[var(--muted)]">Add a carrier to set city rates.</p>;
+
+  const service = carrier.services.find((item) => item.id === serviceId) ?? carrier.services[0];
+  const activeLane = lanes.includes(lane as "DOMESTIC" | "INTERNATIONAL") ? lane : lanes[0];
+
+  function chooseCarrier(nextId: string) {
+    const next = carriers.find((item) => item.id === nextId);
+    const nextLanes = next ? lanesFor(next.scope) : [];
+    const nextLane = nextLanes[0] ?? "DOMESTIC";
+    setCarrierId(nextId);
+    setServiceId(next?.services[0]?.id ?? "");
+    setLane(nextLane);
+    setCurrency(nextLane === "INTERNATIONAL" ? "USD" : "NPR");
+    setMessage("");
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!service) {
+      setMessage("This carrier has no Express or Standard service.");
+      return;
+    }
     setPending(true);
-    const result = await addAction({
-      carrierServiceId: serviceId,
-      zoneLabel,
+    const result = await addCityRateAction({
+      carrierServiceId: service.id,
+      lane: activeLane,
+      placeName,
       currency,
       baseAmount: Number(baseAmount),
       perKgAmount: Number(perKgAmount),
     });
     setPending(false);
-    setMessage("error" in result ? result.error : "Added.");
+    if ("error" in result) {
+      setMessage(result.error);
+      return;
+    }
+    setPlaceName("");
+    setBaseAmount("");
+    setPerKgAmount("");
+    setMessage("City rate added.");
   }
 
   return (
-    <div className="mt-3 rounded-md border border-dashed border-[color-mix(in_srgb,var(--off-white)_20%,transparent)] p-3">
-      <MoneyForm currency={currency} baseAmount={baseAmount} perKgAmount={perKgAmount} pending={pending} label={pending ? "Adding…" : "Add zone"} onCurrency={setCurrency} onBase={setBaseAmount} onPerKg={setPerKgAmount} onSubmit={onSubmit} extra={
-        <label className="block sm:col-span-4">
-          <span className={LABEL}>New zone</span>
-          <select className={FIELD} value={zoneLabel} onChange={(event) => setZoneLabel(event.target.value)}>
-            {open.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
-          </select>
-        </label>
-      } />
-      {message ? <p className="mt-2 text-xs text-[var(--muted)]">{message}</p> : null}
-    </div>
-  );
-}
-
-function MoneyForm({
-  currency, baseAmount, perKgAmount, pending, label, extra, onCurrency, onBase, onPerKg, onSubmit,
-}: {
-  currency: string; baseAmount: string; perKgAmount: string; pending: boolean; label: string;
-  extra?: ReactNode;
-  onCurrency: (value: string) => void; onBase: (value: string) => void; onPerKg: (value: string) => void;
-  onSubmit: (event: FormEvent) => void;
-}) {
-  return (
-    <form onSubmit={onSubmit} className="mt-2 grid gap-2 sm:grid-cols-4 sm:items-end">
-      {extra}
-      <label className="block"><span className={LABEL}>Currency</span>
-        <select className={FIELD} value={currency} onChange={(event) => onCurrency(event.target.value)}>
-          <option value="NPR">NPR</option><option value="USD">USD</option>
+    <section className="mt-8 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5">
+      <label className="block max-w-md">
+        <span className={LABEL}>Carrier</span>
+        <select className={FIELD} value={carrier.id} onChange={(event) => chooseCarrier(event.target.value)}>
+          {carriers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select>
       </label>
-      <label className="block"><span className={LABEL}>First 0.5 kg</span>
-        <input className={FIELD} inputMode="decimal" required value={baseAmount} onChange={(event) => onBase(event.target.value)} />
-      </label>
-      <label className="block"><span className={LABEL}>Per extra kg</span>
-        <input className={FIELD} inputMode="decimal" required value={perKgAmount} onChange={(event) => onPerKg(event.target.value)} />
-      </label>
-      <button type="submit" disabled={pending} className={SAVE}>{label}</button>
-    </form>
+      <form onSubmit={onSubmit} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="block"><span className={LABEL}>Service</span>
+          <select className={FIELD} value={service?.id ?? ""} onChange={(event) => setServiceId(event.target.value)}>
+            {carrier.services.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+        </label>
+        <label className="block"><span className={LABEL}>Coverage</span>
+          <select className={FIELD} value={activeLane} onChange={(event) => { setLane(event.target.value); setCurrency(event.target.value === "INTERNATIONAL" ? "USD" : "NPR"); }}>
+            {lanes.map((item) => <option key={item} value={item}>{laneLabel(item)}</option>)}
+          </select>
+        </label>
+        <label className="block"><span className={LABEL}>City</span>
+          <input className={FIELD} required value={placeName} onChange={(event) => setPlaceName(event.target.value)} />
+        </label>
+        <label className="block"><span className={LABEL}>Currency</span>
+          <select className={FIELD} value={currency} onChange={(event) => setCurrency(event.target.value)}>
+            <option value="NPR">NPR</option><option value="USD">USD</option>
+          </select>
+        </label>
+        <label className="block"><span className={LABEL}>First 0.5 kg</span>
+          <input className={FIELD} inputMode="decimal" required value={baseAmount} onChange={(event) => setBaseAmount(event.target.value)} />
+        </label>
+        <label className="block"><span className={LABEL}>Per extra kg</span>
+          <input className={FIELD} inputMode="decimal" required value={perKgAmount} onChange={(event) => setPerKgAmount(event.target.value)} />
+        </label>
+        <button type="submit" disabled={pending || !service} className={SAVE}>{pending ? "Adding…" : "Add city rate"}</button>
+      </form>
+      {message ? <p className="mt-3 text-xs text-[var(--muted)]">{message}</p> : null}
+      <ul className="mt-6 space-y-3">
+        {carrier.rates.length === 0 ? <li className="text-sm text-[var(--muted)]">No city rates for this carrier yet.</li> : null}
+        {carrier.rates.map((rate) => <CityRateRow key={rate.id} rate={rate} />)}
+      </ul>
+    </section>
   );
 }

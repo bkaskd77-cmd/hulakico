@@ -2,12 +2,7 @@ import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { seedCarriers } from "@/lib/data/carriers";
 import { replaceShipmentQuotes } from "@/lib/data/quote-persist";
-import {
-  billableKg,
-  calculateQuoteAmount,
-  pickRateForZone,
-  resolveZoneLabel,
-} from "@/lib/domain/quoting";
+import { billableKg, calculateQuoteAmount, pickRateForCity } from "@/lib/domain/quoting";
 
 export type QuoteOptionView = {
   id: string;
@@ -31,7 +26,6 @@ type ShipmentRow = {
   lane: "DOMESTIC" | "INTERNATIONAL";
   service_class: string;
   destination_city: string;
-  destination_country: string;
   weight_kg: number;
   length_cm: number | null;
   width_cm: number | null;
@@ -48,7 +42,7 @@ export async function generateQuotesForShipment(
     const db = await getSql();
     const shipment = (await db
       .prepare(
-        `SELECT id, status, lane, service_class, destination_city, destination_country,
+        `SELECT id, status, lane, service_class, destination_city,
                 weight_kg, length_cm, width_cm, height_cm, wants_cod
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
@@ -61,7 +55,6 @@ export async function generateQuotesForShipment(
       throw new Error("Quotes only allowed for draft or quoted shipments.");
     }
 
-    const preferredZone = resolveZoneLabel(shipment.lane, shipment.destination_city, shipment.destination_country);
     const scopes =
       shipment.lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
     const charged = billableKg(shipment.weight_kg, shipment.length_cm ?? 0, shipment.width_cm ?? 0, shipment.height_cm ?? 0, shipment.lane);
@@ -94,7 +87,7 @@ export async function generateQuotesForShipment(
       const rates = (
         (await db
           .prepare(
-            `SELECT currency, base_amount, per_kg_amount, zone_label
+            `SELECT currency, base_amount, per_kg_amount, zone_label, lane, place_name
              FROM rate_cards WHERE carrier_service_id = ?`,
           )
           .all(service.service_id)) as Array<{
@@ -102,15 +95,19 @@ export async function generateQuotesForShipment(
           base_amount: number;
           per_kg_amount: number;
           zone_label: string;
+          lane: string | null;
+          place_name: string | null;
         }>
       ).map((row) => ({
         currency: row.currency,
         baseAmount: row.base_amount,
         perKgAmount: row.per_kg_amount,
         zoneLabel: row.zone_label,
+        lane: row.lane,
+        placeName: row.place_name,
       }));
 
-      const rate = pickRateForZone(rates, preferredZone);
+      const rate = pickRateForCity(rates, shipment.lane, shipment.destination_city);
       if (!rate) continue;
 
       options.push({
@@ -123,12 +120,12 @@ export async function generateQuotesForShipment(
         amount: calculateQuoteAmount(rate.baseAmount, rate.perKgAmount, charged),
         etaDaysMin: service.eta_days_min,
         etaDaysMax: service.eta_days_max,
-        zoneLabel: rate.zoneLabel,
+        zoneLabel: rate.placeName || rate.zoneLabel,
       });
     }
 
     if (options.length === 0) {
-      throw new Error("No rate cards matched this shipment.");
+      throw new Error("No rate is set for this city yet.");
     }
 
     options.sort((a, b) => a.amount - b.amount);

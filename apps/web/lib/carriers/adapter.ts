@@ -66,6 +66,7 @@ const adapters: Record<string, CarrierAdapter> = {
   stub_dhl: new StubCarrierAdapter("stub_dhl"),
   stub_fedex: new StubCarrierAdapter("stub_fedex"),
   stub_own_fleet: new StubCarrierAdapter("stub_own_fleet"),
+  stub_manual: new StubCarrierAdapter("stub_manual"),
   dhl: new DhlAdapter(),
   fedex: createEnvPartnerAdapter({
     key: "fedex",

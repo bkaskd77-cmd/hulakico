@@ -1,68 +1,16 @@
-const VALLEY_CITIES = new Set([
-  "kathmandu",
-  "lalitpur",
-  "bhaktapur",
-  "kirtipur",
-  "madhyapur thimi",
-]);
-
-const MAJOR_CITIES = new Set([
-  "pokhara",
-  "biratnagar",
-  "birgunj",
-  "butwal",
-  "bharatpur",
-  "chitwan",
-  "dharan",
-  "nepalgunj",
-  "hetauda",
-  "janakpur",
-]);
-
-export function resolveDomesticZone(destinationCity: string): string {
-  const city = destinationCity.trim().toLowerCase();
-  if (VALLEY_CITIES.has(city)) {
-    return "valley";
-  }
-  if (MAJOR_CITIES.has(city)) {
-    return "major_city";
-  }
-  return "nationwide";
+/** City key used to match a typed admin rate to the customer's city field. */
+export function normalizePlaceName(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-const INTERNATIONAL_ZONES: Record<string, string> = {
-  IN: "india",
-  AE: "gulf",
-  QA: "gulf",
-  SA: "gulf",
-  CN: "east_asia",
-  JP: "east_asia",
-  KR: "east_asia",
-  SG: "east_asia",
-  TH: "east_asia",
-  MY: "east_asia",
-  GB: "europe",
-  DE: "europe",
-  FR: "europe",
-  NO: "europe",
-  US: "americas",
-  CA: "americas",
-  AU: "oceania",
-};
-
-export function resolveInternationalZone(countryCode: string): string {
-  return INTERNATIONAL_ZONES[countryCode.trim().toUpperCase()] ?? "world";
-}
-
-export function resolveZoneLabel(
+export function pickRateForCity<T extends { zoneLabel: string; lane: string | null }>(
+  rates: T[],
   lane: "DOMESTIC" | "INTERNATIONAL",
   destinationCity: string,
-  destinationCountry = "NP",
-): string {
-  if (lane === "INTERNATIONAL") {
-    return resolveInternationalZone(destinationCountry);
-  }
-  return resolveDomesticZone(destinationCity);
+): T | null {
+  const city = normalizePlaceName(destinationCity);
+  if (city.length < 2) return null;
+  return rates.find((rate) => rate.lane === lane && rate.zoneLabel === city) ?? null;
 }
 
 export type WeightSlab = { upToKg: number; amount: number };
@@ -118,24 +66,3 @@ export function billableKg(
   return Math.round((halfSteps / 2) * 100) / 100;
 }
 
-export function pickRateForZone<T extends { zoneLabel: string }>(
-  rates: T[],
-  preferredZone: string,
-): T | null {
-  const exact = rates.find((rate) => rate.zoneLabel === preferredZone);
-  if (exact) {
-    return exact;
-  }
-  if (preferredZone === "major_city") {
-    return rates.find((rate) => rate.zoneLabel === "nationwide") ?? rates[0] ?? null;
-  }
-  if (preferredZone === "valley") {
-    return (
-      rates.find((rate) => rate.zoneLabel === "major_city") ??
-      rates.find((rate) => rate.zoneLabel === "nationwide") ??
-      rates[0] ??
-      null
-    );
-  }
-  return rates.find((rate) => rate.zoneLabel === "world") ?? rates[0] ?? null;
-}

@@ -72,6 +72,8 @@ export function ensureSchema(database: DatabaseSync): void {
       base_amount REAL NOT NULL,
       per_kg_amount REAL NOT NULL,
       zone_label TEXT NOT NULL,
+      lane TEXT,
+      place_name TEXT,
       FOREIGN KEY (carrier_service_id) REFERENCES carrier_services(id)
     );
 
@@ -222,6 +224,7 @@ export function ensureSchema(database: DatabaseSync): void {
   `);
 
   migrateShipmentColumns(database);
+  migrateRateCardColumns(database);
   migrateUserPlatformRole(database);
   migrateExceptionInfoRequired(database);
   migrateInvoiceLineWeight(database);
@@ -411,6 +414,20 @@ function bootstrapStaffAdmin(database: DatabaseSync): void {
   } catch (error) {
     console.error(
       "[db-schema.ts:bootstrapStaffAdmin]",
+      error instanceof Error ? error.message : error,
+    );
+  }
+}
+
+function migrateRateCardColumns(database: DatabaseSync): void {
+  try {
+    const columns = database.prepare("PRAGMA table_info(rate_cards)").all() as Array<{ name: string }>;
+    const names = new Set(columns.map((column) => column.name));
+    if (!names.has("lane")) database.exec("ALTER TABLE rate_cards ADD COLUMN lane TEXT");
+    if (!names.has("place_name")) database.exec("ALTER TABLE rate_cards ADD COLUMN place_name TEXT");
+  } catch (error) {
+    console.error(
+      "[db-schema.ts:migrateRateCardColumns]",
       error instanceof Error ? error.message : error,
     );
   }

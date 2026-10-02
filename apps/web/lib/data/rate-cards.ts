@@ -1,12 +1,9 @@
 import { newId } from "@/lib/domain/auth";
+import { normalizePlaceName } from "@/lib/domain/quoting";
 import { getSql } from "@/lib/sql";
 
 const CURRENCIES = new Set(["NPR", "USD"]);
-
-export const RATE_ZONES = [
-  "valley", "major_city", "nationwide",
-  "india", "gulf", "east_asia", "europe", "americas", "oceania", "world",
-] as const;
+const LANES = new Set(["DOMESTIC", "INTERNATIONAL"]);
 
 type Money = { currency: string; baseAmount: number; perKgAmount: number };
 
@@ -45,33 +42,54 @@ export async function updateRateCard(
   }
 }
 
-export async function insertRateCard(
-  input: Money & { carrierServiceId: string; zoneLabel: string },
+function laneFits(scope: string, lane: string): boolean {
+  return scope === "BOTH" || scope === lane;
+}
+
+export async function insertCityRate(
+  input: Money & { carrierServiceId: string; lane: string; placeName: string },
 ): Promise<{ ok: true } | { error: string }> {
   try {
     const serviceId = input.carrierServiceId.trim();
-    const zoneLabel = input.zoneLabel.trim();
+    const lane = input.lane.trim().toUpperCase();
+    const placeName = input.placeName.trim().replace(/\s+/g, " ");
+    const zoneLabel = normalizePlaceName(placeName);
     const money = readMoney(input);
     if ("error" in money) return money;
-    if (!serviceId || !(RATE_ZONES as readonly string[]).includes(zoneLabel)) {
-      return { error: "Choose a service and a zone." };
+    if (!serviceId || !LANES.has(lane) || zoneLabel.length < 2 || zoneLabel.length > 80) {
+      return { error: "Choose a service, National or International, and a city." };
+    }
+    if (!/^[\p{L}\p{N}][\p{L}\p{N} .'-]*$/u.test(placeName)) {
+      return { error: "Enter a city name." };
     }
     const db = await getSql();
-    const service = await db.prepare("SELECT id FROM carrier_services WHERE id = ?").get(serviceId);
+    const service = (await db
+      .prepare(
+        `SELECT c.scope AS scope FROM carrier_services cs
+         JOIN carriers c ON c.id = cs.carrier_id WHERE cs.id = ?`,
+      )
+      .get(serviceId)) as { scope: string } | undefined;
     if (!service) return { error: "Carrier service not found." };
+    if (!laneFits(service.scope, lane)) {
+      return { error: "That carrier does not cover this National or International choice." };
+    }
     const duplicate = await db
-      .prepare("SELECT id FROM rate_cards WHERE carrier_service_id = ? AND zone_label = ?")
-      .get(serviceId, zoneLabel);
-    if (duplicate) return { error: "This service already has a card for that zone." };
+      .prepare(
+        `SELECT id FROM rate_cards
+         WHERE carrier_service_id = ? AND zone_label = ? AND lane = ?`,
+      )
+      .get(serviceId, zoneLabel, lane);
+    if (duplicate) return { error: "This service already has a card for that city." };
     await db
       .prepare(
-        `INSERT INTO rate_cards (id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO rate_cards
+         (id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label, lane, place_name)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-      .run(newId("rate"), serviceId, money.currency, money.baseAmount, money.perKgAmount, zoneLabel);
+      .run(newId("rate"), serviceId, money.currency, money.baseAmount, money.perKgAmount, zoneLabel, lane, placeName);
     return { ok: true };
   } catch (error) {
-    console.error("[rate-cards.ts:insertRateCard]", error instanceof Error ? error.message : error);
+    console.error("[rate-cards.ts:insertCityRate]", error instanceof Error ? error.message : error);
     return { error: "Could not add the rate card." };
   }
 }

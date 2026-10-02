@@ -4,12 +4,7 @@ import { rankQuoteOptions } from "@/lib/data/intelligence-client";
 import type { QuoteOptionView } from "@/lib/data/quotes";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
-import {
-  billableKg,
-  calculateQuoteAmount,
-  pickRateForZone,
-  resolveZoneLabel,
-} from "@/lib/domain/quoting";
+import { billableKg, calculateQuoteAmount, pickRateForCity } from "@/lib/domain/quoting";
 
 export const runtime = "nodejs";
 
@@ -30,13 +25,11 @@ type Body = {
 async function buildOptions(
   lane: "DOMESTIC" | "INTERNATIONAL",
   destinationCity: string,
-  destinationCountry: string,
   weightKg: number,
   serviceClass: string,
 ): Promise<QuoteOptionView[]> {
   await seedCarriers();
   const db = await getSql();
-  const zone = resolveZoneLabel(lane, destinationCity, destinationCountry);
   const scopes = lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
   const services = (await db
     .prepare(
@@ -53,10 +46,10 @@ async function buildOptions(
   for (const service of services) {
     if (!scopes.includes(service.scope)) continue;
     const rates = (
-      (await db.prepare(`SELECT currency, base_amount, per_kg_amount, zone_label FROM rate_cards WHERE carrier_service_id = ?`)
-        .all(service.service_id)) as Array<{ currency: string; base_amount: number; per_kg_amount: number; zone_label: string }>
-    ).map((r) => ({ currency: r.currency, baseAmount: r.base_amount, perKgAmount: r.per_kg_amount, zoneLabel: r.zone_label }));
-    const rate = pickRateForZone(rates, zone);
+      (await db.prepare(`SELECT currency, base_amount, per_kg_amount, zone_label, lane, place_name FROM rate_cards WHERE carrier_service_id = ?`)
+        .all(service.service_id)) as Array<{ currency: string; base_amount: number; per_kg_amount: number; zone_label: string; lane: string | null; place_name: string | null }>
+    ).map((r) => ({ currency: r.currency, baseAmount: r.base_amount, perKgAmount: r.per_kg_amount, zoneLabel: r.zone_label, lane: r.lane, placeName: r.place_name }));
+    const rate = pickRateForCity(rates, lane, destinationCity);
     if (!rate) continue;
     options.push({
       id: newId("qopt"),
@@ -66,7 +59,7 @@ async function buildOptions(
       amount: calculateQuoteAmount(rate.baseAmount, rate.perKgAmount, weightKg),
       etaDaysMin: service.eta_days_min,
       etaDaysMax: service.eta_days_max,
-      zoneLabel: rate.zoneLabel,
+      zoneLabel: rate.placeName || rate.zoneLabel,
     });
   }
   return options.sort((a, b) => a.amount - b.amount);
@@ -102,9 +95,9 @@ export async function POST(request: Request) {
     }
 
     const charged = billableKg(weightKg, lengthCm, widthCm, heightCm, lane);
-    const base = await buildOptions(lane, destinationCity, destinationCountry, charged, ratedClass);
+    const base = await buildOptions(lane, destinationCity, charged, ratedClass);
     if (base.length === 0) {
-      return NextResponse.json({ error: "No rates matched this route." }, { status: 400 });
+      return NextResponse.json({ error: "No rate is set for this city yet." }, { status: 400 });
     }
 
     let options = base.map((option, index) => ({

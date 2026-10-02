@@ -1,73 +1,34 @@
-import { revalidatePath } from "next/cache";
-import { RateCardEditor, type EditableService } from "@/app/admin/(staff)/carriers/RateCardEditor";
-import { listAdapterKeys } from "@/lib/carriers/adapter";
-import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { AddCarrierForm } from "@/app/admin/(staff)/carriers/AddCarrierForm";
+import { RateCardEditor, type DeskCarrier } from "@/app/admin/(staff)/carriers/RateCardEditor";
 import { listCarriersWithDetails } from "@/lib/data/carriers-query";
-import { insertRateCard, updateRateCard } from "@/lib/data/rate-cards";
-import { canAccess } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
-import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
 
-async function saveRateAction(input: {
-  id: string;
-  currency: string;
-  baseAmount: number;
-  perKgAmount: number;
-}): Promise<{ ok: true } | { error: string }> {
-  "use server";
-  try {
-    const access = await resolveStaffAccess(await readStaffSessionToken());
-    if (!access.ok) return { error: "Staff sign in required." };
-    if (!canAccess(access.staff.role, "carriers")) {
-      return { error: "Your staff role cannot edit rate cards." };
-    }
-    const result = await updateRateCard(input);
-    if ("error" in result) return result;
-    revalidatePath("/admin/carriers");
-    return { ok: true };
-  } catch (error) {
-    console.error("[carriers/page.tsx:saveRateAction]", error instanceof Error ? error.message : error);
-    return { error: "Could not save the rate card." };
-  }
-}
-
-async function addRateAction(input: {
-  carrierServiceId: string;
-  zoneLabel: string;
-  currency: string;
-  baseAmount: number;
-  perKgAmount: number;
-}): Promise<{ ok: true } | { error: string }> {
-  "use server";
-  try {
-    const access = await resolveStaffAccess(await readStaffSessionToken());
-    if (!access.ok) return { error: "Staff sign in required." };
-    if (!canAccess(access.staff.role, "carriers")) {
-      return { error: "Your staff role cannot edit rate cards." };
-    }
-    const result = await insertRateCard(input);
-    if ("error" in result) return result;
-    revalidatePath("/admin/carriers");
-    return { ok: true };
-  } catch (error) {
-    console.error("[carriers/page.tsx:addRateAction]", error instanceof Error ? error.message : error);
-    return { error: "Could not add the rate card." };
-  }
-}
-
-function servicesFor(services: Awaited<ReturnType<typeof listCarriersWithDetails>>[number]["services"]): EditableService[] {
-  return services.map((service) => ({
-    id: service.id,
-    name: service.name,
-    rates: service.rates.map((rate) => ({
-      id: rate.id,
-      zoneLabel: rate.zoneLabel,
-      currency: rate.currency,
-      baseAmount: rate.baseAmount,
-      perKgAmount: rate.perKgAmount,
-    })),
+function toDesk(carriers: Awaited<ReturnType<typeof listCarriersWithDetails>>): DeskCarrier[] {
+  return carriers.filter((carrier) => carrier.isActive).map((carrier) => ({
+    id: carrier.id,
+    name: carrier.name,
+    scope: carrier.scope,
+    services: carrier.services
+      .filter((service) => service.serviceClass === "EXPRESS" || service.serviceClass === "ECONOMY")
+      .map((service) => ({
+        id: service.id,
+        label: service.serviceClass === "EXPRESS" ? "Express" : "Standard",
+      })),
+    rates: carrier.services.flatMap((service) =>
+      service.rates
+        .filter((rate) => rate.placeName && rate.lane)
+        .map((rate) => ({
+          id: rate.id,
+          placeName: rate.placeName ?? "",
+          lane: rate.lane ?? "",
+          serviceLabel: service.serviceClass === "EXPRESS" ? "Express" : "Standard",
+          currency: rate.currency,
+          baseAmount: rate.baseAmount,
+          perKgAmount: rate.perKgAmount,
+        })),
+    ),
   }));
 }
 
@@ -88,22 +49,15 @@ export default async function AdminCarriersPage() {
         Carriers & rate cards
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        The first amount is the charge for the first 0.5 kg. The second is each extra kilogram. Quotes use these figures immediately.
+        Add a carrier, then choose it below. Type the city, and choose Express or Standard and National or International.
+        The first amount covers the first 0.5 kg. The second is each extra kilogram. The street can be anywhere in that city.
       </p>
-      <p className="mt-2 text-xs text-[var(--muted)]">Adapters ready: {listAdapterKeys().join(", ")}</p>
       {error ? <p className="mt-8 text-[var(--danger)]">{error}</p> : null}
       {!error ? (
-        <ul className="mt-8 space-y-4">
-          {carriers.map((carrier) => (
-            <li key={carrier.id} className="rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5">
-              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">{carrier.name}</p>
-              <p className="text-xs text-[var(--muted)]">
-                {carrier.code} · {carrier.transportMode} · {carrier.scope} · {carrier.isActive ? "active" : "inactive"} · adapter {carrier.adapterKey}
-              </p>
-              <RateCardEditor services={servicesFor(carrier.services)} saveAction={saveRateAction} addAction={addRateAction} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <AddCarrierForm />
+          <RateCardEditor carriers={toDesk(carriers)} />
+        </>
       ) : null}
     </>
   );
