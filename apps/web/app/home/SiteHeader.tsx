@@ -14,7 +14,6 @@ const linkClass = "text-[var(--off-white)]/90 transition hover:text-[var(--gold)
 export function SiteHeader({ onHome = false, signedIn, services }: Props) {
   const serviceLinks = services ?? SERVICE_PAGES;
   const [account, setAccount] = useState(Boolean(signedIn));
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (signedIn !== undefined) return;
@@ -38,7 +37,7 @@ export function SiteHeader({ onHome = false, signedIn, services }: Props) {
   return (
     <header className="site-bar relative z-30 px-3 py-3 sm:px-12 sm:py-3.5">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-6">
-        <Link href="/" className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-[#ffcc00] px-1.5 py-1 leading-none sm:px-2" aria-label="Hulakico Logistics">
+        <Link href="/" className="inline-flex min-w-0 items-center gap-1.5 overflow-hidden rounded-md bg-[#ffcc00] px-1.5 py-1 leading-none sm:px-2" aria-label="Hulakico Logistics">
           <svg viewBox="0 0 80 64" className="h-6 w-auto shrink-0 sm:h-8" aria-hidden>
             <polyline points="8,36 40,8 72,36" fill="none" stroke="#0e766e" strokeWidth="10" strokeLinejoin="miter" strokeLinecap="butt" />
             <polyline points="8,52 40,24 72,52" fill="none" stroke="#011f4b" strokeWidth="10" strokeLinejoin="miter" strokeLinecap="butt" />
@@ -81,34 +80,33 @@ export function SiteHeader({ onHome = false, signedIn, services }: Props) {
           {quoteButton}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-expanded={menuOpen}
-          aria-label="Menu"
-          className="shrink-0 rounded-md border border-[color-mix(in_srgb,var(--off-white)_25%,transparent)] px-3 py-1.5 text-sm text-[var(--off-white)] lg:hidden"
-        >
-          {menuOpen ? "Close" : "Menu"}
-        </button>
+        <details className="group relative shrink-0 lg:hidden">
+          <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-md marker:content-none [&::-webkit-details-marker]:hidden" aria-label="Menu">
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="#011f4b" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </summary>
+          <nav className="absolute right-0 top-full z-50 mt-2 hidden w-[min(18rem,calc(100vw-1.5rem))] space-y-1 rounded-lg bg-[#011f4b] p-4 text-sm text-[#f6f1e7] shadow-xl group-open:block" aria-label="Mobile">
+            <Link href="/#track" className="block py-2 font-semibold text-[#ffcc00]">Track a shipment</Link>
+            <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-[#b7ead9]">Services</p>
+            {serviceLinks.map((service) => (
+              <Link key={service.slug} href={`/services/${service.slug}`} className="block py-1.5 pl-2 text-[#f6f1e7]">
+                {service.title}
+              </Link>
+            ))}
+            <Link href="/about" className="block py-2 text-[#f6f1e7]">About</Link>
+            <Link href="/contact" className="block py-2 text-[#f6f1e7]">Contact</Link>
+            <div className="flex items-center justify-between gap-3 border-t border-white/20 pt-3">
+              <Link href={account ? "/account" : "/signin"} className="text-[#f6f1e7]">
+                {account ? "Account" : "Sign in"}
+              </Link>
+              <QuoteLink onHome={onHome} className="rounded-full bg-[#ffcc00] px-4 py-2 text-sm font-semibold text-[#011f4b]">
+                Get a Quote
+              </QuoteLink>
+            </div>
+          </nav>
+        </details>
       </div>
-
-      {menuOpen ? (
-        <nav className="hub-panel mx-auto mt-4 max-w-6xl space-y-1 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-4 text-sm lg:hidden" aria-label="Mobile">
-          <Link href="/#track" className="block py-2 font-semibold text-[var(--gold)]">Track a shipment</Link>
-          <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Services</p>
-          {serviceLinks.map((service) => (
-            <Link key={service.slug} href={`/services/${service.slug}`} className="block py-1.5 pl-2 text-[var(--off-white)]/90">
-              {service.title}
-            </Link>
-          ))}
-          <Link href="/about" className="block py-2 text-[var(--off-white)]/90">About</Link>
-          <Link href="/contact" className="block py-2 text-[var(--off-white)]/90">Contact</Link>
-          <div className="flex items-center justify-between border-t border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] pt-3">
-            {accountLink}
-            {quoteButton}
-          </div>
-        </nav>
-      ) : null}
     </header>
   );
 }

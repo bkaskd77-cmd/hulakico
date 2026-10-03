@@ -37,22 +37,22 @@ export default function ContactPage() {
   const c = COMPANY_CONTACT;
   return (
     <div className="shell-sky min-h-dvh">
-      <section className="relative overflow-hidden">
+      <PublicHeader />
+      <section className="hero-ink relative overflow-hidden">
         <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-35" style={{ backgroundImage: "url(/home/footer.jpg)" }} />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[color-mix(in_srgb,var(--navy)_70%,transparent)] to-[var(--navy)]" />
-        <div className="relative z-10"><PublicHeader /></div>
-        <div className="relative z-10 mx-auto max-w-[78rem] px-6 pb-16 pt-10 sm:px-12">
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[color-mix(in_srgb,var(--navy)_88%,transparent)] to-[color-mix(in_srgb,var(--navy)_72%,transparent)]" />
+        <div className="relative z-10 mx-auto max-w-[78rem] px-6 pb-10 pt-8 sm:px-12 sm:pb-14 sm:pt-10">
           <p className="shell-rise text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">Contact</p>
-          <h1 className="shell-rise mt-3 max-w-2xl font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--off-white)] sm:text-5xl">
+          <h1 className="shell-rise mt-3 max-w-2xl font-[family-name:var(--font-display)] text-3xl font-extrabold text-[var(--off-white)] sm:text-5xl">
             Talk to the tower.
           </h1>
-          <p className="shell-rise-delay mt-4 max-w-xl text-base leading-relaxed text-[var(--off-white)]/90">
+          <p className="shell-rise-delay mt-3 max-w-xl text-sm leading-relaxed sm:mt-4 sm:text-base text-[var(--off-white)]/90">
             Bookings, a shipment on the move, a business account, or a partnership — call, email, visit us in Thamel, or send a message below.
           </p>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[78rem] gap-8 px-6 pb-16 sm:px-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="mx-auto grid max-w-[78rem] gap-8 px-6 pb-16 pt-10 sm:px-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-4">
           <div className={cardClass}>
             <Icon path={PHONE_ICON} />
