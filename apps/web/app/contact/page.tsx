@@ -56,10 +56,10 @@ export default function ContactPage() {
         <div className="space-y-4">
           <div className={cardClass}>
             <Icon path={PHONE_ICON} />
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Phone</p>
               {c.phones.map((phone) => (
-                <a key={phone.href} href={phone.href} className="mt-1 block text-lg font-semibold text-[var(--off-white)] hover:text-[var(--gold)]">
+                <a key={phone.href} href={phone.href} className="mt-1 block break-words text-lg font-semibold text-[var(--off-white)] hover:text-[var(--gold)]">
                   {phone.display} <span className="text-xs font-normal text-[var(--muted)]">{phone.label}</span>
                 </a>
               ))}
@@ -67,14 +67,14 @@ export default function ContactPage() {
           </div>
           <div className={cardClass}>
             <Icon path={MAIL_ICON} />
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Email</p>
-              <a href={`mailto:${c.email}`} className="mt-1 block text-lg font-semibold text-[var(--off-white)] hover:text-[var(--gold)]">{c.email}</a>
+              <a href={`mailto:${c.email}`} className="mt-1 block break-words text-lg font-semibold text-[var(--off-white)] hover:text-[var(--gold)]">{c.email}</a>
             </div>
           </div>
           <div className={cardClass}>
             <Icon path={PIN_ICON} />
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Office</p>
               <p className="mt-1 font-semibold text-[var(--off-white)]">{c.name}</p>
               {c.address.map((line) => (

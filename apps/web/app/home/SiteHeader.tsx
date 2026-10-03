@@ -36,14 +36,14 @@ export function SiteHeader({ onHome = false, signedIn, services }: Props) {
   );
 
   return (
-    <header className="site-bar relative z-30 px-6 py-3.5 sm:px-12">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
-        <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[#ffcc00] px-2 py-1 leading-none" aria-label="Hulakico Logistics">
-          <svg viewBox="0 0 80 64" className="h-7 w-auto shrink-0 sm:h-8" aria-hidden>
+    <header className="site-bar relative z-30 px-3 py-3 sm:px-12 sm:py-3.5">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-6">
+        <Link href="/" className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-[#ffcc00] px-1.5 py-1 leading-none sm:px-2" aria-label="Hulakico Logistics">
+          <svg viewBox="0 0 80 64" className="h-6 w-auto shrink-0 sm:h-8" aria-hidden>
             <polyline points="8,36 40,8 72,36" fill="none" stroke="#0e766e" strokeWidth="10" strokeLinejoin="miter" strokeLinecap="butt" />
             <polyline points="8,52 40,24 72,52" fill="none" stroke="#011f4b" strokeWidth="10" strokeLinejoin="miter" strokeLinecap="butt" />
           </svg>
-          <span className="whitespace-nowrap font-[family-name:var(--font-display)] text-sm font-bold uppercase leading-none tracking-[0.08em] text-[#011f4b] sm:text-base">
+          <span className="whitespace-nowrap font-[family-name:var(--font-display)] text-[0.68rem] font-bold uppercase leading-none tracking-[0.04em] text-[#011f4b] sm:text-base sm:tracking-[0.08em]">
             HULAKICO LOGISTICS
             <span className="mt-[0.22em] flex w-0 min-w-full justify-between text-[0.32em] font-bold leading-none tracking-normal">
               {"DELIVERED TO YOUR DOOR".split("").map((char, index) => (
@@ -86,7 +86,7 @@ export function SiteHeader({ onHome = false, signedIn, services }: Props) {
           onClick={() => setMenuOpen((open) => !open)}
           aria-expanded={menuOpen}
           aria-label="Menu"
-          className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_25%,transparent)] px-3 py-1.5 text-sm text-[var(--off-white)] lg:hidden"
+          className="shrink-0 rounded-md border border-[color-mix(in_srgb,var(--off-white)_25%,transparent)] px-3 py-1.5 text-sm text-[var(--off-white)] lg:hidden"
         >
           {menuOpen ? "Close" : "Menu"}
         </button>
