@@ -81,6 +81,38 @@ export function validateRouteForm(form: FormState): {
   };
 }
 
+function numberInRange(value: string, min: number, max: number): boolean {
+  const parsed = Number(value);
+  return value.trim() !== "" && Number.isFinite(parsed) && parsed >= min && parsed <= max;
+}
+
+/** Continue-gate checks for the package step. Mirrors draftBookingSchema. */
+export function validatePackageForm(form: FormState): {
+  ok: boolean;
+  errors: RouteErrors;
+  summary: string;
+} {
+  const errors: RouteErrors = {};
+  const needsSize = form.packageType !== "DOCUMENT";
+  const needsValue = detectFormLane(form) === "INTERNATIONAL" || form.wantsCod;
+
+  if (!numberInRange(form.weightKg, 0.1, 1000)) errors.weightKg = "Weight (0.1–1000 kg)";
+  if (needsSize && !numberInRange(form.lengthCm, 1, 300)) errors.lengthCm = "Length (1–300 cm)";
+  if (needsSize && !numberInRange(form.widthCm, 1, 300)) errors.widthCm = "Width (1–300 cm)";
+  if (needsSize && !numberInRange(form.heightCm, 1, 300)) errors.heightCm = "Height (1–300 cm)";
+  if (needsValue && !numberInRange(form.declaredValue, 1, 10_000_000)) {
+    errors.declaredValue = "Declared value";
+  }
+  if (form.contents.trim().length < 3) errors.contents = "Contents description";
+
+  const missing = Object.values(errors);
+  return {
+    ok: missing.length === 0,
+    errors,
+    summary: missing.length === 0 ? "" : `Please fill in: ${missing.join(", ")}.`,
+  };
+}
+
 export function fieldError(
   form: FormState,
   key: keyof FormState,

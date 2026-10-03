@@ -20,6 +20,7 @@ import { PackageFields } from "./PackageFields";
 import {
   detectFormLane,
   RevealRouteErrors,
+  validatePackageForm,
   validateRouteForm,
 } from "./validate-route";
 import { WizardNav } from "./WizardNav";
@@ -59,8 +60,8 @@ export function BookWizard({
 
   async function goNext() {
     setError(null);
-    if (step === 1) {
-      const result = validateRouteForm(form);
+    if (step === 1 || step === 2) {
+      const result = step === 1 ? validateRouteForm(form) : validatePackageForm(form);
       if (!result.ok) {
         setRevealRouteErrors(true);
         setError(result.summary);
@@ -127,7 +128,7 @@ export function BookWizard({
         </div>
       </RevealRouteErrors.Provider>
       <div className={step === 2 ? "block" : "hidden"} aria-hidden={step !== 2}>
-        <PackageFields form={form} update={update} field={BOOK_FIELD} lane={lane} />
+        <PackageFields form={form} update={update} field={BOOK_FIELD} lane={lane} reveal={revealRouteErrors} />
       </div>
       <div className={step === 3 ? "block" : "hidden"} aria-hidden={step !== 3}>
         <ReviewSummary form={form} lane={lane} />

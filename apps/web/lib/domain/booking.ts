@@ -42,6 +42,21 @@ export const draftBookingSchema = z
     wantsCod: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {
+    const lane = detectLane(data.originCountry, data.destinationCountry);
+    if (data.packageType !== "DOCUMENT") {
+      for (const key of ["lengthCm", "widthCm", "heightCm"] as const) {
+        if (data[key] === undefined) {
+          ctx.addIssue({ code: "custom", path: [key], message: "Package dimensions are required." });
+        }
+      }
+    }
+    if ((lane === "INTERNATIONAL" || data.wantsCod) && !data.declaredValue) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["declaredValue"],
+        message: "Declared value is required for international and COD shipments.",
+      });
+    }
     if (
       data.wantsCod &&
       detectLane(data.originCountry, data.destinationCountry) !== "DOMESTIC"
