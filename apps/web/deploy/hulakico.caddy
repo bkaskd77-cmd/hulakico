@@ -1,0 +1,23 @@
+# Hulakico site for the shared Caddy. Install as
+# /etc/caddy/sites-available/hulakico.caddy and link it into sites-enabled.
+# Caddy gets the HTTPS certificate once DNS for both names points at this VPS.
+
+www.hulakico.com {
+	redir https://hulakico.com{uri} permanent
+}
+
+hulakico.com {
+	request_body {
+		max_size 10MB
+	}
+	encode zstd gzip
+	header -Server
+
+	reverse_proxy 127.0.0.1:3201 {
+		lb_try_duration 5s
+		transport http {
+			dial_timeout 5s
+			response_header_timeout 120s
+		}
+	}
+}
