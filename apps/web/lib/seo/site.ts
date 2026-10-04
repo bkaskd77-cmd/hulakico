@@ -7,6 +7,7 @@ import { getServices } from "@/lib/data/services-content";
 
 export const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://hulakico.com").replace(/\/$/, "");
 export const SITE_NAME = "Hulakico Logistics";
+export const SITE_TAGLINE = "Hulakico Logistics — Moving Trust. Delivering More.";
 export const SITE_DESCRIPTION =
   "AI logistics control tower for Nepal — domestic and international shipping through one booking brain.";
 
@@ -50,7 +51,7 @@ export async function listPublicPaths(): Promise<PublicPath[]> {
 export function siteMetadata(): Metadata {
   return {
     metadataBase: new URL(SITE_ORIGIN),
-    title: { default: SITE_NAME, template: "%s" },
+    title: { default: SITE_TAGLINE, template: "%s" },
     description: SITE_DESCRIPTION,
     applicationName: SITE_NAME,
     keywords: ["Hulakico", "Nepal courier", "Kathmandu shipping", "international cargo Nepal"],
@@ -60,13 +61,13 @@ export function siteMetadata(): Metadata {
       locale: "en_NP",
       url: SITE_ORIGIN,
       siteName: SITE_NAME,
-      title: SITE_NAME,
+      title: SITE_TAGLINE,
       description: SITE_DESCRIPTION,
       images: [{ url: "/home/hero-handover.jpg", alt: "Courier handing a parcel at the door" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: SITE_NAME,
+      title: SITE_TAGLINE,
       description: SITE_DESCRIPTION,
       images: ["/home/hero-handover.jpg"],
     },
