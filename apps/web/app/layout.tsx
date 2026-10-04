@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
+import { organizationJsonLd, siteMetadata } from "@/lib/seo/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,11 +14,7 @@ const manrope = Manrope({
   weight: ["600", "700", "800"],
 });
 
-export const metadata: Metadata = {
-  title: "Hulakico",
-  description:
-    "AI logistics control tower for Nepal — domestic and international shipping through one booking brain.",
-};
+export const metadata = siteMetadata();
 
 export default function RootLayout({
   children,
@@ -31,6 +27,7 @@ export default function RootLayout({
         className={`${inter.variable} ${manrope.variable} antialiased`}
         suppressHydrationWarning
       >
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: organizationJsonLd() }} />
         {children}
       </body>
     </html>
