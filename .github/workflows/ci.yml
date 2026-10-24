@@ -91,19 +91,29 @@ jobs:
           docker build -t hulakico-web:ci apps/web
           docker build -t hulakico-intelligence:ci services/intelligence
 
-      # Fails on high or critical issues that already have a fix available.
+      # Report only; the next step turns findings into annotations and fails on
+      # high or critical issues that already have a fix available.
       - name: Scan web image
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: hulakico-web:ci
-          severity-cutoff: high
+          fail-build: "false"
           only-fixed: "true"
-          output-format: table
+          output-format: json
+          output-file: grype-web.json
 
       - name: Scan intelligence image
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: hulakico-intelligence:ci
-          severity-cutoff: high
+          fail-build: "false"
           only-fixed: "true"
-          output-format: table
+          output-format: json
+          output-file: grype-intelligence.json
+
+      - name: Image scan results
+        run: |
+          status=0
+          python3 .github/scripts/grype-report.py grype-web.json web || status=1
+          python3 .github/scripts/grype-report.py grype-intelligence.json intelligence || status=1
+          exit $status
