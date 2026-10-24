@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 import type { LaneCopy, LaneFact } from "@/lib/data/lane-content";
 import { DOMESTIC_CITIES } from "@/lib/domain/domestic-cities";
 import type { ShippingLane } from "@/lib/domain/international-lanes";
@@ -26,8 +26,8 @@ function factsOf(value: unknown, fallback: LaneFact[]): LaneFact[] {
   });
 }
 
-function seed(city: ShippingLane): Omit<LaneCopy, "slug" | "title" | "to"> {
-  const address = COMPANY_CONTACT.address.join(", ");
+/** Default copy. `address` is the saved office address from Admin → Contact. */
+function seed(city: ShippingLane, address: string): Omit<LaneCopy, "slug" | "title" | "to"> {
   return {
     summary: city.summary,
     transit: `${city.transit}\nName the ward when you quote. The window on that quote is the one to trust.`,
@@ -46,9 +46,9 @@ function seed(city: ShippingLane): Omit<LaneCopy, "slug" | "title" | "to"> {
   };
 }
 
-function fromSaved(city: ShippingLane, raw: unknown): LaneCopy {
+function fromSaved(city: ShippingLane, raw: unknown, address: string): LaneCopy {
   const row = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  const base = seed(city);
+  const base = seed(city, address);
   const image = typeof row.image === "string" ? row.image : base.image;
   return {
     slug: city.slug, title: city.title, to: city.to,
@@ -83,8 +83,9 @@ function customBase(slug: string, raw: unknown): ShippingLane | null {
 
 async function loadCopies(): Promise<LaneCopy[]> {
   const saved = await loadSaved();
-  const seeds = DOMESTIC_CITIES.map((city) => fromSaved(city, saved[city.slug]));
-  const extras = Object.keys(saved).flatMap((slug) => DOMESTIC_CITIES.some((city) => city.slug === slug) ? [] : [customBase(slug, saved[slug])].filter((city): city is ShippingLane => !!city).map((city) => fromSaved(city, saved[slug])));
+  const address = (await getCompanyContact()).address.join(", ");
+  const seeds = DOMESTIC_CITIES.map((city) => fromSaved(city, saved[city.slug], address));
+  const extras = Object.keys(saved).flatMap((slug) => DOMESTIC_CITIES.some((city) => city.slug === slug) ? [] : [customBase(slug, saved[slug])].filter((city): city is ShippingLane => !!city).map((city) => fromSaved(city, saved[slug], address)));
   return seeds.concat(extras);
 }
 

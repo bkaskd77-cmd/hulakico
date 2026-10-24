@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 import { INTERNATIONAL_LANES, type ShippingLane } from "@/lib/domain/international-lanes";
 import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
 import { getSql } from "@/lib/sql";
@@ -41,8 +41,8 @@ function factsOf(value: unknown, fallback: LaneFact[]): LaneFact[] {
   });
 }
 
-function seed(lane: ShippingLane): Omit<LaneCopy, "slug" | "title" | "to"> {
-  const address = COMPANY_CONTACT.address.join(", ");
+/** Default copy. `address` is the saved office address from Admin → Contact. */
+function seed(lane: ShippingLane, address: string): Omit<LaneCopy, "slug" | "title" | "to"> {
   return {
     summary: lane.summary,
     transit: `${lane.transit}\nName the receiving city when you quote. The window on that quote is the one to trust.`,
@@ -60,9 +60,9 @@ function seed(lane: ShippingLane): Omit<LaneCopy, "slug" | "title" | "to"> {
   };
 }
 
-function fromSaved(lane: ShippingLane, raw: unknown): LaneCopy {
+function fromSaved(lane: ShippingLane, raw: unknown, address: string): LaneCopy {
   const row = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  const base = seed(lane);
+  const base = seed(lane, address);
   const image = typeof row.image === "string" ? row.image : base.image;
   return {
     slug: lane.slug,
@@ -103,8 +103,9 @@ function customBase(slug: string, raw: unknown): ShippingLane | null {
 
 async function loadCopies(): Promise<LaneCopy[]> {
   const saved = await loadSaved();
-  const seeds = INTERNATIONAL_LANES.map((lane) => fromSaved(lane, saved[lane.slug]));
-  const extras = Object.keys(saved).flatMap((slug) => INTERNATIONAL_LANES.some((lane) => lane.slug === slug) ? [] : [customBase(slug, saved[slug])].filter((lane): lane is ShippingLane => !!lane).map((lane) => fromSaved(lane, saved[slug])));
+  const address = (await getCompanyContact()).address.join(", ");
+  const seeds = INTERNATIONAL_LANES.map((lane) => fromSaved(lane, saved[lane.slug], address));
+  const extras = Object.keys(saved).flatMap((slug) => INTERNATIONAL_LANES.some((lane) => lane.slug === slug) ? [] : [customBase(slug, saved[slug])].filter((lane): lane is ShippingLane => !!lane).map((lane) => fromSaved(lane, saved[slug], address)));
   return seeds.concat(extras);
 }
 
