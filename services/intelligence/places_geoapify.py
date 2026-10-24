@@ -14,7 +14,7 @@ from address_suggest import normalize_place
 
 ENDPOINT = "https://api.geoapify.com/v1/geocode/autocomplete"
 LIMIT = 6
-TIMEOUT_S = 6
+TIMEOUT_S = 4  # under the web app's 5 s limit, so a slow call still falls back cleanly
 
 
 def _first(*values: object) -> str:

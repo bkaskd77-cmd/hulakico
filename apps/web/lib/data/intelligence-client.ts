@@ -20,9 +20,11 @@ export type DocQcResult = {
 
 let circuitOpenUntil = 0; // skip remote for 30s after failure
 const FETCH_MS = 1500;
+// Address search calls a live provider (Geoapify), which can take about 2 s from Nepal.
+const SUGGEST_FETCH_MS = 5000;
 const CIRCUIT_MS = 30_000;
 
-async function intelligenceFetch<T>(path: string, body: unknown): Promise<T> {
+async function intelligenceFetch<T>(path: string, body: unknown, timeoutMs = FETCH_MS): Promise<T> {
   const baseUrl = process.env.INTELLIGENCE_API_URL;
   const token = process.env.INTELLIGENCE_SERVICE_TOKEN;
   if (!baseUrl || !token) {
@@ -33,7 +35,7 @@ async function intelligenceFetch<T>(path: string, body: unknown): Promise<T> {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       method: "POST",
@@ -138,6 +140,7 @@ export async function suggestPlaces(input: {
     const data = await intelligenceFetch<{ places: PlaceSuggestion[]; provider?: string }>(
       "/v1/suggest-places",
       input,
+      SUGGEST_FETCH_MS,
     );
     return { places: data.places ?? [], provider: data.provider ?? "stub" };
   } catch (error) {
