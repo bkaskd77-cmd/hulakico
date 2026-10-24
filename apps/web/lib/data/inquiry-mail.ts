@@ -1,7 +1,9 @@
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 import { CONTACT_TOPICS, type ContactMessageInput } from "@/lib/domain/contact";
 
-const INBOX = COMPANY_CONTACT.email;
+// The sender must stay on the Resend-verified hulakico.com domain, so it does not
+// follow the editable contact email. Inquiries go to whatever inbox Admin saved.
 const DEFAULT_FROM = `Hulakico <${COMPANY_CONTACT.email}>`;
 
 function topicLabel(value: string): string {
@@ -33,6 +35,7 @@ export async function sendInquiryEmail(
   const lines = [...details, "", input.message];
 
   try {
+    const inbox = (await getCompanyContact()).email;
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -41,7 +44,7 @@ export async function sendInquiryEmail(
       },
       body: JSON.stringify({
         from,
-        to: [INBOX],
+        to: [inbox],
         reply_to: input.email,
         subject: oneLine(`Hulakico inquiry: ${topicLabel(input.topic)} — ${input.name}`),
         text: lines.join("\n"),

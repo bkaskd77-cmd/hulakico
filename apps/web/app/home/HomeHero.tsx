@@ -3,7 +3,7 @@ import { QuoteLink } from "@/app/home/QuoteLink";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { WHATSAPP_PATH } from "@/app/home/social-icons";
 import type { HomepageContent } from "@/lib/data/homepage-content";
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 
 function Headline({ text, accent }: { text: string; accent: string }) {
   const index = accent ? text.indexOf(accent) : -1;
@@ -18,7 +18,7 @@ function Headline({ text, accent }: { text: string; accent: string }) {
 }
 
 /** Split hero: plain-language promise left, real hand-over photo with live timeline right. */
-export function HomeHero({
+export async function HomeHero({
   bookHref,
   signedIn,
   content,
@@ -27,7 +27,8 @@ export function HomeHero({
   signedIn: boolean;
   content: HomepageContent;
 }) {
-  const phone = COMPANY_CONTACT.phones[0];
+  const contact = await getCompanyContact();
+  const phone = contact.phones[0];
   const steps = content.heroTimeline.filter((step) => step.label.trim());
   const activeIndex = steps.findIndex((step) => !step.done);
   return (
@@ -60,7 +61,7 @@ export function HomeHero({
           <p className="shell-rise-delay mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--off-white)]/75">
             Prefer to talk?
             <a href={phone.href} className="font-semibold text-[var(--off-white)] hover:text-[var(--gold)]">{phone.display}</a>
-            <a href={COMPANY_CONTACT.whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-[#25D366] hover:brightness-110">
+            <a href={contact.whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-[#25D366] hover:brightness-110">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden><path d={WHATSAPP_PATH} /></svg>
               WhatsApp
             </a>
