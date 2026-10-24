@@ -293,8 +293,8 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 | 3 | Services manager (cards + detail pages, tag, image) — current 4 services as seed | **DONE** (public site reads the saved catalogue) |
 | 4 | Pages manager (About, Help FAQ, Terms, Privacy, new pages, footer group) | **DONE** (card editor; public pages and footer read the save) |
 | 5 | Company contact settings (phones, email, WhatsApp, address, map) used site-wide | **DONE** (Admin → Contact; contact page, footer, WhatsApp, hero, lanes, inquiry inbox read the save) |
-| 6 | Contact messages inbox | Pending |
-| 7 | Team page (list staff, change role, remove access) | Pending |
+| 6 | Contact messages inbox | **DONE** (Admin → Messages; operations staff; read, replied, archived) |
+| 7 | Team page (list staff, change role, remove access) | **DONE** (Admin → Team; Admin only; own and Admin accounts locked) |
 
 ---
 
