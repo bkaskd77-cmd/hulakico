@@ -4,6 +4,7 @@ node_modules/
 venv/
 .env
 .env.local
+.env.production
 .env.*.local
 !.env.example
 

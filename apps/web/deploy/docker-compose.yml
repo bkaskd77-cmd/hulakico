@@ -31,6 +31,34 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Python intelligence API. No published port: only the web container reaches it,
+  # at http://intelligence:8000 on this project's private Docker network.
+  intelligence:
+    build:
+      context: ../../../services/intelligence
+      dockerfile: Dockerfile
+    image: hulakico-intelligence:latest
+    container_name: hulakico-intelligence
+    env_file: ../../../services/intelligence/.env.production
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 secrets:
   env:
     file: ../.env.production
