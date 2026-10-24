@@ -1,0 +1,56 @@
+# Hulakico CI gate. Blocks a push when lint, types, build, or the security
+# check fail. The daily run catches new advisories even when nobody pushes.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *" # daily 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      # Third-party actions are pinned to full commit SHAs, not moving tags.
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install (lockfile only)
+        run: npm ci
+
+      - name: Security advisories
+        run: npm run check:advisories
+
+      - name: Lint
+        run: npx eslint . --max-warnings=9
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
