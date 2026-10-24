@@ -23,7 +23,8 @@ export default async function AdminNotificationsPage() {
         Notifications
       </h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Stub EMAIL log — not sent to inboxes until a mail provider is connected.
+        Every customer notice, newest first. Sent means Resend accepted the email; Failed means it was
+        not delivered (the booking or status change still went through). Logged means email is off.
       </p>
       {error ? <p className="mt-8 text-[var(--danger)]">{error}</p> : null}
       <ul className="mt-8 space-y-3">
@@ -36,7 +37,11 @@ export default async function AdminNotificationsPage() {
               {item.subject}
             </p>
             <p className="mt-1 text-xs text-[var(--muted)]">
-              {item.kind} · {item.channel} · {item.status} · {item.provider} ·{" "}
+              {item.kind} · {item.channel} ·{" "}
+              <span className={item.status === "FAILED" ? "font-semibold text-[var(--danger)]" : item.status === "SENT" ? "font-semibold text-[var(--teal)]" : ""}>
+                {item.status === "SENT" ? "Sent" : item.status === "FAILED" ? "Failed" : "Logged"}
+              </span>{" "}
+              · {item.provider} ·{" "}
               {item.hulakicoAwb ?? item.shipmentId}
             </p>
             <p className="mt-1 break-all text-xs text-[var(--teal)]">

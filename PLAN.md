@@ -331,8 +331,8 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| 1 | Resend sender + email layout; notifications send and record SENT/FAILED behind `NOTIFY_EMAIL=live` | Active |
-| 2 | Admin Notifications page shows delivery status; enable `NOTIFY_EMAIL=live` on the VPS | Pending |
+| 1 | Resend sender + email layout; notifications send and record SENT/FAILED behind `NOTIFY_EMAIL=live` | **DONE** |
+| 2 | Admin Notifications page shows delivery status; enable `NOTIFY_EMAIL=live` on the VPS | **DONE** |
 | 3 | Clear wording for each notice (booked, hold, handed over, delivered, paid) | Pending |
 
 ---
