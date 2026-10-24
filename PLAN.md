@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. No Phase 17 defined yet.
+**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. Phase 17 (customer email notifications) active.
 
 **Hosting:** hulakico.com runs on the shared Hostinger VPS (Docker `hulakico-web` + private `hulakico-intelligence`, behind Caddy and Cloudflare). Production data is Turso; images are Vercel Blob. The old Vercel project is paused and disconnected from Git.
 
@@ -320,6 +320,20 @@ Next request when ready: **execute Step 2** (Copy / rebook).
 
 Human: book an **international** draft → open `/book/draft/[id]` → fill commercial invoice lines → Save invoice.  
 Phase 4 Step 5 deferred; Phase 5 customer hub started.
+
+---
+
+## Phase 17 — Active (Customer email notifications)
+
+**Goal:** Customers get a real email when their shipment is booked, put on hold, handed over, delivered, or paid, instead of the stub log.
+
+**How:** `logCustomerNotification` stays the single entry point. When `NOTIFY_EMAIL=live` and `RESEND_API_KEY` are set it sends through Resend from the verified hulakico.com domain (plain text, tracking link, contact footer, reply-to the saved company inbox) and records `SENT` or `FAILED`. Otherwise it logs only. A failed email never blocks a booking or status change.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Resend sender + email layout; notifications send and record SENT/FAILED behind `NOTIFY_EMAIL=live` | Active |
+| 2 | Admin Notifications page shows delivery status; enable `NOTIFY_EMAIL=live` on the VPS | Pending |
+| 3 | Clear wording for each notice (booked, hold, handed over, delivered, paid) | Pending |
 
 ---
 

@@ -1,6 +1,7 @@
 import { getSql } from "@/lib/sql";
 import { runOnce } from "@/lib/sql/once";
 import { newId } from "@/lib/domain/auth";
+import { composeCustomerEmail, customerEmailEnabled, sendCustomerEmail } from "@/lib/data/customer-mail";
 
 export type NotifyKind =
   | "BOOKED"
@@ -43,7 +44,7 @@ async function ensureNotificationsTable(): Promise<void> {
   `));
 }
 
-/** Stub outbound notify — logs only until EMAIL/SMS provider is wired. */
+/** Logs every customer notice; also emails it through Resend when NOTIFY_EMAIL=live. */
 export async function logCustomerNotification(input: {
   shipmentId: string;
   kind: NotifyKind;
@@ -55,10 +56,12 @@ export async function logCustomerNotification(input: {
     const db = await getSql();
     const owner = (await db
       .prepare(
-        `SELECT s.user_id, u.email FROM shipments s
+        `SELECT s.user_id, s.hulakico_awb, s.tracking_token, u.email, u.name FROM shipments s
          JOIN users u ON u.id = s.user_id WHERE s.id = ?`,
       )
-      .get(input.shipmentId)) as { user_id: string; email: string } | undefined;
+      .get(input.shipmentId)) as
+      | { user_id: string; email: string; name: string; hulakico_awb: string | null; tracking_token: string | null }
+      | undefined;
     if (!owner) return { error: "Shipment owner not found for notification." };
 
     const id = newId("ntf");
@@ -71,9 +74,15 @@ export async function logCustomerNotification(input: {
       id, input.shipmentId, owner.user_id, input.kind, owner.email,
       input.subject, input.body, now,
     );
-    console.info(
-      `[notifications.ts] stub EMAIL ${input.kind} → ${owner.email} (${input.shipmentId})`,
-    );
+    if (customerEmailEnabled()) {
+      const text = await composeCustomerEmail({
+        name: owner.name, body: input.body, hulakicoAwb: owner.hulakico_awb, trackingToken: owner.tracking_token,
+      });
+      const sent = await sendCustomerEmail({ to: owner.email, subject: input.subject, text });
+      await db.prepare(`UPDATE outbound_notifications SET status = ?, provider = 'resend', body = ? WHERE id = ?`)
+        .run("error" in sent ? "FAILED" : "SENT", text, id);
+      if ("error" in sent) console.error("[notifications.ts:logCustomerNotification]", input.kind, input.shipmentId, sent.error);
+    }
     return { ok: true, id };
   } catch (error) {
     console.error(
