@@ -129,6 +129,8 @@ export function PartyAddressBlock({
           countryHint={form[k.country]}
           cityHint={form[k.city]}
           onPick={onPlacePick}
+          saved={bookAddresses}
+          onPickSaved={onPick}
         />
         {hint(k.line1) ? (
           <p className="sm:col-span-2 -mt-2 text-xs text-[var(--danger)]">{hint(k.line1)}</p>

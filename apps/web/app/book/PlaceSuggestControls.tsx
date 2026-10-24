@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { SavedAddress } from "@/lib/data/addresses";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
+import { matchSavedAddresses } from "./saved-match";
 
 function sameCity(placeCity: string, hint: string): boolean {
   const a = placeCity.trim().toLowerCase();
@@ -20,6 +22,8 @@ export function PlaceSuggestControls({
   countryHint,
   cityHint,
   onPick,
+  saved = [],
+  onPickSaved,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -29,6 +33,9 @@ export function PlaceSuggestControls({
   countryHint: string;
   cityHint: string;
   onPick: (place: PlaceSuggestion) => void;
+  /** The customer's own saved addresses for this side; matches are shown first. */
+  saved?: SavedAddress[];
+  onPickSaved?: (address: SavedAddress) => void;
 }) {
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
   const [pending, setPending] = useState(false);
@@ -37,6 +44,8 @@ export function PlaceSuggestControls({
   const seq = useRef(0);
   // Short input shows nothing; old results stay hidden instead of being reset in the effect.
   const active = value.trim().length >= 2;
+  const savedHits = active && onPickSaved ? matchSavedAddresses(value, saved) : [];
+  const hasRows = savedHits.length > 0 || places.length > 0;
 
   useEffect(() => {
     const q = value.trim();
@@ -102,7 +111,7 @@ export function PlaceSuggestControls({
             window.setTimeout(() => setOpen(false), 150);
             onBlur();
           }}
-          onFocus={() => active && places.length > 0 && setOpen(true)}
+          onFocus={() => active && hasRows && setOpen(true)}
           required
           minLength={5}
           placeholder="Start typing a hotel, company, or street…"
@@ -112,8 +121,17 @@ export function PlaceSuggestControls({
       {active && pending ? (
         <p className="mt-1 text-xs text-[var(--muted)]">Looking up places…</p>
       ) : null}
-      {open && active && places.length > 0 ? (
+      {open && active && hasRows ? (
         <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy)] shadow-lg">
+          {savedHits.map((address) => (
+            <li key={`saved-${address.id}`}>
+              <button type="button" className={"w-full px-3 py-2 text-left text-xs text-[var(--off-white)] hover:bg-[color-mix(in_srgb,var(--teal)_22%,transparent)]"} onMouseDown={(e) => e.preventDefault()} onClick={() => { onPickSaved?.(address); setOpen(false); }}>
+                <span className="mr-1.5 rounded bg-[color-mix(in_srgb,var(--teal)_30%,transparent)] px-1.5 py-0.5 text-[10px] font-semibold uppercase">Saved</span>
+                <span className="font-semibold">{address.label}</span>
+                <span className="mt-0.5 block text-[var(--muted)]">{address.contactName} · {address.line1}, {address.city}</span>
+              </button>
+            </li>
+          ))}
           {places.map((place) => (
             <li key={`${place.label}-${place.line1}`}>
               <button
@@ -131,7 +149,7 @@ export function PlaceSuggestControls({
               </button>
             </li>
           ))}
-          {attribution === "geoapify" ? (
+          {attribution === "geoapify" && places.length > 0 ? (
             <li className="border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-3 py-1.5 text-right text-[10px] text-[var(--muted)]">
               Powered by{" "}
               <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--off-white)]" onMouseDown={(e) => e.preventDefault()}>
