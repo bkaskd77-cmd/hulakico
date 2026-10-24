@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext } from "react";
+import { phoneProblem } from "./countries";
 import type { FormState } from "./form-types";
 
 export const RevealRouteErrors = createContext(false);
@@ -10,17 +11,12 @@ const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type RouteErrors = Partial<Record<keyof FormState, string>>;
 
-function phoneError(value: string): string | undefined {
+/** Shape check, then the per-country length rule (dial code and digits). */
+function phoneError(value: string, country: string): string | undefined {
   const trimmed = value.trim();
   if (trimmed.length < 7) return "Phone must be at least 7 characters.";
-  if (!PHONE_SHAPE.test(trimmed)) {
-    return "Use digits, spaces, +, or dashes only.";
-  }
-  const digits = trimmed.replace(/\D/g, "");
-  if (digits.length < 7 || digits.length > 15) {
-    return "Phone needs 7–15 digits.";
-  }
-  return undefined;
+  if (!PHONE_SHAPE.test(trimmed)) return "Use digits, spaces, +, or dashes only.";
+  return phoneProblem(trimmed, country);
 }
 
 function emailError(value: string): string | undefined {
@@ -48,7 +44,7 @@ export function validateRouteForm(form: FormState): {
   };
 
   set("originContactName", requiredMin(form.originContactName, 2, "Shipper name"));
-  set("originPhone", phoneError(form.originPhone));
+  set("originPhone", phoneError(form.originPhone, form.originCountry));
   set("originEmail", emailError(form.originEmail));
   set("originCity", requiredMin(form.originCity, 2, "Shipper city"));
   set("originCountry", requiredMin(form.originCountry, 2, "Shipper country"));
@@ -58,7 +54,7 @@ export function validateRouteForm(form: FormState): {
     "destinationContactName",
     requiredMin(form.destinationContactName, 2, "Consignee name"),
   );
-  set("destinationPhone", phoneError(form.destinationPhone));
+  set("destinationPhone", phoneError(form.destinationPhone, form.destinationCountry));
   set("destinationEmail", emailError(form.destinationEmail));
   set("destinationCity", requiredMin(form.destinationCity, 2, "Consignee city"));
   set(
@@ -69,6 +65,9 @@ export function validateRouteForm(form: FormState): {
     "destinationLine1",
     requiredMin(form.destinationLine1, 5, "Consignee address"),
   );
+
+  // Every shipment leaves Nepal; a rebooked or old draft could still carry a foreign shipper.
+  if (form.originCountry.trim().toUpperCase() !== "NP") set("originCountry", "The shipper must be in Nepal.");
 
   const keys = Object.keys(errors);
   return {

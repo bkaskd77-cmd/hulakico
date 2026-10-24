@@ -3,7 +3,7 @@
 import { useContext, useState } from "react";
 import type { SavedAddress } from "@/lib/data/addresses";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
-import { countryFitsSide, countryOptionsFor } from "./countries";
+import { countryFitsSide, countryOptionsFor, normalizePhone, phonePlaceholder } from "./countries";
 import { NP_CITIES, PARTY_KEYS } from "./party-keys";
 import { PlaceSuggestControls } from "./PlaceSuggestControls";
 import { SavedAddressControls } from "./SavedAddressControls";
@@ -64,7 +64,7 @@ export function PartyAddressBlock({
         </label>
         <label className="text-sm text-[var(--muted)]">
           Phone
-          <input className={field} value={form[k.phone]} onChange={(e) => update(k.phone, e.target.value)} onBlur={blur(k.phone)} required minLength={7} inputMode="tel" autoComplete="tel" />
+          <input className={field} value={form[k.phone]} onChange={(e) => update(k.phone, e.target.value)} onBlur={() => { update(k.phone, normalizePhone(form[k.phone], form[k.country])); blur(k.phone)(); }} placeholder={phonePlaceholder(form[k.country])} required minLength={7} inputMode="tel" autoComplete="tel" />
           {hint(k.phone) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.phone)}</p> : null}
         </label>
         <label className="text-sm text-[var(--muted)]">
