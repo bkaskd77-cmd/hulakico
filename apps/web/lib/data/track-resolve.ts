@@ -1,3 +1,4 @@
+import { normalizeAwb } from "@/lib/domain/awb";
 import { getSql } from "@/lib/sql";
 
 /** Resolve public track lookup by Hulakico AWB or tracking token. */
@@ -18,13 +19,16 @@ export async function resolveTrackingQuery(
       .get(q)) as { tracking_token: string } | undefined;
     if (byToken?.tracking_token) return { token: byToken.tracking_token };
 
+    // Accept "hk 7q4m 2x9k pa3r", "7Q4M2X9KPA3R", or the printed HK-7Q4M-2X9K-PA3R.
+    const typed = normalizeAwb(q);
+    const awb = typed.startsWith("HK") ? typed : `HK${typed}`;
     const byAwb = (await db
       .prepare(
         `SELECT tracking_token FROM shipments
-         WHERE lower(hulakico_awb) = lower(?) AND tracking_token IS NOT NULL
+         WHERE replace(upper(hulakico_awb), '-', '') = ? AND tracking_token IS NOT NULL
          LIMIT 1`,
       )
-      .get(q)) as { tracking_token: string } | undefined;
+      .get(awb)) as { tracking_token: string } | undefined;
     if (byAwb?.tracking_token) return { token: byAwb.tracking_token };
 
     return { error: "No shipment matched that code." };

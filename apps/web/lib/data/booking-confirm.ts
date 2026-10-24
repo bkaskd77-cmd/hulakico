@@ -5,6 +5,7 @@ import { logCustomerNotification } from "@/lib/data/notifications";
 import { canConfirmBooking } from "@/lib/data/payment-wallet";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
+import { newHulakicoAwb } from "@/lib/domain/awb";
 
 export type BookedShipment = {
   id: string;
@@ -74,7 +75,7 @@ export async function confirmShipmentBooking(
     });
 
     const now = new Date().toISOString();
-    const hulakicoAwb = `HK-${randomBytes(16).toString("hex").toUpperCase()}`;
+    const hulakicoAwb = newHulakicoAwb();
     const trackingToken = randomBytes(16).toString("base64url");
 
     await db.prepare(
