@@ -17,7 +17,10 @@ const SECURITY_HEADERS = [
       "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
       "font-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline'",
+      // React needs eval() for dev-only debugging; production never allows it.
+      process.env.NODE_ENV === "development"
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        : "script-src 'self' 'unsafe-inline'",
       "connect-src 'self'",
       "upgrade-insecure-requests",
     ].join("; "),
