@@ -54,3 +54,56 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  intelligence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: services/intelligence
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install and import
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -q -r requirements.txt pip-audit==2.10.1
+          .venv/bin/python -c "import main"
+
+      - name: Python advisories
+        run: .venv/bin/pip-audit -r requirements.txt --strict
+
+  images:
+    # Scans the real production images: Node.js, Python, and Debian packages.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build images
+        run: |
+          docker build -t hulakico-web:ci apps/web
+          docker build -t hulakico-intelligence:ci services/intelligence
+
+      # Fails on high or critical issues that already have a fix available.
+      - name: Scan web image
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: hulakico-web:ci
+          severity-cutoff: high
+          only-fixed: "true"
+          output-format: table
+
+      - name: Scan intelligence image
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: hulakico-intelligence:ci
+          severity-cutoff: high
+          only-fixed: "true"
+          output-format: table

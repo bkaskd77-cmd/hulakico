@@ -1,0 +1,42 @@
+# Dependabot opens pull requests for outdated or vulnerable dependencies.
+# CI must pass on each pull request before it is merged and deployed.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /apps/web
+    schedule:
+      interval: weekly
+      day: monday
+    # Skip releases younger than 3 days, so a hijacked package version is
+    # usually pulled before we take it. Security updates are not delayed.
+    cooldown:
+      default-days: 3
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: pip
+    directory: /services/intelligence
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 3
+
+  - package-ecosystem: docker
+    directories:
+      - /apps/web
+      - /services/intelligence
+    schedule:
+      interval: weekly
+      day: monday
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 3
