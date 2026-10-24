@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BOOKING_COUNTRIES } from "@/app/book/countries";
+import { BOOKING_COUNTRIES, HOME_COUNTRY } from "@/app/book/countries";
 import { PlaceSuggestControls } from "@/app/book/PlaceSuggestControls";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
 
@@ -27,7 +27,7 @@ export type QuoteSpecPayload = {
   contents: string;
 };
 
-const EMPTY: QuoteRouteSide = { country: "NP", line1: "", city: "", postalCode: "" };
+const EMPTY: QuoteRouteSide = { country: HOME_COUNTRY, line1: "", city: "", postalCode: "" };
 
 function applyPlace(side: QuoteRouteSide, place: PlaceSuggestion): QuoteRouteSide {
   return {
@@ -77,7 +77,7 @@ export function HomeQuoteFields({
   onSubmit: (payload: QuoteSpecPayload) => void;
 }) {
   const [origin, setOrigin] = useState<QuoteRouteSide>(EMPTY);
-  const [destination, setDestination] = useState<QuoteRouteSide>({ ...EMPTY, country: "NP" });
+  const [destination, setDestination] = useState<QuoteRouteSide>(EMPTY);
   const [packageType, setPackageType] = useState("PARCEL");
 
   return (
@@ -100,12 +100,11 @@ export function HomeQuoteFields({
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
+        {/* Every Hulakico shipment leaves Nepal; rates are priced by destination. */}
         <label className="text-xs text-[var(--muted)]">From country
-          <select required value={origin.country} onChange={(e) => setOrigin({ ...origin, country: e.target.value })} className={QUOTE_FIELD}>
-            {BOOKING_COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
-          </select></label>
+          <input value="Nepal" readOnly aria-readonly className={QUOTE_FIELD} /></label>
         <label className="text-xs text-[var(--muted)]">To country
-          <select required value={destination.country} onChange={(e) => setDestination({ ...destination, country: e.target.value })} className={QUOTE_FIELD}>
+          <select required value={destination.country} onChange={(e) => setDestination({ ...EMPTY, country: e.target.value })} className={QUOTE_FIELD}>
             {BOOKING_COUNTRIES.map((c) => <option key={`d-${c.code}`} value={c.code}>{c.name}</option>)}
           </select></label>
       </div>
