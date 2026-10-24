@@ -1,7 +1,7 @@
 import { getSql } from "@/lib/sql";
 import { runOnce } from "@/lib/sql/once";
 import { newId } from "@/lib/domain/auth";
-import { composeCustomerEmail, customerEmailEnabled, sendCustomerEmail } from "@/lib/data/customer-mail";
+import { composeCustomerEmail, customerEmailEnabled, noticeSubject, sendCustomerEmail } from "@/lib/data/customer-mail";
 
 export type NotifyKind =
   | "BOOKED"
@@ -76,11 +76,12 @@ export async function logCustomerNotification(input: {
     );
     if (customerEmailEnabled()) {
       const text = await composeCustomerEmail({
-        name: owner.name, body: input.body, hulakicoAwb: owner.hulakico_awb, trackingToken: owner.tracking_token,
+        kind: input.kind, name: owner.name, body: input.body, hulakicoAwb: owner.hulakico_awb, trackingToken: owner.tracking_token,
       });
-      const sent = await sendCustomerEmail({ to: owner.email, subject: input.subject, text });
-      await db.prepare(`UPDATE outbound_notifications SET status = ?, provider = 'resend', body = ? WHERE id = ?`)
-        .run("error" in sent ? "FAILED" : "SENT", text, id);
+      const subject = noticeSubject(input.kind, owner.hulakico_awb);
+      const sent = await sendCustomerEmail({ to: owner.email, subject, text });
+      await db.prepare(`UPDATE outbound_notifications SET status = ?, provider = 'resend', subject = ?, body = ? WHERE id = ?`)
+        .run("error" in sent ? "FAILED" : "SENT", subject, text, id);
       if ("error" in sent) console.error("[notifications.ts:logCustomerNotification]", input.kind, input.shipmentId, sent.error);
     }
     return { ok: true, id };

@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. Phase 17 (customer email notifications) active.
+**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. Phase 17 (customer email notifications) complete.
 
 **Hosting:** hulakico.com runs on the shared Hostinger VPS (Docker `hulakico-web` + private `hulakico-intelligence`, behind Caddy and Cloudflare). Production data is Turso; images are Vercel Blob. The old Vercel project is paused and disconnected from Git.
 
@@ -323,7 +323,7 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 
 ---
 
-## Phase 17 — Active (Customer email notifications)
+## Phase 17 — COMPLETE (Customer email notifications)
 
 **Goal:** Customers get a real email when their shipment is booked, put on hold, handed over, delivered, or paid, instead of the stub log.
 
@@ -333,7 +333,7 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 |------|-------------|--------|
 | 1 | Resend sender + email layout; notifications send and record SENT/FAILED behind `NOTIFY_EMAIL=live` | **DONE** |
 | 2 | Admin Notifications page shows delivery status; enable `NOTIFY_EMAIL=live` on the VPS | **DONE** |
-| 3 | Clear wording for each notice (booked, hold, handed over, delivered, paid) | Pending |
+| 3 | Clear wording for each notice (booked, hold, handed over, delivered, paid) | **DONE** (subject, opening line, next step per kind; readable AWBs) |
 
 ---
 
