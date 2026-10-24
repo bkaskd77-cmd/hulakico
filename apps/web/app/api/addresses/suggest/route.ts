@@ -22,11 +22,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ places: [] });
     }
 
-    const places = await suggestPlaces({
+    const { places, provider } = await suggestPlaces({
       query,
       countryHint: body.countryHint,
     });
-    return NextResponse.json({ places });
+    // Geoapify's free plan requires a visible attribution next to its results.
+    return NextResponse.json({ places, attribution: provider.startsWith("geoapify") ? "geoapify" : null });
   } catch (error) {
     console.error(
       "[api/addresses/suggest/route.ts:POST]",

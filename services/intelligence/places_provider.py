@@ -38,14 +38,19 @@ class FallbackPlacesProvider:
 
 def get_places_provider() -> PlacesProvider:
     """
-    PLACES_PROVIDER=stub (default) | nominatim
-    nominatim uses OpenStreetMap; falls back to stub if no matches / network error.
+    PLACES_PROVIDER=stub (default) | geoapify | nominatim
+    Live providers fall back to stub if no matches / network error.
+    geoapify needs GEOAPIFY_API_KEY.
     """
     stub = StubPlacesProvider()
     try:
         provider_name = (os.getenv("PLACES_PROVIDER") or "stub").strip().lower()
         if provider_name in {"", "stub"}:
             return stub
+        if provider_name == "geoapify":
+            from places_geoapify import GeoapifyPlacesProvider
+
+            return FallbackPlacesProvider(GeoapifyPlacesProvider(), stub)
         if provider_name == "nominatim":
             from places_live import NominatimPlacesProvider
 

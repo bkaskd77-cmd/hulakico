@@ -33,6 +33,7 @@ export function PlaceSuggestControls({
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
   const [pending, setPending] = useState(false);
   const [open, setOpen] = useState(false);
+  const [attribution, setAttribution] = useState<string | null>(null);
   const seq = useRef(0);
   // Short input shows nothing; old results stay hidden instead of being reset in the effect.
   const active = value.trim().length >= 2;
@@ -68,6 +69,7 @@ export function PlaceSuggestControls({
           list = list.filter((place) => sameCity(place.city, city));
         }
         setPlaces(list);
+        setAttribution(data.attribution === "geoapify" ? "geoapify" : null);
         setOpen(list.length > 0);
       } catch (err) {
         console.error("[PlaceSuggestControls.tsx:debounce]", err);
@@ -129,6 +131,14 @@ export function PlaceSuggestControls({
               </button>
             </li>
           ))}
+          {attribution === "geoapify" ? (
+            <li className="border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] px-3 py-1.5 text-right text-[10px] text-[var(--muted)]">
+              Powered by{" "}
+              <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--off-white)]" onMouseDown={(e) => e.preventDefault()}>
+                Geoapify
+              </a>
+            </li>
+          ) : null}
         </ul>
       ) : null}
     </div>

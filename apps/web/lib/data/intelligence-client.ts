@@ -133,18 +133,18 @@ export type PlaceSuggestion = {
 export async function suggestPlaces(input: {
   query: string;
   countryHint?: string;
-}): Promise<PlaceSuggestion[]> {
+}): Promise<{ places: PlaceSuggestion[]; provider: string }> {
   try {
-    const data = await intelligenceFetch<{ places: PlaceSuggestion[] }>(
+    const data = await intelligenceFetch<{ places: PlaceSuggestion[]; provider?: string }>(
       "/v1/suggest-places",
       input,
     );
-    return data.places ?? [];
+    return { places: data.places ?? [], provider: data.provider ?? "stub" };
   } catch (error) {
     console.error(
       "[intelligence-client.ts:suggestPlaces]",
       error instanceof Error ? error.message : error,
     );
-    return [];
+    return { places: [], provider: "stub" };
   }
 }
