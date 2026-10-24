@@ -16,6 +16,16 @@ updates:
       npm-minor-and-patch:
         update-types: [minor, patch]
     open-pull-requests-limit: 10
+    # Majors held until the Next.js toolchain supports them (checked 24 Oct 2026):
+    # eslint 10 breaks eslint-plugin-react/import/jsx-a11y peers, TypeScript 7
+    # crashes typescript-eslint, and @types/node must match the Node 24 runtime.
+    ignore:
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: pip
     directory: /services/intelligence
@@ -32,6 +42,11 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    # Stay on the Node 24 LTS line; move to Node 26 deliberately after it becomes
+    # LTS (28 Oct 2026). Patch and minor base-image updates still arrive.
+    ignore:
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
