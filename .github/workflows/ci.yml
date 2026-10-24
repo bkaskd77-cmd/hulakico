@@ -47,7 +47,7 @@ jobs:
         run: npm run check:advisories
 
       - name: Lint
-        run: npx eslint . --max-warnings=9
+        run: npx eslint . --max-warnings=0
 
       - name: Type check
         run: npm run typecheck
