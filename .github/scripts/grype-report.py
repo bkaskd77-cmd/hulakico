@@ -17,8 +17,7 @@ BLOCKING = {"High", "Critical"}
 def escape_property(value: str) -> str:
     """Workflow-command property values must escape %, CR, LF, ':' and ','."""
     return (
-        value.replace("%", "%25").replace("", "%0D").replace("
-", "%0A")
+        value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
         .replace(":", "%3A").replace(",", "%2C")
     )
 
