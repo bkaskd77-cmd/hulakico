@@ -4,7 +4,7 @@ import { useContext, useState } from "react";
 import type { SavedAddress } from "@/lib/data/addresses";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
 import { countryFitsSide, countryOptionsFor, normalizePhone, phonePlaceholder } from "./countries";
-import { NP_CITIES, PARTY_KEYS } from "./party-keys";
+import { cityChoices, PARTY_KEYS } from "./party-keys";
 import { PlaceSuggestControls } from "./PlaceSuggestControls";
 import { SavedAddressControls } from "./SavedAddressControls";
 import type { FormState, FormUpdate } from "./form-types";
@@ -108,9 +108,9 @@ export function PartyAddressBlock({
             placeholder={lane === "DOMESTIC" ? "e.g. Kathmandu" : "City or town"}
           />
           {hint(k.city) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.city)}</p> : null}
-          {lane === "DOMESTIC" ? (
+          {cityChoices(form[k.country]).length ? (
             <div className="mt-1 flex flex-wrap gap-1.5">
-              {NP_CITIES.map((city) => (
+              {cityChoices(form[k.country]).map((city) => (
                 <button key={city} type="button" onClick={() => update(k.city, city)} className="rounded border border-[color-mix(in_srgb,var(--teal)_45%,transparent)] px-2 py-0.5 text-[10px] text-[var(--teal)]">{city}</button>
               ))}
             </div>
