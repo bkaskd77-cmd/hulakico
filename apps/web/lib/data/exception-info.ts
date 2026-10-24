@@ -48,7 +48,7 @@ export async function requestExceptionInfo(
       shipmentId: exception.shipment_id,
       kind: "HOLD",
       subject: "Hulakico — info needed for your shipment",
-      body: `Your shipment is on hold. Ops asked: ${note}`,
+      body: `Our team asked: ${note}`,
     });
     if ("error" in notify) {
       console.error("[exception-info.ts:requestExceptionInfo]", notify.error);

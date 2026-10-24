@@ -68,7 +68,7 @@ export async function openException(
       shipmentId,
       kind: "HOLD",
       subject: "Hulakico shipment on hold",
-      body: `Your shipment is on hold: ${trimmed}. Please contact Hulakico for more information so we can clear this hold.`,
+      body: `Reason: ${trimmed}`,
     });
     if ("error" in notify) {
       console.error("[exceptions.ts:openException]", notify.error);
