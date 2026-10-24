@@ -1,21 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+
+type AccountType = "INDIVIDUAL" | "BUSINESS";
+
+const noSubscribe = () => () => {};
+const readBusinessLink = () =>
+  new URLSearchParams(window.location.search).get("type") === "business";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [accountType, setAccountType] = useState<"INDIVIDUAL" | "BUSINESS">(
-    "INDIVIDUAL",
-  );
+  // A ?type=business link preselects Business until the user picks a type.
+  const linkedBusiness = useSyncExternalStore(noSubscribe, readBusinessLink, () => false);
+  const [picked, setPicked] = useState<AccountType | null>(null);
+  const accountType: AccountType = picked ?? (linkedBusiness ? "BUSINESS" : "INDIVIDUAL");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    const type = new URLSearchParams(window.location.search).get("type");
-    if (type === "business") setAccountType("BUSINESS");
-  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,7 +76,7 @@ export default function SignupPage() {
             <button
               key={value}
               type="button"
-              onClick={() => setAccountType(value)}
+              onClick={() => setPicked(value)}
               className={`rounded-md px-3 py-2 text-sm font-medium ${
                 accountType === value
                   ? "bg-[var(--teal)] text-[var(--off-white)]"

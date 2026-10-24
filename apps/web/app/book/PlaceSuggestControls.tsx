@@ -34,17 +34,15 @@ export function PlaceSuggestControls({
   const [pending, setPending] = useState(false);
   const [open, setOpen] = useState(false);
   const seq = useRef(0);
+  // Short input shows nothing; old results stay hidden instead of being reset in the effect.
+  const active = value.trim().length >= 2;
 
   useEffect(() => {
     const q = value.trim();
-    if (q.length < 2) {
-      setPlaces([]);
-      setPending(false);
-      return;
-    }
+    if (q.length < 2) return;
     const ticket = ++seq.current;
-    setPending(true);
     const timer = window.setTimeout(async () => {
+      setPending(true);
       try {
         const country =
           lane === "DOMESTIC" ? "NP" : countryHint.trim().toUpperCase();
@@ -102,17 +100,17 @@ export function PlaceSuggestControls({
             window.setTimeout(() => setOpen(false), 150);
             onBlur();
           }}
-          onFocus={() => places.length > 0 && setOpen(true)}
+          onFocus={() => active && places.length > 0 && setOpen(true)}
           required
           minLength={5}
           placeholder="Start typing a hotel, company, or street…"
           autoComplete="off"
         />
       </label>
-      {pending ? (
+      {active && pending ? (
         <p className="mt-1 text-xs text-[var(--muted)]">Looking up places…</p>
       ) : null}
-      {open && places.length > 0 ? (
+      {open && active && places.length > 0 ? (
         <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy)] shadow-lg">
           {places.map((place) => (
             <li key={`${place.label}-${place.line1}`}>
