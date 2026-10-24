@@ -14,6 +14,15 @@ FILE = "grype-report.py"
 BLOCKING = {"High", "Critical"}
 
 
+def escape_property(value: str) -> str:
+    """Workflow-command property values must escape %, CR, LF, ':' and ','."""
+    return (
+        value.replace("%", "%25").replace("", "%0D").replace("
+", "%0A")
+        .replace(":", "%3A").replace(",", "%2C")
+    )
+
+
 def load_report(path: str) -> dict:
     try:
         with open(path, encoding="utf-8") as handle:
@@ -51,10 +60,8 @@ def main() -> None:
     for (name, version, kind), entry in sorted(grouped.items()):
         ids = ", ".join(sorted(entry["ids"]))
         fixes = ", ".join(sorted(entry["fixes"])) or "see advisory"
-        print(
-            f"::error title={label}: {entry['severity']} in {name}::"
-            f"{name} {version} ({kind}) -> fixed in {fixes}. {ids}"
-        )
+        title = escape_property(f"{label} image - {entry['severity']} in {name}")
+        print(f"::error title={title}::{name} {version} ({kind}) -> fixed in {fixes}. {ids}")
     if grouped:
         print(f"[{FILE}] {label}: {len(grouped)} package(s) with fixable high/critical issues.")
         sys.exit(1)
