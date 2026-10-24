@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SOCIAL_ICON_PATHS, SOCIAL_LABELS, WHATSAPP_PATH } from "@/app/home/social-icons";
 import { getHomepageContent } from "@/lib/data/homepage-content";
 import { SOCIAL_NETWORKS } from "@/lib/domain/social";
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 import { getPages } from "@/lib/data/pages-content";
 import { PAGE_GROUPS } from "@/lib/domain/page-catalogue";
 import { getServices } from "@/lib/data/services-content";
@@ -17,7 +17,7 @@ export async function SiteFooter() {
   const content = await getHomepageContent();
   const services = await getServices();
   const pages = await getPages();
-  const c = COMPANY_CONTACT;
+  const c = await getCompanyContact();
   return (
     <footer className="home-footer relative overflow-hidden border-t border-[color-mix(in_srgb,var(--off-white)_10%,transparent)]">
       <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url(/home/footer.jpg)" }} />

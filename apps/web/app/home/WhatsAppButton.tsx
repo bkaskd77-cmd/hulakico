@@ -1,11 +1,12 @@
 import { WHATSAPP_PATH } from "@/app/home/social-icons";
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 
 /** Floating WhatsApp chat button for public pages. */
-export function WhatsAppButton() {
+export async function WhatsAppButton() {
+  const contact = await getCompanyContact();
   return (
     <a
-      href={COMPANY_CONTACT.whatsappHref}
+      href={contact.whatsappHref}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with Hulakico on WhatsApp"

@@ -4,7 +4,7 @@ import { ContactForm } from "@/app/contact/ContactForm";
 import { SiteFooter } from "@/app/home/SiteFooter";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
-import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { getCompanyContact } from "@/lib/data/company-contact-content";
 
 export const metadata: Metadata = {
   title: "Contact · Hulakico",
@@ -33,8 +33,8 @@ const PIN_ICON = "M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5
 const cardClass =
   "flex gap-4 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] bg-[var(--navy-elevated)] p-5";
 
-export default function ContactPage() {
-  const c = COMPANY_CONTACT;
+export default async function ContactPage() {
+  const c = await getCompanyContact();
   return (
     <div className="shell-sky min-h-dvh">
       <PublicHeader />
