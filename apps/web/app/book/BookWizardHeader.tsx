@@ -30,12 +30,16 @@ export function BookWizardHeader({
             key={mode}
             type="button"
             onClick={() => onLane(mode)}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+            aria-pressed={lane === mode}
+            // Explicit colours: the site-wide gold-button rule would paint the chosen
+            // lane the same dark green as this card, so it looked switched off.
+            className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition ${
               lane === mode
-                ? "bg-[var(--gold)] text-[var(--navy)]"
-                : "border border-[var(--teal)] text-[var(--teal)]"
+                ? "border-[#f6f1e7] bg-[#f6f1e7] text-[#0e3d38] shadow-sm"
+                : "border-[color-mix(in_srgb,var(--off-white)_35%,transparent)] text-[var(--off-white)] opacity-80 hover:opacity-100"
             }`}
           >
+            {lane === mode ? "✓ " : ""}
             {mode === "DOMESTIC" ? "Nepal domestic" : "International"}
           </button>
         ))}

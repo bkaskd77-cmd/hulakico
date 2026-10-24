@@ -16,6 +16,8 @@ from postcode_rules import clean_postcode
 ENDPOINT = "https://api.geoapify.com/v1/geocode/autocomplete"
 LIMIT = 6
 FETCH_LIMIT = 10  # ask for a few extra so de-duplication still leaves enough
+# Geoapify rates each match 0-1. Look-alikes ("Thamel" -> "Thamal") score about 0.75.
+MIN_CONFIDENCE = 0.8
 TIMEOUT_S = 4  # under the web app's 5 s limit, so a slow call still falls back cleanly
 
 
@@ -36,7 +38,8 @@ def _map_geoapify(item: dict) -> dict | None:
         area = _first(item.get("suburb"), item.get("district"), item.get("quarter"), item.get("neighbourhood"))
         name = _first(item.get("name"))
         is_business = item.get("result_type") == "amenity" or bool(item.get("category"))
-        line1 = f"{house} {street}".strip() if street else _first(area, item.get("address_line1"))
+        # No street (an area such as Thamel): use the place's own name, not the wider district.
+        line1 = f"{house} {street}".strip() if street else _first(item.get("address_line1"), name, area)
         line2 = area if street and area and area != city else ""
         if is_business and name and line1 == name:
             line1 = _first(street, area, item.get("address_line2"))
@@ -57,6 +60,13 @@ def _map_geoapify(item: dict) -> dict | None:
     except Exception as exc:
         print(f"[places_geoapify.py:_map_geoapify] {type(exc).__name__}: {exc}")
         return None
+
+
+def _confidence(item: dict) -> float:
+    try:
+        return float((item.get("rank") or {}).get("confidence", 1))
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _dedupe(places: list[dict]) -> list[dict]:
@@ -96,7 +106,8 @@ class GeoapifyPlacesProvider:
             )
             with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
                 data = json.loads(response.read().decode("utf-8"))
-            places = [p for p in (_map_geoapify(item) for item in data.get("results", [])) if p]
+            confident = [item for item in data.get("results", []) if _confidence(item) >= MIN_CONFIDENCE]
+            places = [p for p in (_map_geoapify(item) for item in confident) if p]
             return _dedupe(places)[:LIMIT]
         except Exception as exc:
             # Message only: the request URL carries the API key and must not reach the logs.
