@@ -37,7 +37,8 @@ def _map_geoapify(item: dict) -> dict | None:
         house = _first(item.get("housenumber"))
         area = _first(item.get("suburb"), item.get("district"), item.get("quarter"), item.get("neighbourhood"))
         name = _first(item.get("name"))
-        is_business = item.get("result_type") == "amenity" or bool(item.get("category"))
+        # Only real places (hotels, shops, offices) are businesses; areas like Thamel also carry a category.
+        is_business = item.get("result_type") == "amenity"
         # No street (an area such as Thamel): use the place's own name, not the wider district.
         line1 = f"{house} {street}".strip() if street else _first(item.get("address_line1"), name, area)
         line2 = area if street and area and area != city else ""
