@@ -3,8 +3,10 @@
 name: CI
 
 on:
+  # Every branch push runs CI, so a commit has passing checks before it may be
+  # fast-forwarded onto the protected main. Dependabot branches run via pull_request.
   push:
-    branches: [main]
+    branches: ["**", "!dependabot/**"]
   pull_request:
   schedule:
     - cron: "17 3 * * *" # daily 03:17 UTC
