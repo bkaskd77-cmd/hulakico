@@ -130,8 +130,13 @@ export function applyLaneMode(
     };
   }
   const leavingNepalDestination = prev.destinationCountry.toUpperCase() === "NP";
+  const originOutsideNepal = prev.originCountry.toUpperCase() !== "NP";
   return {
     ...prev,
+    // International lanes leave Nepal, so the shipper is always in Nepal.
+    originCountry: "NP",
+    originCity: originOutsideNepal ? "" : prev.originCity,
+    originPostalCode: originOutsideNepal ? "" : prev.originPostalCode,
     destinationCountry: leavingNepalDestination ? "IN" : prev.destinationCountry,
     destinationCity: leavingNepalDestination ? "" : prev.destinationCity,
     destinationPostalCode: leavingNepalDestination

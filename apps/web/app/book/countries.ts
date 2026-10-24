@@ -22,6 +22,30 @@ export const BOOKING_COUNTRIES: CountryOption[] = [
   { code: "CA", name: "Canada" },
 ];
 
+/** Hulakico ships from Nepal: domestic stays in Nepal, international leaves Nepal. */
+export const HOME_COUNTRY = "NP";
+
+/** Countries a side may use. Only an international consignee picks from a list (never Nepal). */
+export function countryOptionsFor(
+  side: "origin" | "destination",
+  lane: string,
+): CountryOption[] {
+  if (lane === "DOMESTIC" || side === "origin") {
+    return BOOKING_COUNTRIES.filter((item) => item.code === HOME_COUNTRY);
+  }
+  return BOOKING_COUNTRIES.filter((item) => item.code !== HOME_COUNTRY);
+}
+
+/** Whether a saved or suggested address belongs on this side of the booking. */
+export function countryFitsSide(
+  country: string,
+  side: "origin" | "destination",
+  lane: string,
+): boolean {
+  const code = country.trim().toUpperCase();
+  return countryOptionsFor(side, lane).some((item) => item.code === code);
+}
+
 export function countryName(code: string): string {
   const found = BOOKING_COUNTRIES.find(
     (item) => item.code === code.trim().toUpperCase(),

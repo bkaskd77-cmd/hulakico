@@ -3,7 +3,7 @@
 import { useContext, useState } from "react";
 import type { SavedAddress } from "@/lib/data/addresses";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
-import { BOOKING_COUNTRIES } from "./countries";
+import { countryFitsSide, countryOptionsFor } from "./countries";
 import { NP_CITIES, PARTY_KEYS } from "./party-keys";
 import { PlaceSuggestControls } from "./PlaceSuggestControls";
 import { SavedAddressControls } from "./SavedAddressControls";
@@ -38,10 +38,10 @@ export function PartyAddressBlock({
   const k = PARTY_KEYS[side];
   const revealErrors = useContext(RevealRouteErrors);
   const [touched, setTouched] = useState<Partial<Record<Key, boolean>>>({});
-  const bookAddresses =
-    lane === "DOMESTIC"
-      ? addresses.filter((item) => item.country === "NP")
-      : addresses;
+  // Saved addresses only appear on the side they can be used: Nepal for the shipper,
+  // and for an international consignee only addresses outside Nepal.
+  const bookAddresses = addresses.filter((item) => countryFitsSide(item.country, side, lane));
+  const countryChoices = countryOptionsFor(side, lane);
   const hint = (key: Key) =>
     revealErrors || touched[key] ? fieldError(form, key) : undefined;
   const blur = (key: Key) => () => setTouched((prev) => ({ ...prev, [key]: true }));
@@ -74,8 +74,11 @@ export function PartyAddressBlock({
         </label>
         <label className="text-sm text-[var(--muted)]">
           Country
-          {lane === "DOMESTIC" ? (
-            <input className={field} value="Nepal" readOnly aria-readonly />
+          {countryChoices.length === 1 ? (
+            <>
+              <input className={field} value={countryChoices[0].name} readOnly aria-readonly />
+              {lane !== "DOMESTIC" ? <span className="mt-1 block text-xs text-[var(--teal)]">International shipments leave from Nepal.</span> : null}
+            </>
           ) : (
             <select
               className={field}
@@ -88,7 +91,7 @@ export function PartyAddressBlock({
               onBlur={blur(k.country)}
               required
             >
-              {BOOKING_COUNTRIES.map((item) => (
+              {countryChoices.map((item) => (
                 <option key={item.code} value={item.code}>{item.name}</option>
               ))}
             </select>
