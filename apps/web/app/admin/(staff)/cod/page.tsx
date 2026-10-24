@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CollectCodForm } from "@/app/ops/CollectCodForm";
 import { listCodCollections } from "@/lib/data/cod";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -24,7 +25,9 @@ export default async function AdminCodPage() {
         COD ledger
       </h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Pending domestic cash-on-delivery collections.
+        Pending domestic cash-on-delivery collections.{" "}
+        Prepaid freight waiting on a bank transfer is on{" "}
+        <Link href="/admin/payments" className="font-semibold text-[var(--teal)] underline-offset-2 hover:underline">Transfer payments</Link>.
       </p>
       {error ? <p className="mt-8 text-[var(--danger)]">{error}</p> : null}
       <ul className="mt-8 space-y-3">

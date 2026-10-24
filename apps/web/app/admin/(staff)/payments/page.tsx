@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MarkPaidForm } from "@/app/ops/MarkPaidForm";
 import { listAwaitingTransferPayments } from "@/lib/data/payment-ops";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -24,7 +25,9 @@ export default async function AdminPaymentsPage() {
         Transfer payments
       </h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Awaiting bank-transfer freight payments (stub provider).
+        Awaiting bank-transfer freight payments (stub provider).{" "}
+        Cash collected by the courier on delivery is on the{" "}
+        <Link href="/admin/cod" className="font-semibold text-[var(--teal)] underline-offset-2 hover:underline">COD ledger</Link>.
       </p>
       {error ? <p className="mt-8 text-[var(--danger)]">{error}</p> : null}
       <ul className="mt-8 space-y-3">
