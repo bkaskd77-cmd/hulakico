@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.parse
 import urllib.request
 
@@ -29,10 +30,20 @@ def _first(*values: object) -> str:
     return ""
 
 
+# Nepal local-body suffixes from OpenStreetMap ("Kathmandu Metropolitan City" -> "Kathmandu").
+NP_CITY_SUFFIX = re.compile(r"\s+(sub-?metropolitan city|metropolitan city|rural municipality|municipality|nagarpalika|gaunpalika)$", re.IGNORECASE)
+
+
+def _short_city(city: str, country: str) -> str:
+    if country != "NP":
+        return city
+    return NP_CITY_SUFFIX.sub("", city).strip() or city
+
+
 def _map_geoapify(item: dict) -> dict | None:
     try:
         country = _first(item.get("country_code")).upper()
-        city = _first(item.get("city"), item.get("town"), item.get("village"), item.get("county"), item.get("state_district"))
+        city = _short_city(_first(item.get("city"), item.get("town"), item.get("village"), item.get("county"), item.get("state_district")), country)
         street = _first(item.get("street"))
         house = _first(item.get("housenumber"))
         area = _first(item.get("suburb"), item.get("district"), item.get("quarter"), item.get("neighbourhood"))

@@ -43,6 +43,10 @@ export const draftBookingSchema = z
   })
   .superRefine((data, ctx) => {
     const lane = detectLane(data.originCountry, data.destinationCountry);
+    // Quotes are priced from Nepal by destination, so every shipment must start in Nepal.
+    if (normalizeCountry(data.originCountry) !== "NP") {
+      ctx.addIssue({ code: "custom", path: ["originCountry"], message: "The shipper must be in Nepal." });
+    }
     if (data.packageType !== "DOCUMENT") {
       for (const key of ["lengthCm", "widthCm", "heightCm"] as const) {
         if (data[key] === undefined) {
