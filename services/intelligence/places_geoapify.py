@@ -11,9 +11,11 @@ import urllib.parse
 import urllib.request
 
 from address_suggest import normalize_place
+from postcode_rules import clean_postcode
 
 ENDPOINT = "https://api.geoapify.com/v1/geocode/autocomplete"
 LIMIT = 6
+FETCH_LIMIT = 10  # ask for a few extra so de-duplication still leaves enough
 TIMEOUT_S = 4  # under the web app's 5 s limit, so a slow call still falls back cleanly
 
 
@@ -48,13 +50,26 @@ def _map_geoapify(item: dict) -> dict | None:
                 "line1": line1,
                 "line2": line2,
                 "city": city,
-                "postalCode": _first(item.get("postcode")),
+                "postalCode": clean_postcode(country, _first(item.get("postcode"))),
                 "country": country,
             }
         )
     except Exception as exc:
         print(f"[places_geoapify.py:_map_geoapify] {type(exc).__name__}: {exc}")
         return None
+
+
+def _dedupe(places: list[dict]) -> list[dict]:
+    """One row per place: the same street in the same city appears once (first, best-ranked, wins)."""
+    seen: set[tuple[str, ...]] = set()
+    unique: list[dict] = []
+    for place in places:
+        key = tuple((place.get(k) or "").strip().lower() for k in ("kind", "company", "line1", "city", "country"))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(place)
+    return unique
 
 
 class GeoapifyPlacesProvider:
@@ -71,7 +86,7 @@ class GeoapifyPlacesProvider:
             print("[places_geoapify.py:GeoapifyPlacesProvider.suggest] GEOAPIFY_API_KEY is not set.")
             return []
         try:
-            params = {"text": q[:200], "format": "json", "limit": str(LIMIT), "lang": "en", "apiKey": self._key}
+            params = {"text": q[:200], "format": "json", "limit": str(FETCH_LIMIT), "lang": "en", "apiKey": self._key}
             hint = (country_hint or "").strip().lower()
             if len(hint) == 2 and hint.isalpha():
                 params["filter"] = f"countrycode:{hint}"
@@ -82,7 +97,7 @@ class GeoapifyPlacesProvider:
             with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
                 data = json.loads(response.read().decode("utf-8"))
             places = [p for p in (_map_geoapify(item) for item in data.get("results", [])) if p]
-            return places[:LIMIT]
+            return _dedupe(places)[:LIMIT]
         except Exception as exc:
             # Message only: the request URL carries the API key and must not reach the logs.
             print(f"[places_geoapify.py:GeoapifyPlacesProvider.suggest] {type(exc).__name__}: {getattr(exc, 'code', '')} {getattr(exc, 'reason', '')}")

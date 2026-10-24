@@ -337,6 +337,14 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 
 ---
 
+## Pending — Nepal 2025 postal codes
+
+Address suggestions use Geoapify (`PLACES_PROVIDER=geoapify`): duplicates merged, postcode format checked per country (`services/intelligence/postcode_rules.py`). Nepal postcodes from OpenStreetMap are often wrong (e.g. Durbar Marg shown as 66400 instead of the Kathmandu code).
+
+Nepal changed its postal codes in 2025 (federal structure). When the official list from the Department of Postal Services (https://gpo.gov.np/pages/postal-code-1259614658/) is available, add it to the intelligence service and replace any Nepal postcode that does not match the place's area. Keep the field pre-filled and editable.
+
+---
+
 ## Phase 6 — COMPLETE (live third-party carriers; partner API sync deferred until keys)
 
 **Goal:** Replace stub freight with real partner AWB + tracking sync while customers still track on Hulakico.
