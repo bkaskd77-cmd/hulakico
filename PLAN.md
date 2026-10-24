@@ -2,9 +2,13 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phase 15 active — moving live data to Turso (hosted SQLite). Deploy pipeline active — push `main` to GitHub; Vercel builds `apps/web`. Until each area is migrated, it still uses per-instance `/tmp` SQLite on Vercel. Phase 12 wallets parked.
+**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. No Phase 17 defined yet.
 
-**Local note:** Node built-in SQLite (`DATABASE_PATH`) on Windows ARM64. On Vercel, DB defaults to `/tmp/hulakico.db` (resets on cold start). Production target remains PostgreSQL.
+**Hosting:** hulakico.com runs on the shared Hostinger VPS (Docker `hulakico-web` + private `hulakico-intelligence`, behind Caddy and Cloudflare). Production data is Turso; images are Vercel Blob. The old Vercel project is paused and disconnected from Git.
+
+**Deploy:** push to a branch, CI (`web`, `intelligence`, `images`) must pass, then fast-forward `main` (protected ruleset). The VPS auto-deploys each new CI-passed `main` commit within about 5 minutes and rolls back if the site does not answer.
+
+**Local note:** without `TURSO_*` env vars the app uses Node built-in SQLite at `apps/web/data/hulakico.db` (`DATABASE_PATH`), a separate local database with its own staff accounts.
 
 ---
 
@@ -109,7 +113,7 @@ Line-item screen should support what customs typically expects — not a bare de
 
 ---
 
-## Phase 5 — Active
+## Phase 5 — COMPLETE
 
 **Goal:** Customer shipment hub — find past bookings easily and rebook the same consignee with one action.
 
@@ -161,14 +165,14 @@ Full shipment detail dashboard, bulk export, saved consignee favorites beyond ad
 
 ---
 
-## Phase 8 — COMPLETE (Ops settle confirm; Step 4 deferred)
+## Phase 8 — COMPLETE (Ops settle confirm)
 
 **Goal:** Ops can close the stub transfer loop the same way COD is collected — see awaiting payments and mark them paid so the customer open shipment shows **Paid**.
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
 | 0–3 | List/mark paid API + `/ops/payments` desk + stub notify | **DONE** |
-| 4 | Ops nav link + COD/payments cross-links | **DEFERRED** (after Admin foundation) |
+| 4 | Ops nav link + COD/payments cross-links | **DONE** (Admin menu has COD and Payments; each page links to the other) |
 
 ---
 
@@ -264,7 +268,7 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 ---
 
-## Phase 15 — Active (Shared production database: Turso)
+## Phase 15 — COMPLETE (Shared production database: Turso)
 
 **Why:** On Vercel each function instance has its own `/tmp/hulakico.db`, so data written by one route (e.g. signup) is invisible to others (e.g. `/account`). Human chose Turso over Neon (keeps SQLite SQL).
 
@@ -280,7 +284,7 @@ Staff invite UI, CMS, impersonation, drop unused `users.platform_role`.
 
 ---
 
-## Phase 16 — Active (Admin panel upgrade: editable, removable, addable)
+## Phase 16 — COMPLETE (Admin panel upgrade: editable, removable, addable)
 
 **Roles (locked):** Admin = everything incl. staff accounts. Editor = website content only. Sub-admin = shipments, exceptions, COD, payments, notifications (no content, no staff, no carriers). Rules live in `lib/domain/staff-permissions.ts`; pages call `requireStaffPage(area)`, ops APIs go through `resolveOpsAccess`.
 
@@ -319,7 +323,7 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 
 ---
 
-## Phase 6 — Live third-party carriers
+## Phase 6 — COMPLETE (live third-party carriers; partner API sync deferred until keys)
 
 **Goal:** Replace stub freight with real partner AWB + tracking sync while customers still track on Hulakico.
 
