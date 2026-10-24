@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+
+const noSubscribe = () => () => {};
+const readRegistered = () =>
+  new URLSearchParams(window.location.search).get("registered") === "1";
 
 export default function SigninPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [registered, setRegistered] = useState(false);
-
-  useEffect(() => {
-    setRegistered(new URLSearchParams(window.location.search).get("registered") === "1");
-  }, []);
+  // Read after hydration: the server snapshot is false, the browser reads the URL.
+  const registered = useSyncExternalStore(noSubscribe, readRegistered, () => false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -4,54 +4,39 @@ import { resolveStaffAccess } from "@/lib/data/admin-guard";
 import { readSessionToken } from "@/lib/http/session-cookie";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
-/** Back target depends on who is viewing the public track page. */
-export async function TrackBackNav() {
+type BackTarget = { href: string; label: string };
+
+const ACCOUNT_TARGET: BackTarget = { href: "/account", label: "My account" };
+
+/** Picks where "back" goes for whoever is viewing the public track page. */
+async function resolveBackTarget(): Promise<BackTarget> {
   try {
     const staffToken = await readStaffSessionToken();
     if ((await resolveStaffAccess(staffToken)).ok) {
-      return (
-        <Link
-          href="/admin/shipments"
-          className="text-sm font-semibold text-[var(--off-white)] underline-offset-2 hover:underline"
-        >
-          Back to Admin shipments
-        </Link>
-      );
+      return { href: "/admin/shipments", label: "Back to Admin shipments" };
     }
-
     const userToken = await readSessionToken();
     const user = userToken ? await getUserBySessionToken(userToken) : null;
-    if (user) {
-      return (
-        <Link
-          href="/account/shipments"
-          className="text-sm font-semibold text-[var(--off-white)] underline-offset-2 hover:underline"
-        >
-          Back to my shipments
-        </Link>
-      );
-    }
-
-    return (
-      <Link
-        href="/account"
-        className="text-sm font-semibold text-[var(--off-white)] underline-offset-2 hover:underline"
-      >
-        My account
-      </Link>
-    );
+    if (user) return { href: "/account/shipments", label: "Back to my shipments" };
+    return ACCOUNT_TARGET;
   } catch (error) {
     console.error(
-      "[TrackBackNav.tsx:TrackBackNav]",
+      "[TrackBackNav.tsx:resolveBackTarget]",
       error instanceof Error ? error.message : error,
     );
-    return (
-      <Link
-        href="/account"
-        className="text-sm font-semibold text-[var(--off-white)] underline-offset-2 hover:underline"
-      >
-        My account
-      </Link>
-    );
+    return ACCOUNT_TARGET;
   }
+}
+
+/** Back target depends on who is viewing the public track page. */
+export async function TrackBackNav() {
+  const target = await resolveBackTarget();
+  return (
+    <Link
+      href={target.href}
+      className="text-sm font-semibold text-[var(--off-white)] underline-offset-2 hover:underline"
+    >
+      {target.label}
+    </Link>
+  );
 }
