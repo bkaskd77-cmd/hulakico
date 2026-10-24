@@ -20,6 +20,7 @@ const LINKS: ReadonlyArray<{ href: string; label: string; area: StaffArea }> = [
   { href: "/admin/notifications", label: "Notifications", area: "operations" },
   { href: "/admin/messages", label: "Messages", area: "operations" },
   { href: "/admin/carriers", label: "Rate card", area: "carriers" },
+  { href: "/admin/team", label: "Team", area: "team" },
 ];
 
 const BASE =
