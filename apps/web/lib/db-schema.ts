@@ -74,6 +74,8 @@ export function ensureSchema(database: DatabaseSync): void {
       zone_label TEXT NOT NULL,
       lane TEXT,
       place_name TEXT,
+      country TEXT,
+      postal_codes TEXT,
       FOREIGN KEY (carrier_service_id) REFERENCES carrier_services(id)
     );
 
@@ -443,6 +445,9 @@ function migrateRateCardColumns(database: DatabaseSync): void {
     const names = new Set(columns.map((column) => column.name));
     if (!names.has("lane")) database.exec("ALTER TABLE rate_cards ADD COLUMN lane TEXT");
     if (!names.has("place_name")) database.exec("ALTER TABLE rate_cards ADD COLUMN place_name TEXT");
+    // ISO country of the destination (NP for national) and optional postal codes / prefixes.
+    if (!names.has("country")) database.exec("ALTER TABLE rate_cards ADD COLUMN country TEXT");
+    if (!names.has("postal_codes")) database.exec("ALTER TABLE rate_cards ADD COLUMN postal_codes TEXT");
   } catch (error) {
     console.error(
       "[db-schema.ts:migrateRateCardColumns]",

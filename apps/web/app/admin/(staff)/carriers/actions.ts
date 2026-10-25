@@ -40,6 +40,10 @@ export async function addCityRateAction(input: {
   serviceClass: string;
   lane: string;
   placeName: string;
+  /** Destination country (ISO). Ignored for National, required for International. */
+  country?: string;
+  postalCodes?: string;
+  allOtherCities?: boolean;
   currency: string;
   baseAmount: number;
   perKgAmount: number;
@@ -47,7 +51,12 @@ export async function addCityRateAction(input: {
   try {
     const denied = await guard();
     if (denied) return denied;
-    const result = await insertCityRate(input);
+    const result = await insertCityRate({
+      ...input,
+      country: input.country ?? "",
+      postalCodes: input.postalCodes ?? "",
+      allOtherCities: input.allOtherCities === true,
+    });
     if ("error" in result) return result;
     revalidatePath("/admin/carriers");
     return { ok: true };

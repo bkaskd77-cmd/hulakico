@@ -1,6 +1,6 @@
 import { ensureCarrierService } from "@/lib/data/carrier-admin";
 import { newId } from "@/lib/domain/auth";
-import { normalizePlaceName } from "@/lib/domain/quoting";
+import { ANY_CITY, normalizePlaceName, parsePostalCodes } from "@/lib/domain/quoting";
 import { getSql } from "@/lib/sql";
 
 const CURRENCIES = new Set(["NPR", "USD"]);
@@ -43,21 +43,45 @@ export async function updateRateCard(
   }
 }
 
+// Nepal hubs that can never be an international destination.
+const NEPAL_CITY_KEYS = new Set(["kathmandu", "lalitpur", "patan", "bhaktapur", "pokhara", "biratnagar", "birgunj", "dharan", "butwal", "bharatpur", "chitwan", "nepalgunj", "dhangadhi", "hetauda", "janakpur", "itahari"]);
+
+type RatePlaceInput = { lane: string; placeName: string; country: string; postalCodes: string; allOtherCities: boolean };
+
+/** Checks lane, country, city, and postal codes together; returns what to store or why not. */
+export function checkRatePlace(input: RatePlaceInput):
+  | { lane: string; country: string; placeName: string; zoneLabel: string; postalCodes: string | null }
+  | { error: string } {
+  const lane = input.lane.trim().toUpperCase();
+  if (!LANES.has(lane)) return { error: "Choose National or International." };
+  const country = lane === "DOMESTIC" ? "NP" : input.country.trim().toUpperCase();
+  if (lane === "INTERNATIONAL" && (!/^[A-Z]{2}$/.test(country) || country === "NP")) {
+    return { error: "International rates need a destination country other than Nepal." };
+  }
+  const postal = parsePostalCodes(input.postalCodes);
+  if (input.allOtherCities) {
+    return { lane, country, placeName: "All other cities", zoneLabel: ANY_CITY, postalCodes: postal.length ? postal.join(", ") : null };
+  }
+  const placeName = input.placeName.trim().replace(/\s+/g, " ");
+  const zoneLabel = normalizePlaceName(placeName);
+  if (zoneLabel.length < 2 || zoneLabel.length > 80 || !/^[\p{L}\p{N}][\p{L}\p{N} .'-]*$/u.test(placeName)) {
+    return { error: "Enter a city name." };
+  }
+  if (lane === "INTERNATIONAL" && NEPAL_CITY_KEYS.has(zoneLabel)) {
+    return { error: `${placeName} is in Nepal. Use National for it, or enter a city abroad.` };
+  }
+  return { lane, country, placeName, zoneLabel, postalCodes: postal.length ? postal.join(", ") : null };
+}
+
 export async function insertCityRate(
-  input: Money & { carrierId: string; serviceClass: string; lane: string; placeName: string },
+  input: Money & { carrierId: string; serviceClass: string } & RatePlaceInput,
 ): Promise<{ ok: true } | { error: string }> {
   try {
-    const lane = input.lane.trim().toUpperCase();
-    const placeName = input.placeName.trim().replace(/\s+/g, " ");
-    const zoneLabel = normalizePlaceName(placeName);
+    const place = checkRatePlace(input);
+    if ("error" in place) return place;
+    const { lane, country, placeName, zoneLabel, postalCodes } = place;
     const money = readMoney(input);
     if ("error" in money) return money;
-    if (!LANES.has(lane) || zoneLabel.length < 2 || zoneLabel.length > 80) {
-      return { error: "Choose a service, National or International, and a city." };
-    }
-    if (!/^[\p{L}\p{N}][\p{L}\p{N} .'-]*$/u.test(placeName)) {
-      return { error: "Enter a city name." };
-    }
     const ready = await ensureCarrierService({
       carrierId: input.carrierId,
       serviceClass: input.serviceClass,
@@ -69,17 +93,17 @@ export async function insertCityRate(
     const duplicate = await db
       .prepare(
         `SELECT id FROM rate_cards
-         WHERE carrier_service_id = ? AND zone_label = ? AND lane = ?`,
+         WHERE carrier_service_id = ? AND zone_label = ? AND lane = ? AND COALESCE(country, '') = ?`,
       )
-      .get(serviceId, zoneLabel, lane);
-    if (duplicate) return { error: "This service already has a card for that city." };
+      .get(serviceId, zoneLabel, lane, country);
+    if (duplicate) return { error: "This service already has a card for that city and country." };
     await db
       .prepare(
         `INSERT INTO rate_cards
-         (id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label, lane, place_name)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label, lane, place_name, country, postal_codes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-      .run(newId("rate"), serviceId, money.currency, money.baseAmount, money.perKgAmount, zoneLabel, lane, placeName);
+      .run(newId("rate"), serviceId, money.currency, money.baseAmount, money.perKgAmount, zoneLabel, lane, placeName, country, postalCodes);
     return { ok: true };
   } catch (error) {
     console.error("[rate-cards.ts:insertCityRate]", error instanceof Error ? error.message : error);
