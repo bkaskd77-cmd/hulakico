@@ -88,6 +88,12 @@ export default function SigninPage() {
           />
         </label>
 
+        <p className="mt-2 text-right text-sm">
+          <Link href="/forgot-password" className="text-[var(--teal)] underline">
+            Forgot password?
+          </Link>
+        </p>
+
         {error ? (
           <p className="mt-4 text-sm text-[var(--danger)]">{error}</p>
         ) : null}
