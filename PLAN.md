@@ -2,7 +2,7 @@
 
 Agents must read this file before writing code. Follow [AGENTS.md](AGENTS.md). One micro-step at a time. Max 3 files per prompt. Stop for human review and approval before the next step.
 
-**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. Phase 17 (customer email notifications) complete.
+**Status:** Phases 1–11 and 13–16 complete. Phase 12 (live wallets) parked until merchant keys; Phase 6 live partner sync deferred until carrier API keys. Phases 17–18 complete (customer emails; smart booking and rate card).
 
 **Hosting:** hulakico.com runs on the shared Hostinger VPS (Docker `hulakico-web` + private `hulakico-intelligence`, behind Caddy and Cloudflare). Production data is Turso; images are Vercel Blob. The old Vercel project is paused and disconnected from Git.
 
@@ -334,6 +334,24 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 | 1 | Resend sender + email layout; notifications send and record SENT/FAILED behind `NOTIFY_EMAIL=live` | **DONE** |
 | 2 | Admin Notifications page shows delivery status; enable `NOTIFY_EMAIL=live` on the VPS | **DONE** |
 | 3 | Clear wording for each notice (booked, hold, handed over, delivered, paid) | **DONE** (subject, opening line, next step per kind; readable AWBs) |
+
+---
+
+## Phase 18 — COMPLETE (Smart booking and rate card)
+
+**Goal:** Booking and pricing behave sensibly without the customer or staff having to know the rules.
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Address suggestions via Geoapify (`PLACES_PROVIDER=geoapify`, private intelligence container): country-scoped, look-alikes dropped (confidence < 0.8), duplicates merged, postcode format per country, short Nepal city names, saved addresses ranked first | **DONE** |
+| 2 | Route rules: shipments always leave Nepal (shipper fixed to Nepal, consignee never Nepal on International), enforced in UI, route check, and server; saved addresses shown only on the side they fit | **DONE** |
+| 3 | Phones: dial code per country, tidied on blur, length checked per country | **DONE** |
+| 4 | Cities: quick-pick major cities per country; homepage quote form fixed to Nepal origin | **DONE** |
+| 5 | Package and Review: live charged weight (actual vs box size), Document defaults to 0.5 kg, Review shows labels, size, charged weight, and a tentative rate-card price | **DONE** |
+| 6 | Rate card: country and postal codes per rate; pricing matches postal code, then city, then "all other cities" default; International rates need a non-Nepal country and refuse Nepal cities; invalid older rows flagged and removable | **DONE** |
+| 7 | Readable AWBs (`HK-XXXX-XXXX-XXXX`, Crockford base32) with tolerant tracking search | **DONE** |
+
+**Follow-ups:** Admin to remove the flagged Kathmandu-International rate and add "all other cities" defaults per country. Imports (abroad → Nepal) are not priced yet. Node 26 LTS from 28 Oct 2026.
 
 ---
 
