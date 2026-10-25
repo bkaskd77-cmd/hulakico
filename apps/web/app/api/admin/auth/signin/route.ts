@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { signinSchema } from "@/lib/domain/auth";
 import { authenticateStaff, updateStaffName } from "@/lib/data/staff-auth";
+import { writeAudit } from "@/lib/data/audit-log";
 import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 import { setStaffSessionCookie } from "@/lib/http/staff-session-cookie";
 
@@ -37,6 +38,9 @@ export async function POST(request: Request) {
       );
     }
     if ("codeProblem" in result) {
+      if (result.codeProblem === "wrong") {
+        await writeAudit({ id: null, email: parsed.data.email.toLowerCase() }, "staff.signin.wrong_code", null, null, requestIp(request));
+      }
       const error = result.codeProblem === "missing"
         ? "Enter the 6-digit code from your authenticator app."
         : "That code is not right or was already used. Wait for a new code and try again.";
@@ -55,6 +59,7 @@ export async function POST(request: Request) {
     }
 
     await setStaffSessionCookie(result.sessionToken);
+    await writeAudit(result.staff, "staff.signin", null, null, requestIp(request));
     return NextResponse.json({ staff: result.staff });
   } catch (error) {
     console.error(

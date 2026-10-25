@@ -6,7 +6,12 @@ const PREVIOUS_EMAIL = "bkaskd@gmail.com";
 
 type IdRow = { id: string };
 
-/** One-time reset when STAFF_RESET_PASSWORD=1. Moves the admin login to the bootstrap email. */
+const CLEAR_TWO_STEP = "totp_secret = NULL, totp_enabled_at = NULL, totp_last_step = NULL";
+
+/**
+ * One-time reset when STAFF_RESET_PASSWORD=1. Moves the admin login to the bootstrap email and
+ * clears two-step login (lost phone), so the next sign-in sets up the authenticator again.
+ */
 export async function applyStaffPasswordReset(db: Sql): Promise<void> {
   if (applied || process.env.STAFF_RESET_PASSWORD !== "1") return;
   const email = process.env.STAFF_BOOTSTRAP_EMAIL?.trim().toLowerCase();
@@ -24,7 +29,7 @@ export async function applyStaffPasswordReset(db: Sql): Promise<void> {
       .prepare("SELECT id FROM staff_users WHERE lower(email) = ?")
       .get(email)) as IdRow | undefined;
     if (current) {
-      await db.prepare("UPDATE staff_users SET password_hash = ? WHERE id = ?").run(hash, current.id);
+      await db.prepare(`UPDATE staff_users SET password_hash = ?, ${CLEAR_TWO_STEP} WHERE id = ?`).run(hash, current.id);
       console.info("[staff-password-reset.ts:applyStaffPasswordReset] Staff password updated.");
       return;
     }
@@ -41,7 +46,7 @@ export async function applyStaffPasswordReset(db: Sql): Promise<void> {
       return;
     }
     await db
-      .prepare("UPDATE staff_users SET email = ?, password_hash = ? WHERE id = ?")
+      .prepare(`UPDATE staff_users SET email = ?, password_hash = ?, ${CLEAR_TWO_STEP} WHERE id = ?`)
       .run(email, hash, previous.id);
     console.info("[staff-password-reset.ts:applyStaffPasswordReset] Staff login email and password updated.");
   } catch (error) {
