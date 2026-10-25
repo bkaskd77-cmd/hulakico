@@ -32,6 +32,17 @@ export function ensureSchema(database: DatabaseSync): void {
       FOREIGN KEY (organization_id) REFERENCES organizations(id)
     );
 
+    CREATE TABLE IF NOT EXISTS user_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      purpose TEXT NOT NULL CHECK (purpose IN ('RESET_PASSWORD', 'VERIFY_EMAIL')),
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      used_at TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -351,6 +362,8 @@ function migrateUserPlatformRole(database: DatabaseSync): void {
       `ALTER TABLE users ADD COLUMN platform_role TEXT NOT NULL DEFAULT 'CUSTOMER'`,
     );
   }
+  // Set when the customer opens the verification link (accounts before 25 Oct 2026 count as verified).
+  if (!names.has("email_verified_at")) database.exec(`ALTER TABLE users ADD COLUMN email_verified_at TEXT`);
 }
 
 function ensureStaffTables(database: DatabaseSync): void {
