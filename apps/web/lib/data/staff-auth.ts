@@ -5,7 +5,7 @@ import {
   createSessionToken,
   hashSessionToken,
   newId,
-  sessionExpiryIso,
+  staffSessionExpiryIso,
   verifyPassword,
 } from "@/lib/domain/auth";
 
@@ -52,7 +52,7 @@ export async function authenticateStaff(
       newId("sses"),
       row.id,
       hashSessionToken(sessionToken),
-      sessionExpiryIso(),
+      staffSessionExpiryIso(),
       now,
     );
 
@@ -79,14 +79,17 @@ async function loadStaffBySessionToken(
 ): Promise<StaffUser | null> {
   try {
     const now = new Date().toISOString();
+    // Sessions issued before the 12-hour limit (14-day ones) expire later than any new
+    // session could, so they are refused too.
+    const latestAllowed = staffSessionExpiryIso();
     const row = (await (await getSql())
       .prepare(
         `SELECT u.id, u.email, u.name, u.role
          FROM staff_sessions s
          JOIN staff_users u ON u.id = s.staff_user_id
-         WHERE s.token_hash = ? AND s.expires_at > ?`,
+         WHERE s.token_hash = ? AND s.expires_at > ? AND s.expires_at <= ?`,
       )
-      .get(hashSessionToken(token), now)) as
+      .get(hashSessionToken(token), now, latestAllowed)) as
       | { id: string; email: string; name: string; role: StaffRole }
       | undefined;
     if (!row) return null;

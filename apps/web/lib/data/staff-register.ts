@@ -4,7 +4,7 @@ import {
   hashPassword,
   hashSessionToken,
   newId,
-  sessionExpiryIso,
+  staffSessionExpiryIso,
 } from "@/lib/domain/auth";
 import type { StaffRole, StaffUser } from "@/lib/data/staff-auth";
 import { ROLE_LABELS, STAFF_LIMITS } from "@/lib/domain/staff-permissions";
@@ -78,7 +78,7 @@ export async function registerStaff(input: {
         newId("sses"),
         id,
         hashSessionToken(sessionToken),
-        sessionExpiryIso(),
+        staffSessionExpiryIso(),
         now,
       );
     }

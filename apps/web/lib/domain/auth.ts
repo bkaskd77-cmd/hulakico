@@ -59,6 +59,13 @@ export function sessionExpiryIso(days = 14): string {
   return expires.toISOString();
 }
 
+/** Staff (Admin) sessions are short: at most 12 hours, even if the browser stays open. */
+export const STAFF_SESSION_HOURS = 12;
+
+export function staffSessionExpiryIso(): string {
+  return new Date(Date.now() + STAFF_SESSION_HOURS * 60 * 60 * 1000).toISOString();
+}
+
 export function newId(prefix: string): string {
   return `${prefix}_${randomBytes(12).toString("hex")}`;
 }
