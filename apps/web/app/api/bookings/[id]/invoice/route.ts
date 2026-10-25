@@ -63,6 +63,13 @@ export async function POST(
       shipmentId: id,
       currency: body.currency ?? owned.shipment.currency,
       exportReason: body.exportReason ?? "SALE",
+      purpose: body.purpose,
+      incoterm: body.incoterm,
+      exporterTaxId: body.exporterTaxId,
+      importerTaxId: body.importerTaxId,
+      freightCharge: body.freightCharge,
+      insuranceCharge: body.insuranceCharge,
+      declaredBy: body.declaredBy,
       notes: body.notes,
       lines: body.lines ?? [],
     });

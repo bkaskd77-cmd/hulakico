@@ -29,6 +29,7 @@ export type InvoiceDocumentShipment = {
   destination_postal_code: string | null;
   destination_address: string;
   hulakico_awb: string | null;
+  weight_kg: number;
 };
 
 /** Load digital invoice document for the owner or an OPS/ADMIN viewer. */
@@ -48,7 +49,7 @@ export async function getInvoiceDocument(
       destination_country, destination_city, destination_contact_name,
       destination_company, destination_phone, destination_email,
       destination_line1, destination_line2, destination_postal_code,
-      destination_address, hulakico_awb
+      destination_address, hulakico_awb, weight_kg
       FROM shipments WHERE id = ?${isAuthority ? "" : " AND user_id = ?"}`;
     const db = await getSql();
     const row = (

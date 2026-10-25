@@ -300,8 +300,19 @@ function migrateInvoiceLineWeight(database: DatabaseSync): void {
       .all() as Array<{ name: string }>;
     if (columns.length === 0) return;
     const names = new Set(columns.map((column) => column.name));
-    if (names.has("weight_kg")) return;
-    database.exec(`ALTER TABLE commercial_invoice_lines ADD COLUMN weight_kg REAL`);
+    if (!names.has("weight_kg")) database.exec(`ALTER TABLE commercial_invoice_lines ADD COLUMN weight_kg REAL`);
+    // Customs terms on the invoice header (purpose, Incoterm, tax IDs, charges, declaration).
+    const header = new Set(
+      (database.prepare("PRAGMA table_info(commercial_invoices)").all() as Array<{ name: string }>).map((column) => column.name),
+    );
+    const added: Array<[string, string]> = [
+      ["invoice_number", "TEXT"], ["invoice_date", "TEXT"], ["purpose", "TEXT"], ["incoterm", "TEXT"],
+      ["exporter_tax_id", "TEXT"], ["importer_tax_id", "TEXT"], ["freight_charge", "REAL"],
+      ["insurance_charge", "REAL"], ["declared_by", "TEXT"], ["declared_at", "TEXT"],
+    ];
+    for (const [name, type] of added) {
+      if (!header.has(name)) database.exec(`ALTER TABLE commercial_invoices ADD COLUMN ${name} ${type}`);
+    }
   } catch (error) {
     console.error(
       "[db-schema.ts:migrateInvoiceLineWeight]",

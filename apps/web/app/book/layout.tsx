@@ -21,7 +21,9 @@ export default async function BookLayout({
   // Site header on every booking page, so customers can always get home or to their account.
   return (
     <>
-      <PublicHeader signedIn />
+      <div className="print:hidden">
+        <PublicHeader signedIn />
+      </div>
       {children}
     </>
   );

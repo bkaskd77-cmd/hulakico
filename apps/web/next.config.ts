@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Browsers ask for /favicon.ico; the site icon is app/icon.svg.
+      { source: "/favicon.ico", destination: "/icon.svg", permanent: true },
       { source: "/ops", destination: "/admin/shipments", permanent: false },
       {
         source: "/ops/exceptions",

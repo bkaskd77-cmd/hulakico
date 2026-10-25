@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import {
-  invoiceExportReasons,
   invoiceTotal,
   invoiceTotalUnits,
   invoiceTotalWeightKg,
@@ -11,24 +10,12 @@ import {
 } from "@/lib/domain/invoice";
 import { emptyInvoiceLine, invoiceLineIncomplete, InvoiceLineFields, type LineDraft } from "./InvoiceLineFields";
 import { AiCustomsCheck } from "./AiCustomsCheck";
+import { InvoiceTermsFields, type InvoiceTerms } from "./InvoiceTermsFields";
+import { purposeLabel } from "@/lib/domain/invoice-terms";
+import { termsFromInvoice, toDraft } from "./invoice-draft";
 
 const FIELD =
   "mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-sm text-[var(--off-white)] outline-none focus:border-[var(--teal)]";
-
-function toDraft(initial: CommercialInvoice | null): LineDraft[] {
-  if (!initial?.lines.length) return [emptyInvoiceLine()];
-  return initial.lines.map((line) => ({
-    description: line.description,
-    quantity: String(line.quantity),
-    unit: (["PCS", "BOX", "KG", "SET", "PAIR"].includes(line.unit)
-      ? line.unit
-      : "PCS") as LineDraft["unit"],
-    unitValue: String(line.unitValue),
-    weightKg: line.weightKg != null ? String(line.weightKg) : "",
-    hsCode: line.hsCode ?? "",
-    countryOfOrigin: line.countryOfOrigin ?? "",
-  }));
-}
 
 export function InvoiceEditor({
   shipmentId, currency, initial, onSaved,
@@ -38,7 +25,7 @@ export function InvoiceEditor({
   initial: CommercialInvoice | null;
   onSaved?: () => void; // after a successful save, e.g. to unlock payment
 }) {
-  const [exportReason, setExportReason] = useState(initial?.exportReason ?? "SALE");
+  const [terms, setTerms] = useState<InvoiceTerms>(() => termsFromInvoice(initial));
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [lines, setLines] = useState<LineDraft[]>(() => toDraft(initial));
   const [pending, setPending] = useState(false);
@@ -64,6 +51,10 @@ export function InvoiceEditor({
       setMessage("Every item needs description, HS code, origin, qty, value, and weight (kg).");
       return;
     }
+    if (!terms.agreed || terms.declaredBy.trim().length < 2) {
+      setMessage("Tick the declaration and type your full name to sign it.");
+      return;
+    }
     setPending(true);
     try {
       const response = await fetch(`/api/bookings/${shipmentId}/invoice`, {
@@ -71,7 +62,13 @@ export function InvoiceEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           currency,
-          exportReason,
+          purpose: terms.purpose,
+          incoterm: terms.incoterm,
+          exporterTaxId: terms.exporterTaxId.trim() || undefined,
+          importerTaxId: terms.importerTaxId.trim() || undefined,
+          freightCharge: Number(terms.freightCharge) || 0,
+          insuranceCharge: Number(terms.insuranceCharge) || 0,
+          declaredBy: terms.declaredBy.trim(),
           notes: notes.trim() || undefined,
           lines: lines.map((line) => ({
             description: line.description,
@@ -106,14 +103,6 @@ export function InvoiceEditor({
       <Link href={`/book/invoice/${shipmentId}`} className="inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
         Open digital invoice document
       </Link>
-      <label className="block text-sm text-[var(--muted)]">
-        Export reason
-        <select className={FIELD} value={exportReason} onChange={(e) => setExportReason(e.target.value)}>
-          {invoiceExportReasons.map((reason) => (
-            <option key={reason} value={reason}>{reason}</option>
-          ))}
-        </select>
-      </label>
       {lines.map((line, index) => (
         <InvoiceLineFields key={index} line={line} index={index} currency={currency} field={FIELD}
           onChange={(patch) => updateLine(index, patch)}
@@ -122,7 +111,7 @@ export function InvoiceEditor({
           canRemove={lines.length > 1}
         />
       ))}
-      <AiCustomsCheck shipmentId={shipmentId} currency={currency} exportReason={exportReason} lines={lines} onApply={updateLine} />
+      <AiCustomsCheck shipmentId={shipmentId} currency={currency} exportReason={purposeLabel(terms.purpose)} lines={lines} onApply={updateLine} />
       <div className="flex flex-wrap items-center gap-3 rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-3 py-2 text-xs text-[var(--muted)]">
         <span>Total units {totalUnits}</span>
         <span>Total weight {totalWeight.toFixed(3)} kg</span>
@@ -132,6 +121,8 @@ export function InvoiceEditor({
           Add another item
         </button>
       </div>
+      <InvoiceTermsFields terms={terms} currency={currency} field={FIELD} signedOnSave={terms.agreed}
+        onChange={(patch) => setTerms((prev) => ({ ...prev, ...patch }))} />
       <label className="block text-sm text-[var(--muted)]">
         Notes
         <input className={FIELD} value={notes} onChange={(e) => setNotes(e.target.value)} />

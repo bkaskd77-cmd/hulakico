@@ -74,5 +74,7 @@ export function invoiceProblem(invoice: CommercialInvoice | null): string | null
   const incomplete = invoice.lines.some((line) =>
     !line.description.trim() || !line.hsCode?.trim() || !line.countryOfOrigin?.trim() ||
     !(line.quantity > 0) || !(line.unitValue > 0) || line.weightKg == null || !(line.weightKg > 0));
-  return incomplete ? "Every invoice item needs a description, HS code, country of origin, quantity, value, and weight." : null;
+  if (incomplete) return "Every invoice item needs a description, HS code, country of origin, quantity, value, and weight.";
+  // Invoices saved before the declaration existed must be opened and signed once.
+  return invoice.declaredBy && invoice.declaredAt ? null : "Confirm the declaration on the customs invoice (your full name) and save it.";
 }

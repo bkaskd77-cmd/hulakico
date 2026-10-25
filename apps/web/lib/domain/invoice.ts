@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EXPORT_PURPOSE_KEYS, INCOTERM_KEYS } from "@/lib/domain/invoice-terms";
 
 export const invoiceExportReasons = [
   "SALE",
@@ -31,6 +32,14 @@ export const commercialInvoiceSchema = z.object({
   shipmentId: z.string().trim().min(1),
   currency: z.enum(["NPR", "USD"]),
   exportReason: z.enum(invoiceExportReasons).default("SALE"),
+  purpose: z.enum(EXPORT_PURPOSE_KEYS).default("SALE"),
+  incoterm: z.enum(INCOTERM_KEYS).default("DAP"),
+  exporterTaxId: z.string().trim().max(40).optional(),
+  importerTaxId: z.string().trim().max(40).optional(),
+  freightCharge: z.number().nonnegative().max(10_000_000).optional(),
+  insuranceCharge: z.number().nonnegative().max(10_000_000).optional(),
+  // The shipper's signed declaration that the invoice is true and complete.
+  declaredBy: z.string().trim().min(2).max(80),
   notes: z.string().trim().max(500).optional(),
   lines: z.array(commercialInvoiceLineSchema).min(1).max(40),
 });
@@ -39,6 +48,8 @@ export type CommercialInvoiceLineInput = z.infer<
   typeof commercialInvoiceLineSchema
 >;
 export type CommercialInvoiceInput = z.infer<typeof commercialInvoiceSchema>;
+/** What a form or API sends, before defaults are applied. */
+export type CommercialInvoiceFormInput = z.input<typeof commercialInvoiceSchema>;
 
 export type CommercialInvoiceLine = {
   id: string;
@@ -58,6 +69,16 @@ export type CommercialInvoice = {
   shipmentId: string;
   currency: string;
   exportReason: string;
+  purpose: string;
+  incoterm: string;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
+  exporterTaxId: string | null;
+  importerTaxId: string | null;
+  freightCharge: number;
+  insuranceCharge: number;
+  declaredBy: string | null;
+  declaredAt: string | null;
   notes: string | null;
   totalValue: number;
   createdAt: string;

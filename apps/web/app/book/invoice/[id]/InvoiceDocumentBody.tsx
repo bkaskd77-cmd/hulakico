@@ -1,36 +1,20 @@
-import { statusLabel } from "@/lib/domain/shipment-labels";
 import { countryName } from "@/app/book/countries";
 import type { InvoiceDocumentShipment } from "@/lib/data/invoice-document";
-import {
-  invoiceTotalUnits,
-  invoiceTotalWeightKg,
-  type CommercialInvoice,
-} from "@/lib/domain/invoice";
+import type { CommercialInvoice } from "@/lib/domain/invoice";
+import { InvoiceHeader, InvoiceTotalsAndDeclaration } from "./InvoiceDocumentParts";
 
 /** Printable digital invoice body — stacked lines on mobile, table on larger / print. */
 export function InvoiceDocumentBody({
   shipment: s,
   invoice,
-  isAuthority,
 }: {
   shipment: InvoiceDocumentShipment;
   invoice: CommercialInvoice;
-  isAuthority: boolean;
+  isAuthority?: boolean;
 }) {
   return (
     <article className="mx-auto mt-6 max-w-3xl rounded-lg bg-white p-4 text-neutral-900 shadow sm:p-8 print:mt-0 print:rounded-none print:p-6 print:shadow-none">
-      <header className="border-b border-neutral-200 pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">Hulakico digital invoice</p>
-        <h1 className="mt-1 text-xl font-bold sm:text-2xl">Commercial Invoice</h1>
-        <p className="mt-2 text-sm text-neutral-700">
-          Hulakico AWB:{" "}
-          <span className="break-all font-semibold">{s.hulakico_awb ?? "Pending"}</span>
-        </p>
-        <p className="mt-1 text-xs text-neutral-600 sm:text-sm">
-          Export reason: {invoice.exportReason} · {invoice.currency} · {statusLabel(s.status)}
-          {isAuthority ? " · Ops view" : ""}
-        </p>
-      </header>
+      <InvoiceHeader s={s} invoice={invoice} />
 
       <div className="mt-6 grid gap-6 text-sm sm:grid-cols-2">
         <Party side="Shipper / Exporter" name={s.origin_contact_name} company={s.origin_company}
@@ -89,16 +73,7 @@ export function InvoiceDocumentBody({
         </table>
       </div>
 
-      <div className="mt-6 flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:justify-end sm:gap-6">
-        <p>Total units: {invoiceTotalUnits(invoice.lines)}</p>
-        <p>Total weight: {invoiceTotalWeightKg(invoice.lines).toFixed(3)} kg</p>
-        <p className="font-bold">Total value: {invoice.currency} {invoice.totalValue.toFixed(2)}</p>
-      </div>
-      {invoice.notes ? <p className="mt-6 text-sm text-neutral-600">Notes: {invoice.notes}</p> : null}
-      <p className="mt-8 text-xs text-neutral-500">
-        Hulakico commercial invoice for customs / authority review.
-        {s.hulakico_awb ? ` Reference AWB ${s.hulakico_awb}.` : ""}
-      </p>
+      <InvoiceTotalsAndDeclaration s={s} invoice={invoice} />
     </article>
   );
 }
