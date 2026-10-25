@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PublicHeader } from "@/app/home/PublicHeader";
 import { TrackBackNav } from "@/app/track/TrackBackNav";
+import { TrackProgress } from "@/app/track/TrackProgress";
 import { nepalTime, TrackHistory, trackStatusLabel } from "@/app/track/TrackHistory";
 import { TrackReplyForm } from "@/app/track/TrackReplyForm";
 import { getTrackingByToken } from "@/lib/data/tracking";
@@ -33,8 +35,9 @@ export default async function PublicTrackPage({
   const latest = tracking.events[tracking.events.length - 1];
 
   return (
-    <div className="shell-sky px-4 py-10 sm:px-8">
-      <div className="mx-auto w-full max-w-3xl">
+    <div className="shell-sky min-h-dvh">
+      <PublicHeader />
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-8 sm:py-10">
         <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pb-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">Hulakico</p>
@@ -46,6 +49,9 @@ export default async function PublicTrackPage({
         </header>
 
         <section className="hub-enter mt-6 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5 sm:p-6">
+          <div className="mb-6">
+            <TrackProgress status={tracking.status} history={tracking.events.map((event) => event.status)} />
+          </div>
           <p className={`text-sm font-semibold ${
             tracking.status === "EXCEPTION" || tracking.holdInfo
               ? "text-[var(--danger)]"
@@ -92,7 +98,7 @@ export default async function PublicTrackPage({
                     partnerAwb
                   )
                 ) : (
-                  <span className="text-[var(--muted)]">Pending after handover</span>
+                  <span className="text-[var(--muted)]">Shared once the partner courier scans it</span>
                 )}
               </dd>
             </div>

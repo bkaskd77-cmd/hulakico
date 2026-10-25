@@ -55,7 +55,7 @@ export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
                 partnerAwb
               )
             ) : (
-              <span className="text-slate-500">Pending after handover</span>
+              <span className="text-slate-500">Shared once the partner courier scans it</span>
             )}
           </p>
         </div>
