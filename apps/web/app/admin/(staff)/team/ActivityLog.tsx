@@ -4,7 +4,7 @@ import { listAudit, type AuditEntry } from "@/lib/data/audit-log";
 const GROUPS = {
   all: { label: "All", match: () => true },
   money: { label: "Money", match: (a: string) => a.startsWith("payment.") || a.startsWith("cod.") || a === "contact.bank_change" },
-  shipments: { label: "Shipments", match: (a: string) => a.startsWith("shipment.") || a.startsWith("exception.") },
+  shipments: { label: "Shipments", match: (a: string) => a.startsWith("shipment.") || a.startsWith("exception.") || a.startsWith("customs.") },
   rates: { label: "Rates", match: (a: string) => a.startsWith("rate.") || a.startsWith("carrier.") },
   content: { label: "Website", match: (a: string) => a.startsWith("content.") || a.startsWith("contact.") },
   access: { label: "Sign-ins & team", match: (a: string) => a.startsWith("staff.") || a.startsWith("team.") },
@@ -37,6 +37,7 @@ const LABELS: Record<string, string> = {
   "content.city_remove": "Removed city page",
   "content.notes": "Edited desk notes",
   "backup.download": "Downloaded database backup",
+  "customs.approve": "Approved AI-flagged goods",
 };
 
 /** Actions that move money or lock people out stand out in the list. */

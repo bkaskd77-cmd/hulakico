@@ -9,12 +9,8 @@ import {
   invoiceTotalWeightKg,
   type CommercialInvoice,
 } from "@/lib/domain/invoice";
-import {
-  emptyInvoiceLine,
-  invoiceLineIncomplete,
-  InvoiceLineFields,
-  type LineDraft,
-} from "./InvoiceLineFields";
+import { emptyInvoiceLine, invoiceLineIncomplete, InvoiceLineFields, type LineDraft } from "./InvoiceLineFields";
+import { AiCustomsCheck } from "./AiCustomsCheck";
 
 const FIELD =
   "mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-sm text-[var(--off-white)] outline-none focus:border-[var(--teal)]";
@@ -126,6 +122,7 @@ export function InvoiceEditor({
           canRemove={lines.length > 1}
         />
       ))}
+      <AiCustomsCheck shipmentId={shipmentId} currency={currency} exportReason={exportReason} lines={lines} onApply={updateLine} />
       <div className="flex flex-wrap items-center gap-3 rounded-md border border-[color-mix(in_srgb,var(--off-white)_12%,transparent)] px-3 py-2 text-xs text-[var(--muted)]">
         <span>Total units {totalUnits}</span>
         <span>Total weight {totalWeight.toFixed(3)} kg</span>

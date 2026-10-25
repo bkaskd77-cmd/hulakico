@@ -7,6 +7,7 @@ import { getStaffShipmentSummary } from "@/lib/data/shipment-summary";
 import { requireStaffPage } from "@/lib/http/require-staff";
 import { laneLabel } from "@/lib/domain/shipment-labels";
 import { StatusPill } from "@/app/StatusPill";
+import { AiCustomsPanel } from "@/app/admin/(staff)/shipments/[id]/AiCustomsPanel";
 
 export const runtime = "nodejs";
 
@@ -102,6 +103,8 @@ export default async function AdminShipmentDetailPage({
           hideView
         />
       </section>
+
+      {s.lane === "INTERNATIONAL" ? <AiCustomsPanel shipmentId={s.id} /> : null}
 
       <ShipmentDetailPanels s={s} />
     </>

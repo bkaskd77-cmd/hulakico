@@ -1,6 +1,9 @@
 import { getInvoiceForShipment } from "@/lib/data/invoices";
 import { invoiceProblem } from "@/lib/domain/invoice-qc";
-import { getSql } from "@/lib/sql";
+import { getSql } from "@/lib/sql";
+import { aiEnabled } from "@/lib/ai/claude";
+import { screenSavedInvoice } from "@/lib/data/customs-ai";
+import { customsReviewHold } from "@/lib/data/customs-review";
 
 /**
  * International goods cannot be paid for or booked without a complete customs invoice.
@@ -13,7 +16,11 @@ export async function customsInvoiceBlocker(shipmentId: string): Promise<string 
       .get(shipmentId)) as { lane: string; package_type: string } | undefined;
     if (!row) return "Shipment not found.";
     if (row.lane !== "INTERNATIONAL" || row.package_type === "DOCUMENT") return null;
-    return invoiceProblem(await getInvoiceForShipment(shipmentId));
+    const problem = invoiceProblem(await getInvoiceForShipment(shipmentId));
+    if (problem) return problem;
+    // AI screening of the goods. An AI outage never blocks: staff still review before pickup.
+    if (aiEnabled()) await screenSavedInvoice(shipmentId);
+    return await customsReviewHold(shipmentId);
   } catch (error) {
     console.error("[invoice-gate.ts:customsInvoiceBlocker]", error instanceof Error ? error.message : error);
     // Fail closed: if we cannot check the invoice, do not let an international parcel through.
