@@ -8,7 +8,8 @@ export type NotifyKind =
   | "HOLD"
   | "HANDED_OVER"
   | "DELIVERED"
-  | "PAID";
+  | "PAID"
+  | "CANCELLED";
 
 
 export type NotificationRow = {

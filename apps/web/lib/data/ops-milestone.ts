@@ -90,14 +90,13 @@ export async function postOpsMilestone(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at) VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(newId("evt"), shipmentId, milestone, description, location, now);
 
-    // Email the customer once per step: pickup and delivery, never for each transit scan.
-    if (!transitAgain && (milestone === "HANDOVER_PENDING" || milestone === "DELIVERED")) {
+    // Only delivery is emailed; pickup and transit scans show on the tracking page.
+    if (milestone === "DELIVERED") {
       const awb = row.hulakico_awb ?? shipmentId;
-      const delivered = milestone === "DELIVERED";
       const notify = await logCustomerNotification({
         shipmentId,
-        kind: delivered ? "DELIVERED" : "HANDED_OVER",
-        subject: delivered ? `Hulakico delivered · ${awb}` : `Hulakico handed over · ${awb}`,
+        kind: "DELIVERED",
+        subject: `Hulakico delivered · ${awb}`,
         body: `${description} · ${location}`,
       });
       if ("error" in notify) console.error("[ops-milestone.ts:postOpsMilestone]", notify.error);

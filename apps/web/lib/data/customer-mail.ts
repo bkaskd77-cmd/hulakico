@@ -4,7 +4,12 @@ import { getCompanyContact } from "@/lib/data/company-contact-content";
 const DEFAULT_FROM = "Hulakico <info@hulakico.com>";
 const SEND_TIMEOUT_MS = 8000;
 
-export type NoticeKind = "BOOKED" | "HOLD" | "HANDED_OVER" | "DELIVERED" | "PAID";
+/**
+ * Customers are emailed only about money, problems, and the result: booked, payment received,
+ * on hold (we need something), delivered, cancelled. Routine movement stays on the tracking page.
+ * HANDED_OVER is kept only so older notification rows still display.
+ */
+export type NoticeKind = "BOOKED" | "HOLD" | "HANDED_OVER" | "DELIVERED" | "PAID" | "CANCELLED";
 
 /** Subject, opening line, whether the caller's detail is worth showing, and what happens next. */
 const NOTICE_COPY: Record<NoticeKind, { subject: string; lead: string; detail: boolean; next: string }> = {
@@ -12,7 +17,7 @@ const NOTICE_COPY: Record<NoticeKind, { subject: string; lead: string; detail: b
     subject: "Booking confirmed",
     lead: "Your shipment is booked.",
     detail: true,
-    next: "We will email you again when the courier picks it up. Keep your AWB handy for any question.",
+    next: "Follow every step on the tracking page. We will only email you if we need something from you, and when it is delivered.",
   },
   HOLD: {
     subject: "Action needed: shipment on hold",
@@ -31,6 +36,12 @@ const NOTICE_COPY: Record<NoticeKind, { subject: string; lead: string; detail: b
     lead: "Your shipment has been delivered.",
     detail: false,
     next: "Thank you for shipping with Hulakico. If anything is not right, reply to this email and we will look into it.",
+  },
+  CANCELLED: {
+    subject: "Shipment cancelled",
+    lead: "Your shipment has been cancelled.",
+    detail: true,
+    next: "If you already paid, we will contact you about the refund. Reply to this email with any question.",
   },
   PAID: {
     subject: "Payment received",

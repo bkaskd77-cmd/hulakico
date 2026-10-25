@@ -1,6 +1,7 @@
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { ensurePaymentsTable } from "@/lib/data/payments";
+import { logCustomerNotification } from "@/lib/data/notifications";
 
 /** Shipments can be cancelled until the courier has them on the move. */
 const CANCELLABLE = new Set(["DRAFT", "QUOTED", "BOOKED", "HANDOVER_PENDING", "EXCEPTION"]);
@@ -28,6 +29,11 @@ export async function cancelShipment(shipmentId: string, reason: string): Promis
       ).run(newId("evt"), shipmentId, `Cancelled: ${why}`, now);
       await tx.prepare(`UPDATE payment_intents SET status = 'CANCELLED' WHERE shipment_id = ? AND status = 'AWAITING_PAYMENT'`).run(shipmentId);
     });
+    // Booked shipments only: a draft or quote was never confirmed, so there is nothing to undo.
+    if (row.status !== "DRAFT" && row.status !== "QUOTED") {
+      const notify = await logCustomerNotification({ shipmentId, kind: "CANCELLED", subject: "Shipment cancelled", body: `Reason: ${why}` });
+      if ("error" in notify) console.error("[ops-cancel.ts:cancelShipment]", notify.error);
+    }
     return { ok: true };
   } catch (error) {
     console.error("[ops-cancel.ts:cancelShipment]", error instanceof Error ? error.message : error);
