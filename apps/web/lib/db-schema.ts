@@ -243,6 +243,7 @@ export function ensureSchema(database: DatabaseSync): void {
   migrateInvoiceLineWeight(database);
   ensureStaffTables(database);
   migrateStaffRoles(database);
+  migrateStaffTwoStep(database);
   bootstrapStaffAdmin(database);
   ensureSiteContentTable(database);
   ensureContactMessagesTable(database);
@@ -389,6 +390,29 @@ function ensureStaffTables(database: DatabaseSync): void {
 }
 
 /** Expand staff roles: OPS → EDITOR; allow ADMIN | EDITOR | SUB_ADMIN. */
+/** Two-step login (TOTP) columns and the staff audit log. */
+function migrateStaffTwoStep(database: DatabaseSync): void {
+  const names = new Set(
+    (database.prepare("PRAGMA table_info(staff_users)").all() as Array<{ name: string }>).map((column) => column.name),
+  );
+  if (!names.has("totp_secret")) database.exec(`ALTER TABLE staff_users ADD COLUMN totp_secret TEXT`);
+  if (!names.has("totp_enabled_at")) database.exec(`ALTER TABLE staff_users ADD COLUMN totp_enabled_at TEXT`);
+  if (!names.has("totp_last_step")) database.exec(`ALTER TABLE staff_users ADD COLUMN totp_last_step INTEGER`);
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id TEXT PRIMARY KEY,
+      staff_user_id TEXT,
+      staff_email TEXT NOT NULL,
+      action TEXT NOT NULL,
+      target TEXT,
+      detail TEXT,
+      ip TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);
+  `);
+}
+
 function migrateStaffRoles(database: DatabaseSync): void {
   try {
     const row = database
