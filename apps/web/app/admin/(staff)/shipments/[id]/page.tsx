@@ -5,6 +5,7 @@ import { AdminShipmentOps } from "@/app/admin/(staff)/AdminShipmentOps";
 import { getSql } from "@/lib/sql";
 import { getStaffShipmentSummary } from "@/lib/data/shipment-summary";
 import { requireStaffPage } from "@/lib/http/require-staff";
+import { statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -82,7 +83,7 @@ export default async function AdminShipmentDetailPage({
             </span>
           ) : (
             <span className="rounded-md bg-[var(--gold)] px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[var(--navy)]">
-              In progress · {s.status.replaceAll("_", " ")}
+              In progress · {statusLabel(s.status)}
             </span>
           )}
         </div>

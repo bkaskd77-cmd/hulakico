@@ -5,6 +5,7 @@ import { ShipmentDetailPanels } from "@/app/account/ShipmentDetailPanels";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getMyShipmentSummary } from "@/lib/data/shipment-summary";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { laneLabel, statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -64,7 +65,7 @@ export default async function OpenShipmentPage({
             {s.origin.city} → {s.destination.city}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            {s.status.replaceAll("_", " ")} · {s.lane}
+            {statusLabel(s.status)} · {laneLabel(s.lane)}
             {s.hulakicoAwb ? ` · ${s.hulakicoAwb}` : ""}
           </p>
         </header>

@@ -35,7 +35,7 @@ export function NeedsAttentionStrip({ items }: { items: AttentionItem[] }) {
                 href={item.href}
                 className="shrink-0 rounded-md bg-[var(--navy)] px-3 py-1.5 text-xs font-semibold text-white"
               >
-                {item.kind === "PAY" ? "Open settle" : "Open"}
+                {item.kind === "PAY" ? "Pay now" : "Open"}
               </Link>
             </div>
           </li>

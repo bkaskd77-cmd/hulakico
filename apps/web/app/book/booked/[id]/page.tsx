@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getBookedShipmentForUser } from "@/lib/data/tracking";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { customerPartnerAwb, statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -41,11 +42,11 @@ export default async function BookedPage({
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Partner AWB</dt>
-            <dd className="text-[var(--off-white)]">{shipment.external_awb}</dd>
+            <dd className="text-[var(--off-white)]">{customerPartnerAwb(shipment.external_awb) ?? "Given when the courier collects"}</dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Status</dt>
-            <dd className="text-[var(--off-white)]">{shipment.status}</dd>
+            <dd className="text-[var(--off-white)]">{statusLabel(shipment.status)}</dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide">Route</dt>

@@ -6,6 +6,7 @@ import {
   type OpsShipmentFilter,
 } from "@/lib/data/ops-shipments";
 import { requireStaffPage } from "@/lib/http/require-staff";
+import { statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -36,7 +37,7 @@ function statusBadge(status: string): { label: string; className: string } {
     };
   }
   return {
-    label: status.replaceAll("_", " "),
+    label: statusLabel(status),
     className: "bg-[var(--teal-fill)] text-[var(--off-white)]",
   };
 }

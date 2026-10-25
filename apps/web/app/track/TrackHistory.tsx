@@ -1,25 +1,10 @@
-const STEP_LABELS: Record<string, string> = {
-  DRAFT: "Draft",
-  QUOTED: "Quoted",
-  BOOKED: "Booked",
-  HANDOVER_PENDING: "Picked up",
-  IN_TRANSIT: "In transit",
-  OUT_FOR_DELIVERY: "Out for delivery",
-  DELIVERED: "Delivered",
-  EXCEPTION: "On hold",
-  HOLD: "On hold",
-  CANCELLED: "Cancelled",
-  RTO: "Returned to sender",
-};
+import { nepalTime, statusLabel } from "@/lib/domain/shipment-labels";
+
+export { nepalTime };
 
 /** Customer-facing name for a shipment step, used by the history and the page headline. */
 export function trackStatusLabel(status: string): string {
-  return STEP_LABELS[status] ?? status.replaceAll("_", " ").toLowerCase();
-}
-
-/** Times always in Nepal time, whatever timezone the server runs in. */
-export function nepalTime(iso: string): string {
-  return `${new Date(iso).toLocaleString("en-GB", { timeZone: "Asia/Kathmandu", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} NPT`;
+  return statusLabel(status);
 }
 
 type TrackEvent = {

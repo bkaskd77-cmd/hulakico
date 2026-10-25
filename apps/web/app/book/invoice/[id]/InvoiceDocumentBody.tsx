@@ -1,3 +1,4 @@
+import { statusLabel } from "@/lib/domain/shipment-labels";
 import { countryName } from "@/app/book/countries";
 import type { InvoiceDocumentShipment } from "@/lib/data/invoice-document";
 import {
@@ -26,7 +27,7 @@ export function InvoiceDocumentBody({
           <span className="break-all font-semibold">{s.hulakico_awb ?? "Pending"}</span>
         </p>
         <p className="mt-1 text-xs text-neutral-600 sm:text-sm">
-          Export reason: {invoice.exportReason} · {invoice.currency} · {s.status.replaceAll("_", " ")}
+          Export reason: {invoice.exportReason} · {invoice.currency} · {statusLabel(s.status)}
           {isAuthority ? " · Ops view" : ""}
         </p>
       </header>

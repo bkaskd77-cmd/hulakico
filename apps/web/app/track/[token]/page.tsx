@@ -6,6 +6,7 @@ import { TrackReplyForm } from "@/app/track/TrackReplyForm";
 import { getTrackingByToken } from "@/lib/data/tracking";
 import { nextStepFor } from "@/lib/data/tracking-timeline";
 import { effectivePartnerTrackUrl } from "@/lib/domain/partner-track-url";
+import { customerPartnerAwb } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 // Tracking links are private to the sender and receiver: never in search results.
@@ -21,9 +22,10 @@ export default async function PublicTrackPage({
   const tracking = await getTrackingByToken(token);
   if (!tracking) notFound();
 
+  const partnerAwb = customerPartnerAwb(tracking.externalAwb);
   const partnerUrl = effectivePartnerTrackUrl({
     partnerLabel: tracking.partnerLabel,
-    awb: tracking.externalAwb,
+    awb: partnerAwb,
     storedUrl: tracking.partnerTrackUrl,
   });
   const carrierDisplay =
@@ -81,13 +83,13 @@ export default async function PublicTrackPage({
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Partner AWB</dt>
               <dd className="mt-1 break-all text-[var(--off-white)]">
-                {tracking.externalAwb ? (
+                {partnerAwb ? (
                   partnerUrl ? (
                     <a href={partnerUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--gold)] underline">
-                      {tracking.externalAwb}
+                      {partnerAwb}
                     </a>
                   ) : (
-                    tracking.externalAwb
+                    partnerAwb
                   )
                 ) : (
                   <span className="text-[var(--muted)]">Pending after handover</span>

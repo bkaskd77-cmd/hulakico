@@ -6,6 +6,7 @@ import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listOpsShipments } from "@/lib/data/ops-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
 import { requireStaffPage } from "@/lib/http/require-staff";
+import { laneLabel, statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -65,7 +66,7 @@ export default async function OpsShipmentsPage() {
                     {shipment.originCity} → {shipment.destinationCity}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {shipment.status} · {shipment.lane} · HK {shipment.hulakicoAwb ?? "—"} · Partner{" "}
+                    {statusLabel(shipment.status)} · {laneLabel(shipment.lane)} · HK {shipment.hulakicoAwb ?? "—"} · Partner{" "}
                     {shipment.externalAwb ?? "—"} · {shipment.customerName}
                   </p>
                 </div>

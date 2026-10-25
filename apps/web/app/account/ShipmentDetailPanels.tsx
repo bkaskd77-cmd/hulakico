@@ -1,13 +1,16 @@
 import { countryName } from "@/app/book/countries";
 import type { ShipmentParty, ShipmentSummary } from "@/lib/data/shipment-summary";
 import { effectivePartnerTrackUrl } from "@/lib/domain/partner-track-url";
+import { codeLabel, customerPartnerAwb, laneLabel, nepalTime } from "@/lib/domain/shipment-labels";
 
 function PartyBlock({ title, party }: { title: string; party: ShipmentParty }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
       <p className="mt-2 font-semibold text-slate-900">{party.contactName || "—"}</p>
-      {party.company ? <p className="text-sm text-slate-700">{party.company}</p> : null}
+      {party.company && party.company.trim().toLowerCase() !== (party.contactName ?? "").trim().toLowerCase() ? (
+        <p className="text-sm text-slate-700">{party.company}</p>
+      ) : null}
       <p className="mt-2 text-sm text-slate-700">
         {[party.line1, party.line2].filter(Boolean).join(", ") || "—"}
       </p>
@@ -23,9 +26,10 @@ function PartyBlock({ title, party }: { title: string; party: ShipmentParty }) {
 
 /** Detail panels for customer shipment overview. */
 export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
+  const partnerAwb = customerPartnerAwb(s.externalAwb);
   const partnerUrl = effectivePartnerTrackUrl({
     partnerLabel: s.partnerLabel,
-    awb: s.externalAwb,
+    awb: partnerAwb,
     storedUrl: s.partnerTrackUrl,
   });
   const carrierDisplay = s.partnerLabel ?? s.carrierName;
@@ -42,13 +46,13 @@ export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
           <p className="mt-1 break-all font-semibold text-slate-900">{s.hulakicoAwb ?? "—"}</p>
           <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Partner AWB</p>
           <p className="mt-1 break-all text-slate-800">
-            {s.externalAwb ? (
+            {partnerAwb ? (
               partnerUrl ? (
                 <a href={partnerUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--teal)] underline">
-                  {s.externalAwb}
+                  {partnerAwb}
                 </a>
               ) : (
-                s.externalAwb
+                partnerAwb
               )
             ) : (
               <span className="text-slate-500">Pending after handover</span>
@@ -57,8 +61,8 @@ export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dates</p>
-          <p className="mt-1 text-slate-800">Created {new Date(s.createdAt).toLocaleString()}</p>
-          <p className="text-slate-800">Updated {new Date(s.updatedAt).toLocaleString()}</p>
+          <p className="mt-1 text-slate-800">Created {nepalTime(s.createdAt)}</p>
+          <p className="text-slate-800">Updated {nepalTime(s.updatedAt)}</p>
           {carrierDisplay ? <p className="mt-2 text-slate-600">Carrier · {carrierDisplay}</p> : null}
         </div>
       </div>
@@ -72,7 +76,7 @@ export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
         <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Package</p>
           <p className="mt-2 text-slate-900">
-            {s.packageType} · {s.serviceClass} · {s.lane}
+            {codeLabel(s.packageType)} · {codeLabel(s.serviceClass)} · {laneLabel(s.lane)}
           </p>
           <dl className="mt-3 space-y-1 text-slate-700">
             <div className="flex justify-between gap-4"><dt>Actual weight</dt><dd>{s.weightKg} kg</dd></div>
@@ -89,7 +93,7 @@ export function ShipmentDetailPanels({ s }: { s: ShipmentSummary }) {
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Contents & settle</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Contents & payment</p>
           <p className="mt-2 text-slate-900">{s.contents || "—"}</p>
           {s.declaredValue != null ? (
             <p className="mt-2 text-slate-700">

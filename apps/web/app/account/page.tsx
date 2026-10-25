@@ -8,6 +8,7 @@ import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listAttentionItems } from "@/lib/data/shipment-attention";
 import { listMyShipments } from "@/lib/data/my-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -107,7 +108,7 @@ export default async function AccountPage({
                     <div>
                       <p className="font-semibold text-[var(--off-white)]">{row.originCity} → {row.destinationCity}</p>
                       <p className="text-xs text-[var(--muted)]">
-                        {row.hulakicoAwb ?? "Draft"} · {row.status.replaceAll("_", " ")}
+                        {row.hulakicoAwb ?? "Draft"} · {statusLabel(row.status)}
                       </p>
                     </div>
                     <span className="text-xs font-semibold text-[var(--teal)]">Open</span>

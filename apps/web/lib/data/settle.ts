@@ -105,7 +105,8 @@ export async function getSettleSummary(shipmentId: string): Promise<SettleSummar
           mode: "TRANSFER",
           status: "AWAITING_PAYMENT",
           label: `Pay by transfer · ${pay.currency} ${pay.amount.toFixed(2)}`,
-          detail: pay.instructions,
+          // Old test-mode notes mention developer settings; customers never see those.
+          detail: /stub|PAY_PROVIDER/i.test(pay.instructions ?? "") ? null : pay.instructions,
           amount: pay.amount,
           currency: pay.currency,
         };

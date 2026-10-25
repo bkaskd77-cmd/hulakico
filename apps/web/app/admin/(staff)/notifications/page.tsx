@@ -1,5 +1,6 @@
 import { listRecentNotifications } from "@/lib/data/notifications";
 import { requireStaffPage } from "@/lib/http/require-staff";
+import { nepalTime } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -48,7 +49,7 @@ export default async function AdminNotificationsPage() {
               {item.recipient}
             </p>
             <p className="mt-1 text-xs text-[var(--muted)]">
-              {new Date(item.createdAt).toLocaleString()}
+              {nepalTime(item.createdAt)}
             </p>
           </li>
         ))}

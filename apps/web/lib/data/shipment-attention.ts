@@ -86,7 +86,7 @@ export async function listAttentionItems(userId: string): Promise<AttentionItem[
         shipmentId: row.id,
         kind: "PAY",
         title: "Payment pending",
-        detail: `Transfer ${row.currency} ${row.amount.toFixed(2)} to complete settle.`,
+        detail: `Pay ${row.currency} ${row.amount.toFixed(2)} to complete this booking.`,
         href: `/account/shipments/${row.id}`,
         routeLabel: `${row.origin_city} → ${row.destination_city}`,
         awb: row.hulakico_awb,

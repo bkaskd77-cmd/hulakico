@@ -4,6 +4,7 @@ import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { listRecentNotifications } from "@/lib/data/notifications";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 import { requireStaffPage } from "@/lib/http/require-staff";
+import { nepalTime } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -59,7 +60,7 @@ export default async function OpsNotificationsPage() {
               </p>
               <p className="mt-1 break-all text-xs text-[var(--teal)]">{item.recipient}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
-                {new Date(item.createdAt).toLocaleString()}
+                {nepalTime(item.createdAt)}
               </p>
             </li>
           ))}

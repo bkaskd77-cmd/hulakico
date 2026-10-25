@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { copyShipmentAction } from "@/app/account/copy-actions";
 import type { MyShipmentRow } from "@/lib/data/my-shipments";
+import { StatusPill } from "@/app/StatusPill";
+import { codeLabel, laneLabel, nepalTime } from "@/lib/domain/shipment-labels";
 
 function statusEdge(status: string): string {
   if (status === "EXCEPTION") return "bg-[var(--danger)]";
@@ -33,12 +35,10 @@ export function ShipmentListCard({ row }: { row: MyShipmentRow }) {
               <p className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-900">
                 {row.hulakicoAwb ?? "Draft shipment"}
               </p>
-              <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-[var(--teal-ink)]">
-                {row.status.replaceAll("_", " ")}
-              </p>
+              <StatusPill status={row.status} className="mt-1" />
             </div>
             <p className="text-xs text-slate-500">
-              Updated {new Date(row.updatedAt).toLocaleString()}
+              Updated {nepalTime(row.updatedAt)}
             </p>
           </div>
 
@@ -64,7 +64,7 @@ export function ShipmentListCard({ row }: { row: MyShipmentRow }) {
           </div>
 
           <p className="mt-3 text-xs text-slate-600">
-            {row.lane} · {row.serviceClass} · {row.packageType}
+            {laneLabel(row.lane)} · {codeLabel(row.serviceClass)} · {codeLabel(row.packageType)}
             {contents ? ` · ${contents}` : ""} · {row.settleShort}
           </p>
 

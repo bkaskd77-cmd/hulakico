@@ -1,3 +1,4 @@
+import { laneLabel, statusLabel } from "@/lib/domain/shipment-labels";
 import Link from "next/link";
 import {
   listAdminTowerShipments,
@@ -59,7 +60,7 @@ export async function AdminTowerBoard() {
                   {row.originCity} → {row.destinationCity}
                 </p>
                 <p className="text-xs text-[color-mix(in_srgb,var(--off-white)_75%,transparent)]">
-                  {row.hulakicoAwb ?? "No AWB"} · {row.status} · {row.lane} ·{" "}
+                  {row.hulakicoAwb ?? "No AWB"} · {statusLabel(row.status)} · {laneLabel(row.lane)} ·{" "}
                   {row.customerEmail}
                 </p>
                 {row.etaFactors.length > 0 ? (
