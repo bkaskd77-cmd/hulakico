@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import { getCityCopies, removeCityCopy, saveCityCopy } from "@/lib/data/city-content";
 import type { LaneCopy } from "@/lib/data/lane-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
@@ -41,6 +42,7 @@ export async function saveCityAction(formData: FormData): Promise<{ ok: true } |
       facts,
     });
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.city", slug, formData.get("create") === "1" ? "added" : "edited");
     revalidatePath("/services/domestic");
     revalidatePath(`/services/domestic/${slug}`);
     return { ok: true };
@@ -57,6 +59,7 @@ export async function removeCityAction(slug: string): Promise<{ ok: true } | { e
     if (!access.ok || !canAccess(access.staff.role, "content")) return { error: "Your staff role cannot edit website content." };
     const result = await removeCityCopy(String(slug));
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.city_remove", String(slug));
     revalidatePath("/services/domestic");
     revalidatePath(`/services/domestic/${slug}`);
     revalidatePath("/admin/services");

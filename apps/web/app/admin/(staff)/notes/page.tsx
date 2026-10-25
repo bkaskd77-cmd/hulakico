@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { NotesEditor } from "@/app/admin/(staff)/notes/NotesEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import { getPublishedNotes, saveDeskNotes, type StoredNote } from "@/lib/data/desk-notes-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -17,6 +18,7 @@ async function saveNotesAction(items: StoredNote[]): Promise<{ ok: true } | { er
     if (!canAccess(access.staff.role, "content")) return { error: "Your staff role cannot edit website content." };
     const result = await saveDeskNotes(items);
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.notes", "Desk notes", `${items.length} notes`);
     revalidatePath("/");
     revalidatePath("/notes");
     for (const item of items) revalidatePath(`/notes/${item.slug}`);
