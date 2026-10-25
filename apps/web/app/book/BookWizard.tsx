@@ -131,7 +131,7 @@ export function BookWizard({
         <PackageFields form={form} update={update} field={BOOK_FIELD} lane={lane} reveal={revealRouteErrors} />
       </div>
       <div className={step === 3 ? "block" : "hidden"} aria-hidden={step !== 3}>
-        <ReviewSummary form={form} lane={lane} />
+        <ReviewSummary form={form} lane={lane} active={step === 3} />
       </div>
       {step === 4 && shipmentId ? (
         <PaymentStep shipmentId={shipmentId} wantsCod={form.wantsCod} lane={lane}

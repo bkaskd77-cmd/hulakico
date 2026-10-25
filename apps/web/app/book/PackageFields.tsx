@@ -3,6 +3,7 @@
 import type { FormState, FormUpdate } from "./form-types";
 import { contentsHint, contentsPlaceholder } from "./contents-hint";
 import { codCue, currencyCue } from "./country-defaults";
+import { ChargedWeightNote, PACKAGE_TYPES, SERVICES } from "./package-info";
 import { validatePackageForm } from "./validate-route";
 
 const SIZE_FIELDS = [
@@ -45,26 +46,18 @@ export function PackageFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm text-[var(--muted)]">
           Package type
-          <select
-            className={field}
-            value={form.packageType}
-            onChange={(e) => update("packageType", e.target.value)}
-          >
-            <option value="DOCUMENT">Document</option>
-            <option value="PARCEL">Parcel</option>
-            <option value="FREIGHT_LITE">Freight lite</option>
+          <select className={field} value={form.packageType} onChange={(e) => {
+            update("packageType", e.target.value);
+            // Documents are light; do not carry a parcel weight over.
+            if (e.target.value === "DOCUMENT" && !(Number(form.weightKg) <= 2)) update("weightKg", "0.5");
+          }}>
+            {PACKAGE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </label>
         <label className="text-sm text-[var(--muted)]">
           Service
-          <select
-            className={field}
-            value={form.serviceClass}
-            onChange={(e) => update("serviceClass", e.target.value)}
-          >
-            <option value="EXPRESS">Express</option>
-            <option value="ECONOMY">Economy</option>
-            <option value="FREIGHT_ASSIST">Freight assist</option>
+          <select className={field} value={form.serviceClass} onChange={(e) => update("serviceClass", e.target.value)}>
+            {SERVICES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </label>
         <label className="text-sm text-[var(--muted)]">
@@ -106,6 +99,7 @@ export function PackageFields({
             />
           </label>
         ))}
+        <ChargedWeightNote form={form} lane={lane} />
         <label className="text-sm text-[var(--muted)]">
           Declared value{needsValue ? <Required /> : null}
           <input
