@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { getMilestoneContext, postOpsMilestone } from "@/lib/data/ops-milestone";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
+import { writeAudit } from "@/lib/data/audit-log";
+import { requestIp } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -37,6 +39,8 @@ export async function POST(
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+    const where = [text(body.location), text(body.note)].filter(Boolean).join(" · ");
+    await writeAudit(access.staff, "shipment.status", id, `${result.status}${where ? ` · ${where}` : ""}`, requestIp(request));
     return NextResponse.json({ ok: true, status: result.status });
   } catch (error) {
     console.error(

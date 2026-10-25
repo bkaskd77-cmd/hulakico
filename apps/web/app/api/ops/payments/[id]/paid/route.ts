@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { markTransferPaid } from "@/lib/data/payment-ops";
+import { writeAudit } from "@/lib/data/audit-log";
+import { requestIp } from "@/lib/http/rate-limit";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
@@ -24,6 +26,7 @@ export async function POST(
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+    await writeAudit(access.staff, "payment.mark_paid", id, body.note ?? "", requestIp(request));
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(
