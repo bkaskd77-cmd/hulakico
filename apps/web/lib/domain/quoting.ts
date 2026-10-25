@@ -70,11 +70,6 @@ export function pickRate<T extends MatchableRate>(rates: T[], target: RateMatchT
   return defaults.find((rate) => rate.country === country) ?? defaults[0] ?? null;
 }
 
-/** Older call sites: city only, no country or postal code. */
-export function pickRateForCity<T extends MatchableRate>(rates: T[], lane: "DOMESTIC" | "INTERNATIONAL", destinationCity: string): T | null {
-  return pickRate(rates, { lane, country: lane === "DOMESTIC" ? "NP" : "", city: destinationCity, postalCode: "" });
-}
-
 export type WeightSlab = { upToKg: number; amount: number };
 
 const FIRST_SLAB_KG = 0.5;

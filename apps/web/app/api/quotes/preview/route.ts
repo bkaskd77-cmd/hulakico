@@ -3,7 +3,8 @@ import { seedCarriers } from "@/lib/data/carriers";
 import type { QuoteOptionView } from "@/lib/data/quotes";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
-import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRateForCity } from "@/lib/domain/quoting";
+import { loadServiceRates } from "@/lib/data/rate-cards";
+import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRate, type RateMatchTarget } from "@/lib/domain/quoting";
 import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ type Body = {
   originCity?: string;
   destinationCountry?: string;
   destinationCity?: string;
+  destinationPostalCode?: string;
   weightKg?: number;
   lengthCm?: number;
   widthCm?: number;
@@ -23,14 +25,13 @@ type Body = {
 };
 
 async function buildOptions(
-  lane: "DOMESTIC" | "INTERNATIONAL",
-  destinationCity: string,
+  target: RateMatchTarget,
   weightKg: number,
   serviceClass: string,
 ): Promise<QuoteOptionView[]> {
   await seedCarriers();
   const db = await getSql();
-  const scopes = lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
+  const scopes = target.lane === "DOMESTIC" ? ["DOMESTIC", "BOTH"] : ["INTERNATIONAL", "BOTH"];
   const services = (await db
     .prepare(
       `SELECT cs.id as service_id, cs.name as service_name, cs.eta_days_min, cs.eta_days_max,
@@ -45,11 +46,7 @@ async function buildOptions(
   const options: QuoteOptionView[] = [];
   for (const service of services) {
     if (!scopes.includes(service.scope)) continue;
-    const rates = (
-      (await db.prepare(`SELECT currency, base_amount, per_kg_amount, zone_label, lane, place_name FROM rate_cards WHERE carrier_service_id = ?`)
-        .all(service.service_id)) as Array<{ currency: string; base_amount: number; per_kg_amount: number; zone_label: string; lane: string | null; place_name: string | null }>
-    ).map((r) => ({ currency: r.currency, baseAmount: r.base_amount, perKgAmount: r.per_kg_amount, zoneLabel: r.zone_label, lane: r.lane, placeName: r.place_name }));
-    const rate = pickRateForCity(rates, lane, destinationCity);
+    const rate = pickRate(await loadServiceRates(service.service_id), target);
     if (!rate) continue;
     options.push({
       id: newId("qopt"),
@@ -99,7 +96,8 @@ export async function POST(request: Request) {
     }
 
     const charged = billableKg(weightKg, lengthCm, widthCm, heightCm, lane);
-    const base = await buildOptions(lane, destinationCity, charged, ratedClass);
+    const target = { lane, country: destinationCountry, city: destinationCity, postalCode: String(body.destinationPostalCode ?? "").slice(0, 12) } as const;
+    const base = await buildOptions(target, charged, ratedClass);
     const chosen = lowestQuoteOption(base, lane);
     if (!chosen) {
       return NextResponse.json({ error: "No rate is set for this city yet." }, { status: 400 });

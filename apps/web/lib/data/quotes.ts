@@ -2,7 +2,8 @@ import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { seedCarriers } from "@/lib/data/carriers";
 import { replaceShipmentQuotes } from "@/lib/data/quote-persist";
-import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRateForCity } from "@/lib/domain/quoting";
+import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRate } from "@/lib/domain/quoting";
+import { loadServiceRates } from "@/lib/data/rate-cards";
 
 export type QuoteOptionView = {
   id: string;
@@ -26,6 +27,8 @@ type ShipmentRow = {
   lane: "DOMESTIC" | "INTERNATIONAL";
   service_class: string;
   destination_city: string;
+  destination_country: string;
+  destination_postal_code: string | null;
   weight_kg: number;
   length_cm: number | null;
   width_cm: number | null;
@@ -42,7 +45,7 @@ export async function generateQuotesForShipment(
     const db = await getSql();
     const shipment = (await db
       .prepare(
-        `SELECT id, status, lane, service_class, destination_city,
+        `SELECT id, status, lane, service_class, destination_city, destination_country, destination_postal_code,
                 weight_kg, length_cm, width_cm, height_cm, wants_cod
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
@@ -84,30 +87,13 @@ export async function generateQuotesForShipment(
       if (!scopes.includes(service.scope)) continue;
       if (shipment.wants_cod === 1 && service.supports_cod !== 1) continue;
 
-      const rates = (
-        (await db
-          .prepare(
-            `SELECT currency, base_amount, per_kg_amount, zone_label, lane, place_name
-             FROM rate_cards WHERE carrier_service_id = ?`,
-          )
-          .all(service.service_id)) as Array<{
-          currency: string;
-          base_amount: number;
-          per_kg_amount: number;
-          zone_label: string;
-          lane: string | null;
-          place_name: string | null;
-        }>
-      ).map((row) => ({
-        currency: row.currency,
-        baseAmount: row.base_amount,
-        perKgAmount: row.per_kg_amount,
-        zoneLabel: row.zone_label,
-        lane: row.lane,
-        placeName: row.place_name,
-      }));
-
-      const rate = pickRateForCity(rates, shipment.lane, shipment.destination_city);
+      const rates = await loadServiceRates(service.service_id);
+      const rate = pickRate(rates, {
+        lane: shipment.lane,
+        country: shipment.destination_country,
+        city: shipment.destination_city,
+        postalCode: shipment.destination_postal_code ?? "",
+      });
       if (!rate) continue;
 
       options.push({

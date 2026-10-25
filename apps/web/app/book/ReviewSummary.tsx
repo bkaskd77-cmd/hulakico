@@ -27,7 +27,7 @@ function Party({ title, form, side }: { title: string; form: FormState; side: "o
 /** Fetches a tentative price once per arrival on Review (same pricing as the homepage quote). */
 function useEstimate(form: FormState, active: boolean): Estimate {
   const [estimate, setEstimate] = useState<Estimate>(null);
-  const key = [form.originCity, form.destinationCity, form.destinationCountry, form.weightKg, form.lengthCm, form.widthCm, form.heightCm, form.serviceClass, form.packageType].join("|");
+  const key = [form.originCity, form.destinationCity, form.destinationCountry, form.destinationPostalCode, form.weightKg, form.lengthCm, form.widthCm, form.heightCm, form.serviceClass, form.packageType].join("|");
   useEffect(() => {
     if (!active) return;
     if (form.serviceClass === "FREIGHT_ASSIST") {
@@ -41,7 +41,7 @@ function useEstimate(form: FormState, active: boolean): Estimate {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         originCountry: form.originCountry, originCity: form.originCity,
-        destinationCountry: form.destinationCountry, destinationCity: form.destinationCity,
+        destinationCountry: form.destinationCountry, destinationCity: form.destinationCity, destinationPostalCode: form.destinationPostalCode,
         weightKg: Number(form.weightKg),
         // Documents have no box size; an envelope is sent so the rate still applies.
         lengthCm: isDoc ? 32 : Number(form.lengthCm), widthCm: isDoc ? 24 : Number(form.widthCm), heightCm: isDoc ? 1 : Number(form.heightCm),

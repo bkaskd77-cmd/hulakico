@@ -110,3 +110,40 @@ export async function insertCityRate(
     return { error: "Could not add the rate card." };
   }
 }
+
+export type ServiceRate = {
+  currency: string;
+  baseAmount: number;
+  perKgAmount: number;
+  zoneLabel: string;
+  lane: string | null;
+  placeName: string | null;
+  country: string | null;
+  postalCodes: string | null;
+};
+
+/** Every rate-card row for one carrier service, ready for pickRate(). */
+export async function loadServiceRates(serviceId: string): Promise<ServiceRate[]> {
+  try {
+    const rows = (await (await getSql())
+      .prepare(
+        `SELECT currency, base_amount, per_kg_amount, zone_label, lane, place_name, country, postal_codes
+         FROM rate_cards WHERE carrier_service_id = ?`,
+      )
+      .all(serviceId)) as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+      currency: String(row.currency),
+      baseAmount: Number(row.base_amount),
+      perKgAmount: Number(row.per_kg_amount),
+      zoneLabel: String(row.zone_label),
+      lane: row.lane ? String(row.lane) : null,
+      placeName: row.place_name ? String(row.place_name) : null,
+      // Older national rows have no country; they are Nepal by definition.
+      country: row.country ? String(row.country) : row.lane === "DOMESTIC" ? "NP" : null,
+      postalCodes: row.postal_codes ? String(row.postal_codes) : null,
+    }));
+  } catch (error) {
+    console.error("[rate-cards.ts:loadServiceRates]", error instanceof Error ? error.message : error);
+    return [];
+  }
+}
