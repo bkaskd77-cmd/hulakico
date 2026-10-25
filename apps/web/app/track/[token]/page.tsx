@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TrackBackNav } from "@/app/track/TrackBackNav";
 import { nepalTime, TrackHistory, trackStatusLabel } from "@/app/track/TrackHistory";
@@ -7,6 +8,8 @@ import { nextStepFor } from "@/lib/data/tracking-timeline";
 import { effectivePartnerTrackUrl } from "@/lib/domain/partner-track-url";
 
 export const runtime = "nodejs";
+// Tracking links are private to the sender and receiver: never in search results.
+export const metadata: Metadata = { title: "Track shipment · Hulakico", robots: { index: false, follow: false } };
 
 
 export default async function PublicTrackPage({
