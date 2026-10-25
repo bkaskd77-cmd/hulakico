@@ -35,13 +35,12 @@ function toDraft(initial: CommercialInvoice | null): LineDraft[] {
 }
 
 export function InvoiceEditor({
-  shipmentId,
-  currency,
-  initial,
+  shipmentId, currency, initial, onSaved,
 }: {
   shipmentId: string;
   currency: string;
   initial: CommercialInvoice | null;
+  onSaved?: () => void; // after a successful save, e.g. to unlock payment
 }) {
   const [exportReason, setExportReason] = useState(initial?.exportReason ?? "SALE");
   const [notes, setNotes] = useState(initial?.notes ?? "");
@@ -90,6 +89,7 @@ export function InvoiceEditor({
         }),
       });
       const data = await response.json();
+      if (response.ok) onSaved?.();
       setMessage(
         response.ok
           ? `Saved · total ${currency} ${Number(data.invoice.totalValue).toFixed(2)}`

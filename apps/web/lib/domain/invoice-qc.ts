@@ -64,3 +64,15 @@ function severityFromWarnings(
   if (warnings.length > 0) return "WARN";
   return "OK";
 }
+
+/**
+ * Why a commercial invoice is not ready for customs, or null when it is.
+ * Same rule everywhere: every line needs description, HS code, origin, quantity, value, weight.
+ */
+export function invoiceProblem(invoice: CommercialInvoice | null): string | null {
+  if (!invoice || invoice.lines.length === 0) return "Add the customs invoice: list each item in the box with its value.";
+  const incomplete = invoice.lines.some((line) =>
+    !line.description.trim() || !line.hsCode?.trim() || !line.countryOfOrigin?.trim() ||
+    !(line.quantity > 0) || !(line.unitValue > 0) || line.weightKg == null || !(line.weightKg > 0));
+  return incomplete ? "Every invoice item needs a description, HS code, country of origin, quantity, value, and weight." : null;
+}

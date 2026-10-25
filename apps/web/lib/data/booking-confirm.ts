@@ -3,6 +3,7 @@ import { getCarrierAdapter } from "@/lib/carriers/adapter";
 import { createCodCollection } from "@/lib/data/cod";
 import { logCustomerNotification } from "@/lib/data/notifications";
 import { canConfirmBooking } from "@/lib/data/payment-wallet";
+import { customsInvoiceBlocker } from "@/lib/data/invoice-gate";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { newHulakicoAwb } from "@/lib/domain/awb";
@@ -41,6 +42,8 @@ export async function confirmShipmentBooking(
     if (shipment.status !== "QUOTED" && shipment.status !== "DRAFT") {
       throw new Error("Shipment is already booked.");
     }
+    const invoiceBlocker = await customsInvoiceBlocker(shipmentId);
+    if (invoiceBlocker) throw new Error(invoiceBlocker);
     if (!(await canConfirmBooking(shipmentId))) {
       throw new Error(
         "Payment required before booking unless this is a domestic COD shipment.",

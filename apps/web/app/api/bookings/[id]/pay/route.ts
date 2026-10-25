@@ -3,6 +3,7 @@ import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getSql } from "@/lib/sql";
 import { createWalletPaymentIntent } from "@/lib/data/payment-wallet";
 import { recordCustomerTransfer } from "@/lib/data/payment-transfer";
+import { customsInvoiceBlocker } from "@/lib/data/invoice-gate";
 import { isWalletProvider, payProviderMode } from "@/lib/payments/providers";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
@@ -32,6 +33,10 @@ export async function POST(
         { status: 400 },
       );
     }
+
+    // International goods pay only once customs has its invoice.
+    const invoiceBlocker = await customsInvoiceBlocker(id);
+    if (invoiceBlocker) return NextResponse.json({ error: invoiceBlocker, needsInvoice: true }, { status: 400 });
 
     const body = (await request.json()) as { provider?: string; reference?: unknown };
     if (payProviderMode() === "transfer") {

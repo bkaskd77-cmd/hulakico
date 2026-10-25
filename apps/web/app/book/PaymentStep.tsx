@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { WALLET_PROVIDERS, type WalletProviderId } from "@/lib/payments/providers";
 import { TransferPay, type TransferDetails } from "./TransferPay";
+import { InvoiceEditor } from "./InvoiceEditor";
 
 type QuoteSummary = {
   amount: number;
@@ -15,6 +16,7 @@ export function PaymentStep({
   shipmentId,
   wantsCod,
   lane,
+  needsInvoice = false,
   quote,
   onBookCod,
   pending,
@@ -22,6 +24,8 @@ export function PaymentStep({
   shipmentId: string;
   wantsCod: boolean;
   lane: "DOMESTIC" | "INTERNATIONAL";
+  /** International goods: customs invoice must be saved before payment. */
+  needsInvoice?: boolean;
   quote: QuoteSummary | null;
   onBookCod: () => void;
   pending: boolean;
@@ -31,6 +35,7 @@ export function PaymentStep({
   const [paying, setPaying] = useState(false);
   const isCod = wantsCod && lane === "DOMESTIC";
   const [transfer, setTransfer] = useState<TransferDetails | null>(null);
+  const [invoiceSaved, setInvoiceSaved] = useState(!needsInvoice);
 
   useEffect(() => {
     fetch("/api/payments/transfer-details")
@@ -79,7 +84,16 @@ export function PaymentStep({
         </p>
       </div>
 
-      {isCod ? (
+      {needsInvoice ? (
+        <div className="rounded-md border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] p-4">
+          <p className="text-sm font-semibold text-[var(--off-white)]">Customs invoice (required for goods sent abroad)</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">List every item in the box with its HS code, origin, quantity, value, and weight. Customs holds parcels without it.</p>
+          <InvoiceEditor shipmentId={shipmentId} currency={quote?.currency ?? "USD"} initial={null} onSaved={() => setInvoiceSaved(true)} />
+        </div>
+      ) : null}
+      {!invoiceSaved ? (
+        <p className="text-sm text-[var(--muted)]">Save the customs invoice above to continue to payment.</p>
+      ) : isCod ? (
         <div className="rounded-md border border-[var(--gold)]/40 bg-[color-mix(in_srgb,var(--gold)_12%,transparent)] p-4">
           <p className="text-sm font-semibold text-[var(--gold)]">Cash on delivery</p>
           <p className="mt-1 text-sm text-[var(--muted)]">

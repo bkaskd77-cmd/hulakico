@@ -134,7 +134,7 @@ export function BookWizard({
         <ReviewSummary form={form} lane={lane} active={step === 3} />
       </div>
       {step === 4 && shipmentId ? (
-        <PaymentStep shipmentId={shipmentId} wantsCod={form.wantsCod} lane={lane}
+        <PaymentStep shipmentId={shipmentId} wantsCod={form.wantsCod} lane={lane} needsInvoice={lane === "INTERNATIONAL" && form.packageType !== "DOCUMENT"}
           quote={quote} onBookCod={bookAfterPayment} pending={pending} />
       ) : null}
       {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
