@@ -12,8 +12,8 @@ function partnerKeyFromLabel(label: string | null): PartnerKey {
   const lower = (label ?? "").toLowerCase();
   if (lower.includes("fedex")) return "fedex";
   if (lower.includes("dhl")) return "dhl";
-  if (label) return "other";
-  return "dhl";
+  // No partner yet: don't guess DHL (most bookings are domestic); staff pick the courier.
+  return "other";
 }
 
 /** Ops: partner + AWB (+ optional URL) and Hulakico milestones. */

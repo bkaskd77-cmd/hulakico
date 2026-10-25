@@ -5,7 +5,8 @@ import { AdminShipmentOps } from "@/app/admin/(staff)/AdminShipmentOps";
 import { getSql } from "@/lib/sql";
 import { getStaffShipmentSummary } from "@/lib/data/shipment-summary";
 import { requireStaffPage } from "@/lib/http/require-staff";
-import { statusLabel } from "@/lib/domain/shipment-labels";
+import { laneLabel } from "@/lib/domain/shipment-labels";
+import { StatusPill } from "@/app/StatusPill";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,8 @@ export default async function AdminShipmentDetailPage({
   const s = loaded;
   const openExceptionId = await openExceptionIdFor(s.id);
   const trackHref = s.trackingToken ? `/track/${s.trackingToken}` : null;
-  const startOpen = query.ops === "1";
+  // Actions are what staff come here for, so the panel starts open.
+  const startOpen = query.ops !== "0";
 
   return (
     <>
@@ -69,44 +71,27 @@ export default async function AdminShipmentDetailPage({
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">
             Shipment detail
           </p>
-          {s.status === "DELIVERED" ? (
-            <span className="rounded-md bg-emerald-500 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[var(--navy)]">
-              Delivered
-            </span>
-          ) : ["CANCELLED", "RTO"].includes(s.status) ? (
-            <span className="rounded-md bg-slate-500 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[var(--off-white)]">
-              {s.status === "RTO" ? "RTO" : "Cancelled"}
-            </span>
-          ) : s.status === "EXCEPTION" ? (
-            <span className="rounded-md bg-[var(--danger)] px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[var(--off-white)]">
-              Exception
-            </span>
-          ) : (
-            <span className="rounded-md bg-[var(--gold)] px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[var(--navy)]">
-              In progress · {statusLabel(s.status)}
-            </span>
-          )}
+          <StatusPill status={s.status} />
         </div>
         <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-[var(--off-white)]">
           {s.origin.city} → {s.destination.city}
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          {s.lane}
+          {laneLabel(s.lane)}
           {s.hulakicoAwb ? ` · ${s.hulakicoAwb}` : ""}
           {s.customerName ? ` · ${s.customerName}` : ""}
           {s.customerEmail ? ` · ${s.customerEmail}` : ""}
         </p>
       </header>
 
-      <ShipmentDetailPanels s={s} />
-
       <section
         id="ops"
         className="mt-8 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-4"
       >
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">
-          Ops actions
-        </p>
+        <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--off-white)]">
+          Update this shipment
+        </h2>
+        <p className="text-xs text-[var(--muted)]">Tracking steps, partner AWB, exceptions, and cancellation.</p>
         <AdminShipmentOps
           shipmentId={s.id}
           status={s.status}
@@ -117,6 +102,8 @@ export default async function AdminShipmentDetailPage({
           hideView
         />
       </section>
+
+      <ShipmentDetailPanels s={s} />
     </>
   );
 }

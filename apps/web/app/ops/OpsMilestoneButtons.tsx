@@ -7,7 +7,7 @@ type Route = { lane: string; originCity: string; destinationCity: string; destin
 
 const STEPS = [
   { status: "BOOKED", label: "Booked" },
-  { status: "HANDOVER_PENDING", label: "Handed over" },
+  { status: "HANDOVER_PENDING", label: "Picked up" },
   { status: "IN_TRANSIT", label: "In transit" },
   { status: "OUT_FOR_DELIVERY", label: "Out for delivery" },
   { status: "DELIVERED", label: "Delivered" },

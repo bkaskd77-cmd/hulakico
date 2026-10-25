@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AttachPartnerAwbForm } from "@/app/ops/AttachPartnerAwbForm";
 import { OpenExceptionForm } from "@/app/ops/OpenExceptionForm";
 import { CancelShipmentForm } from "@/app/ops/CancelShipmentForm";
+import { customerPartnerAwb } from "@/lib/domain/shipment-labels";
 
 const OPS_TRACK = new Set([
   "BOOKED",
@@ -73,7 +74,7 @@ export function AdminShipmentOps({
   }
 
   return (
-    <div className="mt-3 space-y-3 border-t border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pt-3">
+    <div className="mt-3 space-y-4 border-t border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pt-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           {!hideView ? (
@@ -89,11 +90,9 @@ export function AdminShipmentOps({
               Exception open
             </span>
           ) : null}
-          {canFlag ? <OpenExceptionForm shipmentId={shipmentId} /> : null}
-          {CANCELLABLE.has(status) ? <CancelShipmentForm shipmentId={shipmentId} /> : null}
           {finished ? (
             <span className="text-xs text-[var(--muted)]">
-              Finished — exception flagging closed
+              Finished — no more updates
             </span>
           ) : null}
         </div>
@@ -102,16 +101,23 @@ export function AdminShipmentOps({
           onClick={() => setOpen(false)}
           className="text-xs font-semibold text-[var(--muted)] underline-offset-2 hover:underline"
         >
-          Close
+          Hide actions
         </button>
       </div>
       {canTrack ? (
         <AttachPartnerAwbForm
           shipmentId={shipmentId}
-          currentAwb={externalAwb}
+          currentAwb={customerPartnerAwb(externalAwb)}
           currentPartnerLabel={partnerLabel}
           currentStatus={status}
         />
+      ) : null}
+      {canFlag || CANCELLABLE.has(status) ? (
+        <div className="space-y-2 rounded-md border border-[color-mix(in_srgb,var(--danger)_45%,transparent)] p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">If something is wrong</p>
+          {canFlag ? <OpenExceptionForm shipmentId={shipmentId} /> : null}
+          {CANCELLABLE.has(status) ? <CancelShipmentForm shipmentId={shipmentId} /> : null}
+        </div>
       ) : null}
     </div>
   );
