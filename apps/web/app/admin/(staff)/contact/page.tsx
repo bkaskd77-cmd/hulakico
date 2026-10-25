@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { ContactEditor } from "@/app/admin/(staff)/contact/ContactEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import { getContactSettings, saveContactSettings, type ContactSettings } from "@/lib/data/company-contact-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -15,8 +16,14 @@ async function saveContactAction(input: ContactSettings): Promise<{ ok: true } |
     const access = await resolveStaffAccess(token);
     if (!access.ok) return { error: "Staff sign in required." };
     if (!canAccess(access.staff.role, "content")) return { error: "Your staff role cannot edit website content." };
+    const before = await getContactSettings();
     const result = await saveContactSettings(input);
     if ("error" in result) return result;
+    // Bank / QR changes redirect customer money, so they are called out in the log.
+    const bankFields = ["bankName", "bankAccountName", "bankAccountNumber", "paymentQr"] as const;
+    const bankChanged = bankFields.filter((field) => (before[field] ?? "") !== (input[field] ?? ""));
+    await writeAudit(access.staff, bankChanged.length ? "contact.bank_change" : "contact.update", "Contact",
+      bankChanged.length ? `Changed: ${bankChanged.join(", ")}; account ending ${String(input.bankAccountNumber ?? "").slice(-4) || "none"}` : null);
     // Contact details appear in the header, footer, and many pages.
     revalidatePath("/", "layout");
     return { ok: true };

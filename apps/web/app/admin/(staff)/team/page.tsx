@@ -2,6 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import { ASSIGNABLE_ROLES, changeStaffRole, isAssignableRole, listTeam, removeStaffAccess } from "@/lib/data/staff-team";
 import { canAccess, ROLE_HINTS, ROLE_LABELS, STAFF_LIMITS } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -30,10 +31,10 @@ function noticeKey(error: string): string {
   return "failed";
 }
 
-/** Admin only. Returns the acting staff id, or null when not allowed. */
-async function teamActor(): Promise<string | null> {
+/** Admin only. Returns the acting staff member, or null when not allowed. */
+async function teamActor() {
   const access = await resolveStaffAccess(await readStaffSessionToken());
-  return access.ok && canAccess(access.staff.role, "team") ? access.staff.id : null;
+  return access.ok && canAccess(access.staff.role, "team") ? access.staff : null;
 }
 
 async function changeRoleAction(formData: FormData): Promise<void> {
@@ -43,8 +44,10 @@ async function changeRoleAction(formData: FormData): Promise<void> {
     const actor = await teamActor();
     const role = formData.get("role");
     if (actor && isAssignableRole(role)) {
-      const result = await changeStaffRole(actor, String(formData.get("id") ?? ""), role);
+      const targetId = String(formData.get("id") ?? "");
+      const result = await changeStaffRole(actor.id, targetId, role);
       notice = "error" in result ? noticeKey(result.error) : "role";
+      if (!("error" in result)) await writeAudit(actor, "team.role", targetId, role);
     }
   } catch (error) {
     console.error("[team/page.tsx:changeRoleAction]", error instanceof Error ? error.message : error);
@@ -60,8 +63,10 @@ async function removeAccessAction(formData: FormData): Promise<void> {
     const actor = await teamActor();
     if (actor && formData.get("confirm") !== "yes") notice = "confirm";
     else if (actor) {
-      const result = await removeStaffAccess(actor, String(formData.get("id") ?? ""));
+      const targetId = String(formData.get("id") ?? "");
+      const result = await removeStaffAccess(actor.id, targetId);
       notice = "error" in result ? noticeKey(result.error) : "removed";
+      if (!("error" in result)) await writeAudit(actor, "team.remove", targetId);
     }
   } catch (error) {
     console.error("[team/page.tsx:removeAccessAction]", error instanceof Error ? error.message : error);
