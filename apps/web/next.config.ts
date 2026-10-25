@@ -5,30 +5,15 @@ const SECURITY_HEADERS = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "frame-src https://www.openstreetmap.org",
-      "object-src 'none'",
-      "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
-      "font-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
-      // React needs eval() for dev-only debugging; production never allows it.
-      process.env.NODE_ENV === "development"
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-        : "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self'",
-      "upgrade-insecure-requests",
-    ].join("; "),
-  },
+  // HTTPS only for a year, subdomains included (no preload list: that is hard to undo).
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // The Content-Security-Policy (with a per-request nonce) is set in proxy.ts.
 ];
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
