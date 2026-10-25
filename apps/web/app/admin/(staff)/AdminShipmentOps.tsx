@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AttachPartnerAwbForm } from "@/app/ops/AttachPartnerAwbForm";
 import { OpenExceptionForm } from "@/app/ops/OpenExceptionForm";
+import { CancelShipmentForm } from "@/app/ops/CancelShipmentForm";
 
 const OPS_TRACK = new Set([
   "BOOKED",
@@ -16,6 +17,8 @@ const OPS_TRACK = new Set([
 
 /** Terminal statuses — no new exceptions; journey is finished. */
 const FINISHED = new Set(["DELIVERED", "CANCELLED", "RTO"]);
+/** Matches lib/data/ops-cancel.ts: cancellable until the courier has it on the move. */
+const CANCELLABLE = new Set(["DRAFT", "QUOTED", "BOOKED", "HANDOVER_PENDING", "EXCEPTION"]);
 
 /** View/Manage for list; on detail pass startOpen + hideView. */
 export function AdminShipmentOps({
@@ -87,6 +90,7 @@ export function AdminShipmentOps({
             </span>
           ) : null}
           {canFlag ? <OpenExceptionForm shipmentId={shipmentId} /> : null}
+          {CANCELLABLE.has(status) ? <CancelShipmentForm shipmentId={shipmentId} /> : null}
           {finished ? (
             <span className="text-xs text-[var(--muted)]">
               Finished — exception flagging closed

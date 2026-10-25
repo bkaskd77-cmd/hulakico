@@ -5,7 +5,7 @@ import Link from "next/link";
 import { DestinationPages } from "@/app/admin/(staff)/services/DestinationPages";
 import { ServiceEditForm } from "@/app/admin/(staff)/services/ServiceEditForm";
 import { ServicesCardGrid } from "@/app/admin/(staff)/services/ServicesCardGrid";
-import { saveCityAction } from "@/app/admin/(staff)/services/city-action";
+import { removeCityAction, saveCityAction } from "@/app/admin/(staff)/services/city-action";
 import type { LaneCopy } from "@/lib/data/lane-content";
 import { blankService, type ServiceItem } from "@/lib/domain/service-catalogue";
 
@@ -113,6 +113,7 @@ export function ServicesEditor({
               lanes={cities}
               initialSlug={initialCity}
               saveAction={saveCityAction}
+              removeAction={removeCityAction}
               heading="City pages"
               intro="Pick a city and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters."
               kind="city"

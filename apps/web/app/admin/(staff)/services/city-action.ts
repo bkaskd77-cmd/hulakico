@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
-import { getCityCopies, saveCityCopy } from "@/lib/data/city-content";
+import { getCityCopies, removeCityCopy, saveCityCopy } from "@/lib/data/city-content";
 import type { LaneCopy } from "@/lib/data/lane-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
@@ -47,5 +47,22 @@ export async function saveCityAction(formData: FormData): Promise<{ ok: true } |
   } catch (error) {
     console.error("[city-action.ts:saveCityAction]", error instanceof Error ? error.message : error);
     return { error: "Could not save this city page." };
+  }
+}
+
+/** Removes a city page that staff added (not the built-in ones). */
+export async function removeCityAction(slug: string): Promise<{ ok: true } | { error: string }> {
+  try {
+    const access = await resolveStaffAccess(await readStaffSessionToken());
+    if (!access.ok || !canAccess(access.staff.role, "content")) return { error: "Your staff role cannot edit website content." };
+    const result = await removeCityCopy(String(slug));
+    if ("error" in result) return result;
+    revalidatePath("/services/domestic");
+    revalidatePath(`/services/domestic/${slug}`);
+    revalidatePath("/admin/services");
+    return { ok: true };
+  } catch (error) {
+    console.error("[city-action.ts:removeCityAction]", error instanceof Error ? error.message : error);
+    return { error: "Could not remove this city page." };
   }
 }

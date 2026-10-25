@@ -1,5 +1,6 @@
 "use client";
 
+import { RemovePage } from "@/app/admin/(staff)/services/RemovePage";
 import { useState, useTransition, type FormEvent } from "react";
 import { CountryAdd } from "@/app/admin/(staff)/services/CountryAdd";
 import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
@@ -20,6 +21,7 @@ export function DestinationPages({
   intro = "Pick a lane and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters.",
   kind = "country",
   savedNotice = "Saved. The public lane page now uses this writing.",
+  removeAction,
 }: {
   lanes: LaneCopy[];
   initialSlug?: string;
@@ -29,6 +31,8 @@ export function DestinationPages({
   intro?: string;
   kind?: "country" | "city";
   savedNotice?: string;
+  /** City pages only: remove a page staff added (built-in pages refuse). */
+  removeAction?: (slug: string) => Promise<SaveResult>;
 }) {
   const [slug, setSlug] = useState(initialSlug && lanes.some((lane) => lane.slug === initialSlug) ? initialSlug : lanes[0]?.slug);
   const selected = lanes.find((lane) => lane.slug === slug) ?? lanes[0];
@@ -51,6 +55,7 @@ export function DestinationPages({
           </button>
         ))}
       </div>
+      {removeAction ? <RemovePage slug={selected.slug} name={selected.to} removeAction={removeAction} /> : null}
       <LaneDraft key={selected.slug} lane={selected} saveAction={saveAction} savedNotice={savedNotice} />
     </section>
   );

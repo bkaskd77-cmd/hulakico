@@ -108,6 +108,8 @@ export async function saveCityCopy(copy: LaneCopy): Promise<{ ok: true } | { err
     const to = copy.to.trim().slice(0, 80) || (typeof previous?.to === "string" ? previous.to : "");
     const title = copy.title.trim().slice(0, 120) || (typeof previous?.title === "string" ? previous.title : to ? `Kathmandu to ${to}` : "");
     if (!known && to.length < 2) return { error: "Enter the city name." };
+    // Shipments leave from Kathmandu, so it cannot be a destination page of its own.
+    if (!known && /^kathmandu/i.test(to)) return { error: "Kathmandu is where shipments start. Add a destination city instead." };
     if (!known && !previous && Object.keys(saved).length >= 40) return { error: "Up to 40 cities." };
     const body = { summary: copy.summary, transit: copy.transit, paperwork: copy.paperwork, steps: copy.steps, story: copy.story, handover: copy.handover, image: copy.image, facts: copy.facts.slice(0, 20) };
     saved[copy.slug] = known ? body : { ...body, to, title };
@@ -116,5 +118,20 @@ export async function saveCityCopy(copy: LaneCopy): Promise<{ ok: true } | { err
   } catch (error) {
     console.error("[city-content.ts:saveCityCopy]", error instanceof Error ? error.message : error);
     return { error: "Could not save this city page." };
+  }
+}
+
+/** Removes a city page staff added. The built-in cities stay; their text can be edited. */
+export async function removeCityCopy(slug: string): Promise<{ ok: true } | { error: string }> {
+  try {
+    if (DOMESTIC_CITIES.some((item) => item.slug === slug)) return { error: "Built-in city pages cannot be removed." };
+    const saved = await loadSaved();
+    if (!saved[slug]) return { error: "City page not found." };
+    delete saved[slug];
+    await (await getSql()).prepare(`INSERT INTO site_content (slug, content_json, updated_at) VALUES (?, ?, ?) ON CONFLICT(slug) DO UPDATE SET content_json = excluded.content_json, updated_at = excluded.updated_at`).run(SLUG, JSON.stringify({ lanes: saved }), new Date().toISOString());
+    return { ok: true };
+  } catch (error) {
+    console.error("[city-content.ts:removeCityCopy]", error instanceof Error ? error.message : error);
+    return { error: "Could not remove this city page." };
   }
 }
