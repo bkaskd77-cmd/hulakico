@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { HomepageEditor } from "@/app/admin/(staff)/homepage/HomepageEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import {
   getHomepageContent,
   saveHomepageContent,
@@ -25,6 +26,7 @@ async function saveHomepageAction(
     }
     const result = await saveHomepageContent(content);
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.homepage", "Homepage");
     revalidatePath("/");
     revalidatePath("/admin/homepage");
     return { ok: true };

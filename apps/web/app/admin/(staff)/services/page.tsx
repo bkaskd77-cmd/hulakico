@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { ServicesEditor } from "@/app/admin/(staff)/services/ServicesEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import { getCityCopies } from "@/lib/data/city-content";
 import { getLaneCopies, saveLaneCopy, type LaneCopy } from "@/lib/data/lane-content";
 import { getServices, saveServices, type ServiceItem } from "@/lib/data/services-content";
@@ -19,6 +20,7 @@ async function saveServicesAction(items: ServiceItem[]): Promise<{ ok: true } | 
     if (!canAccess(access.staff.role, "content")) return { error: "Your staff role cannot edit website content." };
     const result = await saveServices(items);
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.services", "Services", `${items.length} services`);
     revalidatePath("/");
     revalidatePath("/services", "layout");
     revalidatePath("/admin/services");
@@ -63,6 +65,7 @@ async function saveLaneAction(formData: FormData): Promise<{ ok: true } | { erro
       facts,
     });
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.lane", slug, formData.get("create") === "1" ? "added" : "edited");
     revalidatePath("/services/international");
     revalidatePath(`/services/international/${slug}`);
     return { ok: true };

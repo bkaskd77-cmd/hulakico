@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { PagesEditor } from "@/app/admin/(staff)/pages/PagesEditor";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
+import { writeAudit } from "@/lib/data/audit-log";
 import { getPages, savePages, type SitePage } from "@/lib/data/pages-content";
 import { canAccess } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -19,6 +20,7 @@ async function savePagesAction(items: SitePage[]): Promise<{ ok: true } | { erro
     }
     const result = await savePages(items);
     if ("error" in result) return result;
+    await writeAudit(access.staff, "content.pages", "Pages", items.map((item) => item.slug).join(", "));
     for (const item of items) {
       if (!item.standalone) revalidatePath(`/${item.slug}`);
     }
