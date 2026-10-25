@@ -12,7 +12,7 @@ COPY app ./app
 COPY lib ./lib
 COPY public ./public
 COPY types ./types
-COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs ./
+COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs instrumentation.ts ./
 # Production values are mounted only for the build step and are not stored in a layer.
 RUN --mount=type=secret,id=env,target=/app/.env.production npm run build
 
