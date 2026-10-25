@@ -18,6 +18,7 @@ export default async function AdminPlatformPage({
   const token = await readStaffSessionToken();
   const access = await resolveStaffAccess(token);
 
+  if (!access.ok && access.needsTwoStep) redirect("/admin/two-step");
   if (!access.ok) {
     return (
       <div className="shell-sky flex min-h-dvh items-center justify-center px-6 py-16">

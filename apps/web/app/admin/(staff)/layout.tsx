@@ -15,6 +15,7 @@ export default async function AdminStaffLayout({
   const token = await readStaffSessionToken();
   const access = await resolveStaffAccess(token);
 
+  if (!access.ok && access.needsTwoStep) redirect("/admin/two-step");
   if (!access.ok && access.status === 401) {
     redirect("/admin");
   }
