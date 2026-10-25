@@ -1,3 +1,4 @@
+import { rateProblem } from "@/lib/data/rate-card-admin";
 import { AddCarrierForm } from "@/app/admin/(staff)/carriers/AddCarrierForm";
 import { RateCardEditor, type DeskCarrier } from "@/app/admin/(staff)/carriers/RateCardEditor";
 import { listCarriersWithDetails } from "@/lib/data/carriers-query";
@@ -24,6 +25,9 @@ function toDesk(carriers: Awaited<ReturnType<typeof listCarriersWithDetails>>): 
           placeName: rate.placeName ?? "",
           lane: rate.lane ?? "",
           serviceLabel: service.serviceClass === "EXPRESS" ? "Express" : "Standard",
+          country: rate.country ?? "",
+          postalCodes: rate.postalCodes ?? "",
+          problem: rateProblem(rate),
           currency: rate.currency,
           baseAmount: rate.baseAmount,
           perKgAmount: rate.perKgAmount,

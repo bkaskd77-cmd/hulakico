@@ -57,4 +57,6 @@ export type RateCardRecord = {
   zoneLabel: string;
   lane: string | null;
   placeName: string | null;
+  country: string | null;
+  postalCodes: string | null;
 };

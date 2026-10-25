@@ -51,7 +51,7 @@ export async function listCarriersWithDetails(): Promise<CarrierWithDetails[]> {
       for (const service of services) {
         const rates = (await db
           .prepare(
-            `SELECT id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label, lane, place_name
+            `SELECT id, carrier_service_id, currency, base_amount, per_kg_amount, zone_label, lane, place_name, country, postal_codes
              FROM rate_cards WHERE carrier_service_id = ?`,
           )
           .all(service.id)) as Array<{
@@ -63,6 +63,8 @@ export async function listCarriersWithDetails(): Promise<CarrierWithDetails[]> {
           zone_label: string;
           lane: string | null;
           place_name: string | null;
+          country: string | null;
+          postal_codes: string | null;
         }>;
 
         serviceDetails.push({
@@ -83,6 +85,8 @@ export async function listCarriersWithDetails(): Promise<CarrierWithDetails[]> {
             zoneLabel: rate.zone_label,
             lane: rate.lane,
             placeName: rate.place_name,
+            country: rate.country ?? (rate.lane === "DOMESTIC" ? "NP" : null),
+            postalCodes: rate.postal_codes,
           })),
         });
       }

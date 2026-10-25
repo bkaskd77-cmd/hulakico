@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { FIELD, LABEL } from "@/app/admin/(staff)/homepage/AdminFields";
 import { addCityRateAction } from "@/app/admin/(staff)/carriers/actions";
 import { CityRateRow, type DeskRate } from "@/app/admin/(staff)/carriers/CityRateRow";
+import { countryOptionsFor } from "@/app/book/countries";
 
 export type DeskCarrier = {
   id: string;
@@ -29,6 +30,9 @@ export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
   const [serviceClass, setServiceClass] = useState<string>("EXPRESS");
   const [lane, setLane] = useState<string>("INTERNATIONAL");
   const [placeName, setPlaceName] = useState("");
+  const [country, setCountry] = useState("IN");
+  const [postalCodes, setPostalCodes] = useState("");
+  const [allOtherCities, setAllOtherCities] = useState(false);
   const [currency, setCurrency] = useState("USD");
   const [baseAmount, setBaseAmount] = useState("");
   const [perKgAmount, setPerKgAmount] = useState("");
@@ -49,6 +53,9 @@ export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
       serviceClass,
       lane,
       placeName,
+      country: lane === "DOMESTIC" ? "NP" : country,
+      postalCodes,
+      allOtherCities,
       currency,
       baseAmount: Number(baseAmount),
       perKgAmount: Number(perKgAmount),
@@ -59,9 +66,11 @@ export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
       return;
     }
     setPlaceName("");
+    setPostalCodes("");
+    setAllOtherCities(false);
     setBaseAmount("");
     setPerKgAmount("");
-    setMessage("City rate added.");
+    setMessage(allOtherCities ? "Default rate added for all other cities." : "City rate added.");
   }
 
   return (
@@ -83,8 +92,26 @@ export function RateCardEditor({ carriers }: { carriers: DeskCarrier[] }) {
             {LANES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
+        {lane === "INTERNATIONAL" ? (
+          <label className="block"><span className={LABEL}>Destination country</span>
+            <select className={FIELD} value={country} onChange={(event) => setCountry(event.target.value)}>
+              {countryOptionsFor("destination", "INTERNATIONAL").map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
+            </select>
+          </label>
+        ) : (
+          <label className="block"><span className={LABEL}>Country</span>
+            <input className={FIELD} value="Nepal" readOnly aria-readonly />
+          </label>
+        )}
         <label className="block"><span className={LABEL}>City</span>
-          <input className={FIELD} required value={placeName} onChange={(event) => setPlaceName(event.target.value)} />
+          <input className={FIELD} required={!allOtherCities} disabled={allOtherCities} value={allOtherCities ? "All other cities" : placeName} onChange={(event) => setPlaceName(event.target.value)} />
+          <span className="mt-1 flex items-center gap-1.5 text-xs text-[var(--muted)]">
+            <input type="checkbox" checked={allOtherCities} onChange={(event) => setAllOtherCities(event.target.checked)} /> Default for all other cities
+          </span>
+        </label>
+        <label className="block"><span className={LABEL}>Postal codes (optional)</span>
+          <input className={FIELD} value={postalCodes} placeholder="e.g. 44600, 446*" onChange={(event) => setPostalCodes(event.target.value)} />
+          <span className="mt-1 block text-xs text-[var(--muted)]">A * means &ldquo;starts with&rdquo;. Postal codes win over the city name.</span>
         </label>
         <label className="block"><span className={LABEL}>Currency</span>
           <select className={FIELD} value={currency} onChange={(event) => setCurrency(event.target.value)}>

@@ -23,7 +23,7 @@ function readMoney(input: Money): { error: string } | { currency: string; baseAm
 }
 
 export async function updateRateCard(
-  input: Money & { id: string },
+  input: Money & { id: string; postalCodes?: string },
 ): Promise<{ ok: true } | { error: string }> {
   try {
     const id = input.id.trim();
@@ -34,8 +34,8 @@ export async function updateRateCard(
     const existing = await db.prepare("SELECT id FROM rate_cards WHERE id = ?").get(id);
     if (!existing) return { error: "Rate card not found." };
     await db
-      .prepare(`UPDATE rate_cards SET currency = ?, base_amount = ?, per_kg_amount = ? WHERE id = ?`)
-      .run(money.currency, money.baseAmount, money.perKgAmount, id);
+      .prepare(`UPDATE rate_cards SET currency = ?, base_amount = ?, per_kg_amount = ?, postal_codes = ? WHERE id = ?`)
+      .run(money.currency, money.baseAmount, money.perKgAmount, parsePostalCodes(input.postalCodes ?? "").join(", ") || null, id);
     return { ok: true };
   } catch (error) {
     console.error("[rate-cards.ts:updateRateCard]", error instanceof Error ? error.message : error);
