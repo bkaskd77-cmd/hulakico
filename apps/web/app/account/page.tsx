@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NeedsAttentionStrip } from "@/app/account/NeedsAttentionStrip";
 import { signOutAction } from "@/app/account/sign-out";
+import { VerifyEmailBanner } from "@/app/account/VerifyEmailBanner";
+import { isEmailVerified } from "@/lib/data/email-verification";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listAttentionItems } from "@/lib/data/shipment-attention";
 import { listMyShipments } from "@/lib/data/my-shipments";
@@ -20,9 +22,10 @@ export default async function AccountPage({
   if (!user) redirect("/signin");
 
   const params = await searchParams;
-  const [list, attention] = await Promise.all([
+  const [list, attention, verified] = await Promise.all([
     listMyShipments(user.id, 1),
     listAttentionItems(user.id),
+    isEmailVerified(user.id),
   ]);
   const latest = list.rows[0] ?? null;
   const recent = list.rows.slice(0, 3);
@@ -47,6 +50,8 @@ export default async function AccountPage({
             </form>
           </div>
         </header>
+
+        {verified ? null : <VerifyEmailBanner email={user.email} />}
 
         {params.ops === "denied" || params.admin === "denied" ? (
           <p className="mt-4 text-sm text-[var(--danger)]">Staff tools live at /admin — use a staff account there.</p>
