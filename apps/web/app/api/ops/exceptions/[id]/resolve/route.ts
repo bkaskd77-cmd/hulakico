@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { resolveException } from "@/lib/data/exceptions";
+import { writeAudit } from "@/lib/data/audit-log";
+import { requestIp } from "@/lib/http/rate-limit";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
@@ -28,6 +30,7 @@ export async function POST(
 
     const { id } = await context.params;
     await resolveException(id, body.resolutionNote);
+    await writeAudit(access.staff, "exception.resolve", id, body.resolutionNote, requestIp(request));
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(

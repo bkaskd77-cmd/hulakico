@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { updatePartnerTracking } from "@/lib/data/partner-awb";
+import { writeAudit } from "@/lib/data/audit-log";
+import { requestIp } from "@/lib/http/rate-limit";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 
 export const runtime = "nodejs";
@@ -30,6 +32,7 @@ export async function POST(
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+    await writeAudit(access.staff, "shipment.partner_awb", id, `${result.partnerLabel} · ${result.externalAwb}`, requestIp(request));
     return NextResponse.json({
       ok: true,
       externalAwb: result.externalAwb,
