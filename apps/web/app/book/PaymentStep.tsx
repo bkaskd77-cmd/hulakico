@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { WALLET_PROVIDERS, type WalletProviderId } from "@/lib/payments/providers";
 import { TransferPay, type TransferDetails } from "./TransferPay";
 import { InvoiceEditor } from "./InvoiceEditor";
+import { PriceBreakdown, usePriceDue } from "./PriceBreakdown";
 
 type QuoteSummary = {
   amount: number;
@@ -36,6 +37,9 @@ export function PaymentStep({
   const isCod = wantsCod && lane === "DOMESTIC";
   const [transfer, setTransfer] = useState<TransferDetails | null>(null);
   const [invoiceSaved, setInvoiceSaved] = useState(!needsInvoice);
+  const [savedRevision, setSavedRevision] = useState(0);
+  const due = usePriceDue(shipmentId, Boolean(quote), savedRevision);
+  const totalText = due ? `${due.currency} ${due.total.toFixed(2)}` : quote ? `${quote.currency} ${quote.amount.toFixed(2)}` : "";
 
   useEffect(() => {
     fetch("/api/payments/transfer-details")
@@ -74,11 +78,7 @@ export function PaymentStep({
     <div className="mt-6 space-y-5">
       <div>
         <p className="text-xs uppercase tracking-wide text-[var(--teal)]">Amount due</p>
-        <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
-          {quote
-            ? `${quote.currency} ${quote.amount.toFixed(2)}`
-            : "Quote unavailable"}
-        </p>
+        <PriceBreakdown due={due} fallbackText={quote ? `${quote.currency} ${quote.amount.toFixed(2)}` : "Quote unavailable"} />
         <p className="mt-1 text-sm text-[var(--muted)]">
           This quoted price is tentative. It is not a live partner rate, and it can change at booking if the measured weight or dimensions differ from what you entered.
         </p>
@@ -88,7 +88,7 @@ export function PaymentStep({
         <div className="rounded-md border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] p-4">
           <p className="text-sm font-semibold text-[var(--off-white)]">Customs invoice (required for goods sent abroad)</p>
           <p className="mt-1 text-xs text-[var(--muted)]">List every item in the box with its HS code, origin, quantity, value, and weight. Customs holds parcels without it.</p>
-          <InvoiceEditor shipmentId={shipmentId} currency={quote?.currency ?? "USD"} initial={null} onSaved={() => setInvoiceSaved(true)} />
+          <InvoiceEditor shipmentId={shipmentId} currency={quote?.currency ?? "USD"} initial={null} onSaved={() => { setInvoiceSaved(true); setSavedRevision((n) => n + 1); }} />
         </div>
       ) : null}
       {!invoiceSaved ? (
@@ -109,7 +109,7 @@ export function PaymentStep({
           </button>
         </div>
       ) : transfer?.mode === "transfer" ? (
-        <TransferPay shipmentId={shipmentId} details={transfer} amountText={quote ? `${quote.currency} ${quote.amount.toFixed(2)}` : ""} onReported={onBookCod} pending={pending} />
+        <TransferPay shipmentId={shipmentId} details={transfer} amountText={totalText} onReported={onBookCod} pending={pending} />
       ) : (
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-wide text-[var(--teal)]">Pay with</p>

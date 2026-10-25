@@ -1,5 +1,7 @@
 import { getSql } from "@/lib/sql";
 import { runOnce } from "@/lib/sql/once";
+import { ddpCharge } from "@/lib/data/ddp-charge";
+import type { DutyEstimate } from "@/lib/domain/duty-estimate";
 
 export type PaymentIntent = {
   id: string;
@@ -48,8 +50,23 @@ export function mapPaymentRow(row: {
   };
 }
 
+export type AmountDue = { amount: number; currency: string; quoteOptionId: string | null; shipping: number; duties: DutyEstimate | null };
+
+/**
+ * What the customer pays: the freight quote, plus estimated duties and taxes when the
+ * invoice is DDP (sender pays). Every payment path uses this, so the total is the same everywhere.
+ */
+export async function quoteAmount(shipmentId: string): Promise<AmountDue | null> {
+  const freight = await freightQuote(shipmentId);
+  if (!freight) return null;
+  const ddp = await ddpCharge(shipmentId, freight.currency);
+  const duties = "estimate" in ddp ? ddp.estimate : null;
+  const amount = Math.round((freight.amount + (duties?.total ?? 0)) * 100) / 100;
+  return { ...freight, amount, shipping: freight.amount, duties };
+}
+
 /** Freight amount from selected quote, else cheapest option on latest quote. */
-export async function quoteAmount(
+async function freightQuote(
   shipmentId: string,
 ): Promise<{ amount: number; currency: string; quoteOptionId: string | null } | null> {
   try {

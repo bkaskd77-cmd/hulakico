@@ -4,6 +4,7 @@ import { getSql } from "@/lib/sql";
 import { aiEnabled } from "@/lib/ai/claude";
 import { screenSavedInvoice } from "@/lib/data/customs-ai";
 import { customsReviewHold } from "@/lib/data/customs-review";
+import { ddpCharge } from "@/lib/data/ddp-charge";
 
 /**
  * International goods cannot be paid for or booked without a complete customs invoice.
@@ -20,7 +21,11 @@ export async function customsInvoiceBlocker(shipmentId: string): Promise<string 
     if (problem) return problem;
     // AI screening of the goods. An AI outage never blocks: staff still review before pickup.
     if (aiEnabled()) await screenSavedInvoice(shipmentId);
-    return await customsReviewHold(shipmentId);
+    const hold = await customsReviewHold(shipmentId);
+    if (hold) return hold;
+    // DDP needs a duty rule for the destination; without one the price would be wrong.
+    const ddp = await ddpCharge(shipmentId, "USD");
+    return "problem" in ddp ? ddp.problem : null;
   } catch (error) {
     console.error("[invoice-gate.ts:customsInvoiceBlocker]", error instanceof Error ? error.message : error);
     // Fail closed: if we cannot check the invoice, do not let an international parcel through.

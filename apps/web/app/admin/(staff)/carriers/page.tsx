@@ -3,6 +3,8 @@ import { AddCarrierForm } from "@/app/admin/(staff)/carriers/AddCarrierForm";
 import { RateCardEditor, type DeskCarrier } from "@/app/admin/(staff)/carriers/RateCardEditor";
 import { listCarriersWithDetails } from "@/lib/data/carriers-query";
 import { requireStaffPage } from "@/lib/http/require-staff";
+import { DutyRulesEditor } from "@/app/admin/(staff)/carriers/DutyRulesEditor";
+import { getDutySettings } from "@/lib/data/duty-settings";
 
 export const runtime = "nodejs";
 
@@ -61,6 +63,7 @@ export default async function AdminCarriersPage() {
         <>
           <AddCarrierForm />
           <RateCardEditor carriers={toDesk(carriers)} />
+          <DutyRulesEditor initial={await getDutySettings()} />
         </>
       ) : null}
     </>

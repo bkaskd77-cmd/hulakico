@@ -24,6 +24,7 @@ const LABELS: Record<string, string> = {
   "rate.update": "Edited rate",
   "rate.add": "Added rate",
   "rate.remove": "Removed rate",
+  "rate.duties": "Edited duty table (DDP)",
   "carrier.add": "Added carrier",
   "team.role": "Changed staff role",
   "team.remove": "Removed staff access",
