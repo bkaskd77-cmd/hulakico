@@ -4,6 +4,7 @@ import { createCodCollection } from "@/lib/data/cod";
 import { logCustomerNotification } from "@/lib/data/notifications";
 import { canConfirmBooking } from "@/lib/data/payment-wallet";
 import { customsInvoiceBlocker } from "@/lib/data/invoice-gate";
+import { isEmailVerified } from "@/lib/data/email-verification";
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { newHulakicoAwb } from "@/lib/domain/awb";
@@ -41,6 +42,9 @@ export async function confirmShipmentBooking(
     if (!shipment) throw new Error("Shipment not found.");
     if (shipment.status !== "QUOTED" && shipment.status !== "DRAFT") {
       throw new Error("Shipment is already booked.");
+    }
+    if (!(await isEmailVerified(userId))) {
+      throw new Error("Confirm your email before booking. Use the link we sent, or send a new one from your account page.");
     }
     const invoiceBlocker = await customsInvoiceBlocker(shipmentId);
     if (invoiceBlocker) throw new Error(invoiceBlocker);

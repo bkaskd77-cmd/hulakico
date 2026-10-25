@@ -4,10 +4,13 @@ import { getSql } from "@/lib/sql";
 import { createWalletPaymentIntent } from "@/lib/data/payment-wallet";
 import { recordCustomerTransfer } from "@/lib/data/payment-transfer";
 import { customsInvoiceBlocker } from "@/lib/data/invoice-gate";
+import { isEmailVerified } from "@/lib/data/email-verification";
 import { isWalletProvider, payProviderMode } from "@/lib/payments/providers";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
+
+const UNVERIFIED = "Confirm your email before booking. Use the link we sent, or send a new one from your account page.";
 
 export async function POST(
   request: Request,
@@ -32,6 +35,11 @@ export async function POST(
         { error: "Shipment is already booked." },
         { status: 400 },
       );
+    }
+
+    // No payment is taken until the customer has confirmed their email.
+    if (!(await isEmailVerified(user.id))) {
+      return NextResponse.json({ error: UNVERIFIED, needsVerification: true }, { status: 403 });
     }
 
     // International goods pay only once customs has its invoice.
