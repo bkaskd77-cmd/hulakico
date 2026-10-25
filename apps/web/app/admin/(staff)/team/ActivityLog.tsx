@@ -36,10 +36,11 @@ const LABELS: Record<string, string> = {
   "content.city": "City page",
   "content.city_remove": "Removed city page",
   "content.notes": "Edited desk notes",
+  "backup.download": "Downloaded database backup",
 };
 
 /** Actions that move money or lock people out stand out in the list. */
-const ALERT = new Set(["contact.bank_change", "staff.signin.wrong_code", "team.remove", "team.role", "payment.mark_paid"]);
+const ALERT = new Set(["backup.download", "contact.bank_change", "staff.signin.wrong_code", "team.remove", "team.role", "payment.mark_paid"]);
 
 export function isActivityGroup(value: unknown): value is ActivityGroup {
   return typeof value === "string" && value in GROUPS;

@@ -134,6 +134,14 @@ export default async function AdminTeamPage({ searchParams }: { searchParams: Pr
         })}
       </ul>
 
+      {access.staff.role === "ADMIN" ? (
+        <section className="mt-12 rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5">
+          <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">Database backup</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">A verified copy of all data is saved every night (14 days kept). Download the newest one to keep a copy on your own computer. It contains customer details: store it safely.</p>
+          <a href="/api/admin/backup" download className="mt-4 inline-block rounded-md bg-[#ffcc00] px-4 py-2 text-sm font-semibold text-[#191919]">Download latest backup</a>
+        </section>
+      ) : null}
+
       <ActivityLog group={isActivityGroup(params.log) ? params.log : "all"} />
     </>
   );
