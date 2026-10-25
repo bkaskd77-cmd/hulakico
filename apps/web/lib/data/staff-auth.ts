@@ -52,6 +52,8 @@ export async function authenticateStaff(
 
     const sessionToken = createSessionToken();
     const now = new Date().toISOString();
+    // One device per staff member: a new sign-in signs every other device out.
+    await db.prepare(`DELETE FROM staff_sessions WHERE staff_user_id = ?`).run(row.id);
     await db.prepare(
       `INSERT INTO staff_sessions (id, staff_user_id, token_hash, expires_at, created_at)
        VALUES (?, ?, ?, ?, ?)`,
@@ -65,12 +67,7 @@ export async function authenticateStaff(
 
     return {
       sessionToken,
-      staff: {
-        id: row.id,
-        email: row.email,
-        name: row.name,
-        role: row.role,
-      },
+      staff: { id: row.id, email: row.email, name: row.name, role: row.role },
     };
   } catch (error) {
     console.error(
@@ -86,15 +83,16 @@ async function loadStaffBySessionToken(
 ): Promise<StaffUser | null> {
   try {
     const now = new Date().toISOString();
-    // Sessions issued before the 12-hour limit (14-day ones) expire later than any new
-    // session could, so they are refused too.
+    // Refused: 14-day sessions from before the 12-hour limit, and sessions opened before
+    // two-step login was turned on (password only).
     const latestAllowed = staffSessionExpiryIso();
     const row = (await (await getSql())
       .prepare(
         `SELECT u.id, u.email, u.name, u.role
          FROM staff_sessions s
          JOIN staff_users u ON u.id = s.staff_user_id
-         WHERE s.token_hash = ? AND s.expires_at > ? AND s.expires_at <= ?`,
+         WHERE s.token_hash = ? AND s.expires_at > ? AND s.expires_at <= ?
+           AND (u.totp_enabled_at IS NULL OR s.created_at >= u.totp_enabled_at)`,
       )
       .get(hashSessionToken(token), now, latestAllowed)) as
       | { id: string; email: string; name: string; role: StaffRole }

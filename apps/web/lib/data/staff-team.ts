@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/sql";
+import { staffSessionExpiryIso } from "@/lib/domain/auth";
 import type { StaffRole } from "@/lib/data/staff-auth";
 import { ROLE_LABELS, STAFF_LIMITS } from "@/lib/domain/staff-permissions";
 
@@ -27,11 +28,12 @@ export async function listTeam(): Promise<TeamMember[] | { error: string }> {
     const rows = (await (await getSql())
       .prepare(
         `SELECT u.id, u.name, u.email, u.role, u.created_at,
-                (SELECT COUNT(*) FROM staff_sessions s WHERE s.staff_user_id = u.id AND s.expires_at > ?) AS active
+                (SELECT COUNT(*) FROM staff_sessions s WHERE s.staff_user_id = u.id AND s.expires_at > ? AND s.expires_at <= ?) AS active
          FROM staff_users u
          ORDER BY CASE u.role WHEN 'ADMIN' THEN 0 WHEN 'SUB_ADMIN' THEN 1 ELSE 2 END, u.name`,
       )
-      .all(new Date().toISOString())) as Record<string, unknown>[];
+      // Same rule as sign-in: old 14-day sessions no longer work, so they are not counted.
+      .all(new Date().toISOString(), staffSessionExpiryIso())) as Record<string, unknown>[];
     return rows.map((row) => ({
       id: String(row.id),
       name: String(row.name),
