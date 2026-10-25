@@ -42,7 +42,7 @@ export async function GET() {
     databaseMs: database.ms,
     intelligence: intelligence === null ? "not configured" : intelligence ? "up" : "down",
     backup: !backupDir() ? "not configured" : backupHours === null ? "none yet" : `${backupHours}h old`,
-    backupScheduler: backupState().scheduled ? "running" : "not started",
+    backupScheduler: backupState().scheduled ? "running" : (globalThis as { __hulakicoRegister?: string }).__hulakicoRegister ?? "startup hook not run",
     ...(backupState().lastError ? { backupError: backupState().lastError } : {}),
     time: new Date().toISOString(),
   };
