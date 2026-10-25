@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSql } from "@/lib/sql";
 import { sendOpsAlert } from "@/lib/data/ops-alerts";
-import { backupDir, latestBackup } from "@/lib/data/db-backup";
+import { backupDir, backupState, latestBackup } from "@/lib/data/db-backup";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +42,8 @@ export async function GET() {
     databaseMs: database.ms,
     intelligence: intelligence === null ? "not configured" : intelligence ? "up" : "down",
     backup: !backupDir() ? "not configured" : backupHours === null ? "none yet" : `${backupHours}h old`,
+    backupScheduler: backupState().scheduled ? "running" : "not started",
+    ...(backupState().lastError ? { backupError: backupState().lastError } : {}),
     time: new Date().toISOString(),
   };
   if (!database.ok) await sendOpsAlert("health:database", "Database is not answering", "The website cannot reach its database. Customers cannot sign in, book, or track.");

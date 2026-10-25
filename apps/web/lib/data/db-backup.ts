@@ -7,6 +7,15 @@ import { sendOpsAlert } from "@/lib/data/ops-alerts";
 const KEEP = 14;
 const PREFIX = "hulakico-";
 
+type BackupState = { scheduled: boolean; lastRunAt: string | null; lastError: string | null };
+
+/** Shared across bundles (instrumentation and routes load this file separately). */
+export function backupState(): BackupState {
+  const holder = globalThis as typeof globalThis & { __hulakicoBackup?: BackupState };
+  holder.__hulakicoBackup ??= { scheduled: false, lastRunAt: null, lastError: null };
+  return holder.__hulakicoBackup;
+}
+
 export function backupDir(): string | null {
   const dir = process.env.BACKUP_DIR?.trim();
   return dir ? dir : null;
@@ -55,6 +64,7 @@ export async function runNightlyBackup(): Promise<{ ok: true; file: string | nul
   const dir = backupDir();
   if (!dir) return { ok: true, file: null };
   const file = path.join(dir, `${PREFIX}${nepalDay()}.json.gz`);
+  backupState().lastRunAt = new Date().toISOString();
   try {
     await mkdir(dir, { recursive: true });
     const exists = await stat(file).then(() => true, () => false);
@@ -67,11 +77,14 @@ export async function runNightlyBackup(): Promise<{ ok: true; file: string | nul
     await writeFile(file, await readFile(`${file}.part`), { mode: 0o600 });
     await rm(`${file}.part`, { force: true });
     await prune(dir);
+    backupState().lastError = null;
     console.info("[db-backup.ts:runNightlyBackup] saved", path.basename(file), Object.values(counts).reduce((a, b) => a + b, 0), "rows");
     return { ok: true, file };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[db-backup.ts:runNightlyBackup]", message);
+    // Short, path-free reason for the health check.
+    backupState().lastError = message.replace(/\/[^\s]*/g, "…").slice(0, 120);
     await sendOpsAlert("backup", "Nightly database backup failed", `The backup for ${nepalDay()} was not saved.\n${message}`);
     return { error: message };
   }
