@@ -13,6 +13,12 @@ services:
     image: hulakico-web:latest
     container_name: hulakico-web
     env_file: ../.env.production
+    environment:
+      BACKUP_DIR: /app/backups
+    # Nightly database backups (14 kept). A Docker volume: only root/Docker can read it,
+    # and redeploys leave it alone.
+    volumes:
+      - backups:/app/backups
     ports:
       - "127.0.0.1:3201:3000"
     restart: unless-stopped
@@ -58,6 +64,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  backups:
 
 secrets:
   env:

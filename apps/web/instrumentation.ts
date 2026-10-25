@@ -1,5 +1,15 @@
 import type { Instrumentation } from "next";
 
+/** Starts the nightly database backup (production server only, when BACKUP_DIR is set). */
+export async function register(): Promise<void> {
+  if (process.env.NEXT_RUNTIME !== "nodejs" || process.env.NODE_ENV !== "production" || !process.env.BACKUP_DIR) return;
+  const { runNightlyBackup } = await import("@/lib/data/db-backup");
+  const run = () => void runNightlyBackup();
+  // First run shortly after start, then hourly; it skips once today's file exists.
+  setTimeout(run, 2 * 60 * 1000).unref();
+  setInterval(run, 60 * 60 * 1000).unref();
+}
+
 /** Emails the owner when a page, API route, or server action crashes in production. */
 export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
