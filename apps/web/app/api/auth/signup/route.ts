@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { signupSchema } from "@/lib/domain/auth";
 import { registerUser } from "@/lib/data/auth-store";
+import { sendEmailVerification } from "@/lib/data/email-verification";
 import { enforceRateLimit, requestIp } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -18,6 +19,9 @@ export async function POST(request: Request) {
     }
 
     const user = await registerUser(parsed.data);
+    // The account exists either way; the customer can resend the link from their account page.
+    const verify = await sendEmailVerification(user.id);
+    if ("error" in verify) console.error("[signup/route.ts:POST]", verify.error);
     return NextResponse.json({ user }, { status: 201 });
   } catch (error) {
     console.error(
