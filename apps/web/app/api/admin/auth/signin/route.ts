@@ -28,12 +28,19 @@ export async function POST(request: Request) {
     const result = await authenticateStaff(
       parsed.data.email,
       parsed.data.password,
+      typeof body?.code === "string" ? body.code.slice(0, 12) : "",
     );
     if (!result) {
       return NextResponse.json(
         { error: "Invalid email or password." },
         { status: 401 },
       );
+    }
+    if ("codeProblem" in result) {
+      const error = result.codeProblem === "missing"
+        ? "Enter the 6-digit code from your authenticator app."
+        : "That code is not right or was already used. Wait for a new code and try again.";
+      return NextResponse.json({ error, needsCode: true }, { status: 401 });
     }
 
     const holderName = typeof body?.name === "string" ? body.name : "";

@@ -9,6 +9,7 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [needsCode, setNeedsCode] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,10 +24,12 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
           name: String(form.get("name") || ""),
           email: String(form.get("email") || ""),
           password: String(form.get("password") || ""),
+          code: String(form.get("code") || ""),
         }),
       });
       const data = await response.json();
       if (!response.ok) {
+        if (data.needsCode) setNeedsCode(true);
         setError(data.error || "Staff sign in failed.");
         return;
       }
@@ -95,6 +98,13 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
           className="mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 text-[var(--off-white)]"
         />
       </label>
+      {needsCode ? (
+        <label className="mt-4 block text-sm text-[var(--muted)]">
+          6-digit code from your authenticator app
+          <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,7}" maxLength={7} required autoFocus
+            className="mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_16%,transparent)] bg-[var(--navy)] px-3 py-2 tracking-[0.3em] text-[var(--off-white)]" />
+        </label>
+      ) : null}
 
       {error ? (
         <p className="mt-4 text-sm text-[var(--danger)]">{error}</p>

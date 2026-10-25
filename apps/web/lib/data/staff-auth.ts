@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { applyStaffPasswordReset } from "@/lib/data/staff-password-reset";
+import { checkStaffCode, staffHasTwoStep } from "@/lib/data/staff-totp";
 import { getSql } from "@/lib/sql";
 import {
   createSessionToken,
@@ -29,7 +30,8 @@ type StaffRow = {
 export async function authenticateStaff(
   email: string,
   password: string,
-): Promise<{ staff: StaffUser; sessionToken: string } | null> {
+  code = "",
+): Promise<{ staff: StaffUser; sessionToken: string } | { codeProblem: "missing" | "wrong" } | null> {
   try {
     const db = await getSql();
     await applyStaffPasswordReset(db);
@@ -42,6 +44,11 @@ export async function authenticateStaff(
 
     const valid = await verifyPassword(password, row.password_hash);
     if (!valid) return null;
+    // With two-step login on, the password alone never opens a session.
+    if (await staffHasTwoStep(row.id)) {
+      if (!code.trim()) return { codeProblem: "missing" };
+      if (!(await checkStaffCode(row.id, code))) return { codeProblem: "wrong" };
+    }
 
     const sessionToken = createSessionToken();
     const now = new Date().toISOString();
