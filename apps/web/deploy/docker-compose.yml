@@ -15,10 +15,13 @@ services:
     env_file: ../.env.production
     environment:
       BACKUP_DIR: /app/backups
+      UPLOAD_DIR: /app/uploads
     # Nightly database backups (14 kept). A Docker volume: only root/Docker can read it,
     # and redeploys leave it alone.
     volumes:
       - backups:/app/backups
+      # Customers' own invoice files (deleted 90 days after delivery).
+      - uploads:/app/uploads
     ports:
       - "127.0.0.1:3201:3000"
     restart: unless-stopped
@@ -67,6 +70,7 @@ services:
 
 volumes:
   backups:
+  uploads:
 
 secrets:
   env:

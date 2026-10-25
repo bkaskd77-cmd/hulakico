@@ -8,7 +8,8 @@ export async function register(): Promise<void> {
   try {
     const { backupState, runNightlyBackup } = await import("@/lib/data/db-backup");
     backupState().scheduled = true;
-    const run = () => void runNightlyBackup();
+    const { purgeOldInvoiceUploads } = await import("@/lib/data/invoice-uploads");
+    const run = () => void runNightlyBackup().then(() => purgeOldInvoiceUploads());
     // First run shortly after start, then hourly; it skips once today's file exists.
     setTimeout(run, 2 * 60 * 1000).unref();
     setInterval(run, 60 * 60 * 1000).unref();

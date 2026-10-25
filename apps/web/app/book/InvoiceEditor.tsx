@@ -10,6 +10,7 @@ import {
 } from "@/lib/domain/invoice";
 import { emptyInvoiceLine, invoiceLineIncomplete, InvoiceLineFields, type LineDraft } from "./InvoiceLineFields";
 import { AiCustomsCheck } from "./AiCustomsCheck";
+import { InvoiceUpload } from "./InvoiceUpload";
 import { InvoiceTermsFields, type InvoiceTerms } from "./InvoiceTermsFields";
 import { purposeLabel } from "@/lib/domain/invoice-terms";
 import { termsFromInvoice, toDraft } from "./invoice-draft";
@@ -123,6 +124,7 @@ export function InvoiceEditor({
       </div>
       <InvoiceTermsFields terms={terms} currency={currency} field={FIELD} signedOnSave={terms.agreed}
         onChange={(patch) => setTerms((prev) => ({ ...prev, ...patch }))} />
+      <InvoiceUpload shipmentId={shipmentId} />
       <label className="block text-sm text-[var(--muted)]">
         Notes
         <input className={FIELD} value={notes} onChange={(e) => setNotes(e.target.value)} />

@@ -6,6 +6,7 @@ import { resolveOpsAccess } from "@/lib/data/ops-guard";
 import { readSessionToken } from "@/lib/http/session-cookie";
 import { readStaffSessionToken } from "@/lib/http/staff-session-cookie";
 import { InvoiceDocumentBody } from "./InvoiceDocumentBody";
+import { getInvoiceUpload } from "@/lib/data/invoice-uploads";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,7 @@ export default async function DigitalInvoicePage({
   const loaded = await getInvoiceDocument(user?.id ?? "staff", id, isAuthority);
   if ("error" in loaded) notFound();
   const { shipment: s, invoice } = loaded;
+  const ownFile = await getInvoiceUpload(s.id);
   const backHref =
     s.status === "DRAFT" || s.status === "QUOTED"
       ? `/book/draft/${s.id}`
@@ -47,6 +49,11 @@ export default async function DigitalInvoicePage({
             >
               Print
             </Link>
+          ) : null}
+          {ownFile ? (
+            <a href={`/api/bookings/${s.id}/invoice/upload`} target="_blank" rel="noopener" className="text-sm text-[var(--off-white)] underline">
+              Customer&apos;s own invoice: {ownFile.fileName}
+            </a>
           ) : null}
         </div>
         {invoice ? (
