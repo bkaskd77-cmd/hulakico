@@ -44,12 +44,22 @@ function statusKey(status: string): string {
   return status === "EXCEPTION" ? "HOLD" : status;
 }
 
-/** One clean row per status — Hold keeps the latest Admin reason. */
+/** Older bookings stored the adapter's internal note; customers never need it. */
+function publicDescription(description: string): string {
+  return description.replace(/\s*Stub booking via [^.]*\.?\)?\.?/i, "").trim();
+}
+
+/**
+ * One clean row per status — Hold keeps the latest Admin reason — except In transit,
+ * where every stop (Kathmandu, Delhi hub, customs…) is its own row.
+ */
 export function cleanTimeline(events: TrackEvent[]): TrackEvent[] {
-  const real = events.filter((event) => !isStubNoise(event.description));
+  const real = events
+    .filter((event) => !isStubNoise(event.description))
+    .map((event) => ({ ...event, description: publicDescription(event.description) }));
   const best = new Map<string, TrackEvent>();
   for (const event of real) {
-    const key = statusKey(event.status);
+    const key = event.status === "IN_TRANSIT" ? `IN_TRANSIT:${event.id}` : statusKey(event.status);
     const prev = best.get(key);
     if (!prev) {
       best.set(key, event);

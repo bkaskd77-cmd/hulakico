@@ -1,7 +1,25 @@
-function statusLabel(status: string): string {
-  if (status === "HANDOVER_PENDING") return "Handed over / picked up";
-  if (status === "EXCEPTION" || status === "HOLD") return "Hold";
-  return status.replaceAll("_", " ");
+const STEP_LABELS: Record<string, string> = {
+  DRAFT: "Draft",
+  QUOTED: "Quoted",
+  BOOKED: "Booked",
+  HANDOVER_PENDING: "Picked up",
+  IN_TRANSIT: "In transit",
+  OUT_FOR_DELIVERY: "Out for delivery",
+  DELIVERED: "Delivered",
+  EXCEPTION: "On hold",
+  HOLD: "On hold",
+  CANCELLED: "Cancelled",
+  RTO: "Returned to sender",
+};
+
+/** Customer-facing name for a shipment step, used by the history and the page headline. */
+export function trackStatusLabel(status: string): string {
+  return STEP_LABELS[status] ?? status.replaceAll("_", " ").toLowerCase();
+}
+
+/** Times always in Nepal time, whatever timezone the server runs in. */
+export function nepalTime(iso: string): string {
+  return `${new Date(iso).toLocaleString("en-GB", { timeZone: "Asia/Kathmandu", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} NPT`;
 }
 
 type TrackEvent = {
@@ -34,13 +52,13 @@ export function TrackHistory({
         {history.map((event, index) => {
           const atDest =
             event.status === "OUT_FOR_DELIVERY" || event.status === "DELIVERED";
-          const location = atDest
-            ? destinationCity
-            : event.location || originCity;
+          // The place Ops recorded wins; older rows may hold only a country code ("NP").
+          const recorded = event.location && event.location.trim().length > 2 ? event.location : "";
+          const location = recorded || (atDest ? destinationCity : originCity);
           const description =
             event.status === "HANDOVER_PENDING" &&
             event.description.toLowerCase().includes("awaiting")
-              ? "Handed over / picked up by partner."
+              ? "Picked up by the courier."
               : event.description;
           return (
             <li
@@ -50,13 +68,13 @@ export function TrackHistory({
             >
               <div>
                 <p className="text-sm font-semibold text-[var(--off-white)]">
-                  {history.length - index}. {statusLabel(event.status)}
+                  {history.length - index}. {trackStatusLabel(event.status)}
                 </p>
                 <p className="mt-1 text-sm text-[var(--muted)]">{description}</p>
               </div>
               <p className="text-sm text-[var(--muted)]">{location}</p>
               <p className="text-xs text-[var(--muted)] sm:text-right">
-                {new Date(event.occurredAt).toLocaleString()}
+                {nepalTime(event.occurredAt)}
               </p>
             </li>
           );

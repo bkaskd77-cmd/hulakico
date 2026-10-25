@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { TrackBackNav } from "@/app/track/TrackBackNav";
-import { TrackHistory } from "@/app/track/TrackHistory";
+import { nepalTime, TrackHistory, trackStatusLabel } from "@/app/track/TrackHistory";
 import { TrackReplyForm } from "@/app/track/TrackReplyForm";
 import { getTrackingByToken } from "@/lib/data/tracking";
 import { nextStepFor } from "@/lib/data/tracking-timeline";
@@ -8,11 +8,6 @@ import { effectivePartnerTrackUrl } from "@/lib/domain/partner-track-url";
 
 export const runtime = "nodejs";
 
-function statusLabel(status: string): string {
-  if (status === "HANDOVER_PENDING") return "Handed over / picked up";
-  if (status === "EXCEPTION" || status === "HOLD") return "Hold";
-  return status.replaceAll("_", " ");
-}
 
 export default async function PublicTrackPage({
   params,
@@ -51,7 +46,7 @@ export default async function PublicTrackPage({
               ? "text-[var(--danger)]"
               : "text-[var(--teal)]"
           }`}>
-            {statusLabel(tracking.status)}
+            {trackStatusLabel(tracking.status)}
           </p>
           <p className="mt-2 text-lg font-semibold text-[var(--off-white)]">{tracking.statusNote}</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
@@ -60,8 +55,8 @@ export default async function PublicTrackPage({
           </p>
           {latest ? (
             <p className="mt-3 text-xs text-[var(--muted)]">
-              Last update {new Date(latest.occurredAt).toLocaleString()}
-              {latest.location ? ` · ${latest.location}` : ""}
+              Last update {nepalTime(latest.occurredAt)}
+              {latest.location && latest.location.trim().length > 2 ? ` · ${latest.location}` : ""}
             </p>
           ) : null}
 

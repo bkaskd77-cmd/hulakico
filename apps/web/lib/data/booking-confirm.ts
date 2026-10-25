@@ -25,13 +25,13 @@ export async function confirmShipmentBooking(
     const db = await getSql();
     const shipment = (await db
       .prepare(
-        `SELECT id, status, lane, origin_country, destination_country, weight_kg,
+        `SELECT id, status, lane, origin_country, origin_city, destination_country, weight_kg,
                 wants_cod, declared_value, currency
          FROM shipments WHERE id = ? AND user_id = ?`,
       )
       .get(shipmentId, userId)) as
       | {
-          id: string; status: string; lane: string; origin_country: string;
+          id: string; status: string; lane: string; origin_country: string; origin_city: string;
           destination_country: string; weight_kg: number; wants_cod: number;
           declared_value: number | null; currency: string;
         }
@@ -91,9 +91,10 @@ export async function confirmShipmentBooking(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(
+      // Customer-facing: carrier and AWB only. The adapter's own message stays internal.
       newId("evt"), shipmentId, "BOOKED",
-      `Booked with ${option.carrier_name}. Hulakico AWB ${hulakicoAwb}. ${booked.message}`,
-      shipment.origin_country, now,
+      `Booked with ${option.carrier_name.replace(/\s*\(stub\)\s*$/i, "")}. Hulakico AWB ${hulakicoAwb}.`,
+      shipment.origin_city || shipment.origin_country, now,
     );
 
     if (shipment.wants_cod === 1 && shipment.lane === "DOMESTIC") {
