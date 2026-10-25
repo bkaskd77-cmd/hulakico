@@ -350,8 +350,10 @@ Phase 4 Step 5 deferred; Phase 5 customer hub started.
 | 5 | Package and Review: live charged weight (actual vs box size), Document defaults to 0.5 kg, Review shows labels, size, charged weight, and a tentative rate-card price | **DONE** |
 | 6 | Rate card: country and postal codes per rate; pricing matches postal code, then city, then "all other cities" default; International rates need a non-Nepal country and refuse Nepal cities; invalid older rows flagged and removable | **DONE** |
 | 7 | Readable AWBs (`HK-XXXX-XXXX-XXXX`, Crockford base32) with tolerant tracking search | **DONE** |
+| 8 | Admin session hardening: browser-session cookie, `SameSite=Strict`, 12-hour server limit, older long sessions refused | **DONE** |
+| 9 | Tracking updates record a place and optional note; defaults (pickup = shipper city, transit = last place, delivery = receiver city); In transit can be posted per stop with hub suggestions; customer timeline shows every stop, consistent step names, Nepal time; Booked uses the shipper city and hides internal carrier notes | **DONE** |
 
-**Follow-ups:** Admin to remove the flagged Kathmandu-International rate and add "all other cities" defaults per country. Imports (abroad → Nepal) are not priced yet. Node 26 LTS from 28 Oct 2026.
+**Follow-ups:** Admin to remove the flagged Kathmandu-International rate and add "all other cities" defaults per country. Imports (abroad → Nepal) are not priced yet. Handover from cities other than the shipper city (Ops option) is a later step. Node 26 LTS from 28 Oct 2026.
 
 ---
 
