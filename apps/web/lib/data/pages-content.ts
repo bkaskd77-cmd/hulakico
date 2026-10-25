@@ -1,3 +1,4 @@
+import { readSiteContent, writeSiteContent } from "@/lib/data/site-content-store";
 import { cache } from "react";
 import { INFO_PAGES, type InfoSection } from "@/lib/data/info-pages";
 import {
@@ -7,7 +8,6 @@ import {
   isReservedSlug,
   type SitePage,
 } from "@/lib/domain/page-catalogue";
-import { getSql } from "@/lib/sql";
 
 export type { SitePage } from "@/lib/domain/page-catalogue";
 
@@ -76,9 +76,7 @@ export function validatePages(items: SitePage[]): string | null {
 
 async function loadPages(): Promise<SitePage[]> {
   try {
-    const row = (await (await getSql())
-      .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
-      .get(SLUG)) as { content_json: string } | undefined;
+    const row = (await readSiteContent(SLUG)) as { content_json: string } | undefined;
     if (!row) return normalizePages(null);
     return normalizePages(JSON.parse(row.content_json));
   } catch (error) {
@@ -92,15 +90,7 @@ export async function savePages(items: SitePage[]): Promise<{ ok: true } | { err
     const content = normalizePages(items);
     const problem = validatePages(content);
     if (problem) return { error: problem };
-    await (await getSql())
-      .prepare(
-        `INSERT INTO site_content (slug, content_json, updated_at)
-         VALUES (?, ?, ?)
-         ON CONFLICT(slug) DO UPDATE SET
-           content_json = excluded.content_json,
-           updated_at = excluded.updated_at`,
-      )
-      .run(SLUG, JSON.stringify({ items: content }), new Date().toISOString());
+    await writeSiteContent(SLUG, JSON.stringify({ items: content }));
     return { ok: true };
   } catch (error) {
     console.error("[pages-content.ts:savePages]", error instanceof Error ? error.message : error);

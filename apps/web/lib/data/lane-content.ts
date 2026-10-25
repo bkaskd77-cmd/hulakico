@@ -1,8 +1,8 @@
+import { readSiteContent, writeSiteContent } from "@/lib/data/site-content-store";
 import { cache } from "react";
 import { getCompanyContact } from "@/lib/data/company-contact-content";
 import { INTERNATIONAL_LANES, type ShippingLane } from "@/lib/domain/international-lanes";
 import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
-import { getSql } from "@/lib/sql";
 
 const SLUG = "international-lanes";
 const MAX = 100_000;
@@ -82,7 +82,7 @@ function fromSaved(lane: ShippingLane, raw: unknown, address: string): LaneCopy 
 
 async function loadSaved(): Promise<Record<string, unknown>> {
   try {
-    const row = (await (await getSql()).prepare(`SELECT content_json FROM site_content WHERE slug = ?`).get(SLUG)) as { content_json: string } | undefined;
+    const row = (await readSiteContent(SLUG)) as { content_json: string } | undefined;
     if (!row) return {};
     const parsed = JSON.parse(row.content_json) as { lanes?: Record<string, unknown> };
     return parsed.lanes ?? {};
@@ -132,15 +132,7 @@ export async function saveLaneCopy(copy: LaneCopy): Promise<{ ok: true } | { err
     if (!known && !previous && Object.keys(saved).length >= 40) return { error: "Up to 40 destinations." };
     const body = { summary: copy.summary, transit: copy.transit, paperwork: copy.paperwork, steps: copy.steps, story: copy.story, handover: copy.handover, image: copy.image, facts: copy.facts.slice(0, 20) };
     saved[copy.slug] = known ? body : { ...body, to, title };
-    await (await getSql())
-      .prepare(
-        `INSERT INTO site_content (slug, content_json, updated_at)
-         VALUES (?, ?, ?)
-         ON CONFLICT(slug) DO UPDATE SET
-           content_json = excluded.content_json,
-           updated_at = excluded.updated_at`,
-      )
-      .run(SLUG, JSON.stringify({ lanes: saved }), new Date().toISOString());
+    await writeSiteContent(SLUG, JSON.stringify({ lanes: saved }));
     return { ok: true };
   } catch (error) {
     console.error("[lane-content.ts:saveLaneCopy]", error instanceof Error ? error.message : error);

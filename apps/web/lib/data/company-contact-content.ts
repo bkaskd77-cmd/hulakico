@@ -1,7 +1,7 @@
+import { readSiteContent, writeSiteContent } from "@/lib/data/site-content-store";
 import { cache } from "react";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
 import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
-import { getSql } from "@/lib/sql";
 
 const SLUG = "company-contact";
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -120,7 +120,7 @@ export function toPublicContact(c: ContactSettings): CompanyContact {
 
 async function loadSettings(): Promise<ContactSettings> {
   try {
-    const row = (await (await getSql()).prepare(`SELECT content_json FROM site_content WHERE slug = ?`).get(SLUG)) as { content_json: string } | undefined;
+    const row = (await readSiteContent(SLUG)) as { content_json: string } | undefined;
     if (!row) return seedSettings();
     const settings = normalizeContact(JSON.parse(row.content_json));
     return validateContact(settings) ? seedSettings() : settings;
@@ -135,7 +135,7 @@ export async function saveContactSettings(input: ContactSettings): Promise<{ ok:
     const settings = normalizeContact(input);
     const problem = validateContact(settings);
     if (problem) return { error: problem };
-    await (await getSql()).prepare(`INSERT INTO site_content (slug, content_json, updated_at) VALUES (?, ?, ?) ON CONFLICT(slug) DO UPDATE SET content_json = excluded.content_json, updated_at = excluded.updated_at`).run(SLUG, JSON.stringify(settings), new Date().toISOString());
+    await writeSiteContent(SLUG, JSON.stringify(settings));
     return { ok: true };
   } catch (error) {
     console.error("[company-contact-content.ts:saveContactSettings]", error instanceof Error ? error.message : error);

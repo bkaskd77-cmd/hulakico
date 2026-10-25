@@ -1,3 +1,4 @@
+import { readSiteContent, writeSiteContent } from "@/lib/data/site-content-store";
 import { cache } from "react";
 import { SERVICE_PAGES } from "@/lib/data/service-pages";
 import { getHomepageContent } from "@/lib/data/homepage-content";
@@ -7,7 +8,6 @@ import {
   slugifyTitle,
   type ServiceItem,
 } from "@/lib/domain/service-catalogue";
-import { getSql } from "@/lib/sql";
 
 export type { ServiceItem } from "@/lib/domain/service-catalogue";
 export { SERVICE_LIMITS, blankService } from "@/lib/domain/service-catalogue";
@@ -84,9 +84,7 @@ async function seedFromHome(): Promise<ServiceItem[]> {
 
 async function loadServices(): Promise<ServiceItem[]> {
   try {
-    const row = (await (await getSql())
-      .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
-      .get(SLUG)) as { content_json: string } | undefined;
+    const row = (await readSiteContent(SLUG)) as { content_json: string } | undefined;
     if (!row) return seedFromHome();
     return normalizeServices(JSON.parse(row.content_json));
   } catch (error) {
@@ -100,15 +98,7 @@ export async function saveServices(items: ServiceItem[]): Promise<{ ok: true } |
     const content = normalizeServices(items);
     const problem = validateServices(content);
     if (problem) return { error: problem };
-    await (await getSql())
-      .prepare(
-        `INSERT INTO site_content (slug, content_json, updated_at)
-         VALUES (?, ?, ?)
-         ON CONFLICT(slug) DO UPDATE SET
-           content_json = excluded.content_json,
-           updated_at = excluded.updated_at`,
-      )
-      .run(SLUG, JSON.stringify({ items: content }), new Date().toISOString());
+    await writeSiteContent(SLUG, JSON.stringify({ items: content }));
     return { ok: true };
   } catch (error) {
     console.error("[services-content.ts:saveServices]", error instanceof Error ? error.message : error);

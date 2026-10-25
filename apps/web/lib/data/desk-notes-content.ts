@@ -1,6 +1,6 @@
+import { readSiteContent, writeSiteContent } from "@/lib/data/site-content-store";
 import { cache } from "react";
 import { DESK_NOTES, type DeskSection } from "@/lib/domain/desk-notes";
-import { getSql } from "@/lib/sql";
 
 const SLUG = "desk-notes";
 const SLUG_OK = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -110,7 +110,7 @@ export function validateNotes(notes: StoredNote[]): string | null {
 
 async function loadNotes(): Promise<StoredNote[]> {
   try {
-    const row = (await (await getSql()).prepare(`SELECT content_json FROM site_content WHERE slug = ?`).get(SLUG)) as { content_json: string } | undefined;
+    const row = (await readSiteContent(SLUG)) as { content_json: string } | undefined;
     if (!row) return normalizeNotes(null);
     return normalizeNotes(JSON.parse(row.content_json));
   } catch (error) {
@@ -124,7 +124,7 @@ export async function saveDeskNotes(notes: StoredNote[]): Promise<{ ok: true } |
     const content = normalizeNotes({ notes });
     const problem = validateNotes(content);
     if (problem) return { error: problem };
-    await (await getSql()).prepare(`INSERT INTO site_content (slug, content_json, updated_at) VALUES (?, ?, ?) ON CONFLICT(slug) DO UPDATE SET content_json = excluded.content_json, updated_at = excluded.updated_at`).run(SLUG, JSON.stringify({ notes: content }), new Date().toISOString());
+    await writeSiteContent(SLUG, JSON.stringify({ notes: content }));
     return { ok: true };
   } catch (error) {
     console.error("[desk-notes-content.ts:saveDeskNotes]", error instanceof Error ? error.message : error);

@@ -1,5 +1,5 @@
+import { readSiteContent, writeSiteContent } from "@/lib/data/site-content-store";
 import { cache } from "react";
-import { getSql } from "@/lib/sql";
 import { normalizeHomepage, validateHomepage } from "@/lib/domain/homepage-rules";
 import type { HomepageContent } from "@/lib/domain/homepage-types";
 
@@ -23,9 +23,7 @@ function parseSaved(raw: string): HomepageContent {
 /** Public homepage content — saved override merged with built-in defaults. */
 async function loadHomepageContent(): Promise<HomepageContent> {
   try {
-    const row = (await (await getSql())
-      .prepare(`SELECT content_json FROM site_content WHERE slug = ?`)
-      .get(SLUG)) as { content_json: string } | undefined;
+    const row = (await readSiteContent(SLUG)) as { content_json: string } | undefined;
     return row ? parseSaved(row.content_json) : normalizeHomepage(null);
   } catch (error) {
     console.error(
@@ -44,15 +42,7 @@ export async function saveHomepageContent(
     const content = normalizeHomepage(input as unknown as Record<string, unknown>);
     const problem = validateHomepage(content);
     if (problem) return { error: problem };
-    await (await getSql())
-      .prepare(
-        `INSERT INTO site_content (slug, content_json, updated_at)
-         VALUES (?, ?, ?)
-         ON CONFLICT(slug) DO UPDATE SET
-           content_json = excluded.content_json,
-           updated_at = excluded.updated_at`,
-      )
-      .run(SLUG, JSON.stringify(content), new Date().toISOString());
+    await writeSiteContent(SLUG, JSON.stringify(content));
     return { ok: true };
   } catch (error) {
     console.error(
