@@ -9,8 +9,10 @@ import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getHomepageContent, type HomepageContent, type HomeSectionKey } from "@/lib/data/homepage-content";
 import { getServices, type ServiceItem } from "@/lib/data/services-content";
 import { readSessionToken } from "@/lib/http/session-cookie";
+import { pageMeta, SITE_DESCRIPTION, SITE_TAGLINE } from "@/lib/seo/site";
 
 export const runtime = "nodejs";
+export const metadata = pageMeta("/", SITE_TAGLINE, SITE_DESCRIPTION);
 
 function renderSection(
   key: HomeSectionKey,

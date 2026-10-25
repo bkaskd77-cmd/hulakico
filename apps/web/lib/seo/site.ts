@@ -11,6 +11,8 @@ export const SITE_TAGLINE = "Hulakico Logistics — Moving Trust. Delivering Mor
 export const SITE_DESCRIPTION =
   "AI logistics control tower for Nepal — domestic and international shipping through one booking brain.";
 
+const SHARE_IMAGE = { url: "/home/hero-handover.jpg", alt: "Courier handing a parcel at the door" };
+
 type PublicPath = { path: string; changeFrequency: "weekly" | "monthly"; priority: number };
 
 export function siteUrl(path = "/"): string {
@@ -55,7 +57,6 @@ export function siteMetadata(): Metadata {
     description: SITE_DESCRIPTION,
     applicationName: SITE_NAME,
     keywords: ["Hulakico", "Nepal courier", "Kathmandu shipping", "international cargo Nepal"],
-    alternates: { canonical: "/" },
     openGraph: {
       type: "website",
       locale: "en_NP",
@@ -72,6 +73,28 @@ export function siteMetadata(): Metadata {
       images: ["/home/hero-handover.jpg"],
     },
     robots: { index: true, follow: true },
+  };
+}
+
+/**
+ * Per-page metadata: its own canonical address and share card. Without this every page
+ * inherits the homepage canonical and Google treats them all as copies of the homepage.
+ */
+export function pageMeta(
+  path: string,
+  title: string,
+  description?: string,
+  options: { noIndex?: boolean; image?: string; imageAlt?: string } = {},
+): Metadata {
+  const url = siteUrl(path);
+  const image = { url: options.image || SHARE_IMAGE.url, alt: options.imageAlt || SHARE_IMAGE.alt };
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", siteName: SITE_NAME, locale: "en_NP", url, title, description: description ?? SITE_DESCRIPTION, images: [image] },
+    twitter: { card: "summary_large_image", title, description: description ?? SITE_DESCRIPTION, images: [image.url] },
+    ...(options.noIndex ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

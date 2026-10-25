@@ -6,6 +6,7 @@ import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { getPages } from "@/lib/data/pages-content";
 import { PAGE_GROUPS } from "@/lib/domain/page-catalogue";
+import { pageMeta } from "@/lib/seo/site";
 
 export const dynamicParams = true;
 export const revalidate = 300;
@@ -22,7 +23,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const page = (await getPages()).find((item) => item.slug === slug && !item.standalone);
-  return page ? { title: `${page.title} · Hulakico`, description: page.intro } : {};
+  return page ? pageMeta(`/${page.slug}`, `${page.title} · Hulakico`, page.intro) : {};
 }
 
 /** Company, support, and legal pages from one content source. */

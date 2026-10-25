@@ -5,6 +5,7 @@ import { PublicHeader } from "@/app/home/PublicHeader";
 import { SiteFooter } from "@/app/home/SiteFooter";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { bodyToSections, getPublishedNotes, type StoredNote } from "@/lib/data/desk-notes-content";
+import { pageMeta } from "@/lib/seo/site";
 
 type NotesParams = { slug?: string[] };
 
@@ -16,10 +17,10 @@ export async function generateStaticParams(): Promise<NotesParams[]> {
 export async function generateMetadata({ params }: { params: Promise<NotesParams> }): Promise<Metadata> {
   const { slug } = await params;
   const key = slug?.[0];
-  if (!key) return { title: "From the Kathmandu desk · Hulakico", description: "Notes on city runs, paperwork, pricing, and pickup." };
+  if (!key) return pageMeta("/notes", "From the Kathmandu desk · Hulakico", "Notes on city runs, paperwork, pricing, and pickup.");
   const note = (await getPublishedNotes()).find((item) => item.slug === key);
-  if (!note) return { title: "Note · Hulakico" };
-  return { title: `${note.title} · Hulakico`, description: note.excerpt };
+  if (!note) return { title: "Note not found · Hulakico", robots: { index: false } };
+  return pageMeta(`/notes/${note.slug}`, `${note.title} · Hulakico`, note.excerpt);
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

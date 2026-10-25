@@ -9,6 +9,7 @@ import { LaneRail } from "@/app/services/international/[lane]/LaneRail";
 import { getCityCopies, getCityCopy } from "@/lib/data/city-content";
 import { DOMESTIC_CITIES } from "@/lib/domain/domestic-cities";
 import type { ShippingLane } from "@/lib/domain/international-lanes";
+import { pageMeta } from "@/lib/seo/site";
 
 function asCity(copy: { slug: string; to: string; title: string; summary: string; image: string; defaultImage: string; transit: string; paperwork: string }): ShippingLane {
   return { slug: copy.slug, to: copy.to, title: copy.title, summary: copy.summary, image: copy.image || copy.defaultImage, transit: copy.transit, paperwork: copy.paperwork };
@@ -21,7 +22,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
   const slug = (await params).city;
   const city = (await getCityCopies()).map(asCity).find((item) => item.slug === slug);
-  return city ? { title: `${city.title} · Hulakico`, description: city.summary } : {};
+  return city ? pageMeta(`/services/domestic/${city.slug}`, `${city.title} · Hulakico`, city.summary, { image: city.image, imageAlt: city.title }) : {};
 }
 
 /** One Nepal city: the same lane brief and desk used on international destinations. */

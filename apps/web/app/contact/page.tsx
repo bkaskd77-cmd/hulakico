@@ -5,11 +5,13 @@ import { SiteFooter } from "@/app/home/SiteFooter";
 import { PublicHeader } from "@/app/home/PublicHeader";
 import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { getCompanyContact } from "@/lib/data/company-contact-content";
+import { pageMeta } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
-  title: "Contact · Hulakico",
-  description: "Call, email, or visit Hulakico in Thamel, Kathmandu — or send us a message.",
-};
+export const metadata: Metadata = pageMeta(
+  "/contact",
+  "Contact · Hulakico",
+  "Call, email, or visit Hulakico in Thamel, Kathmandu — or send us a message.",
+);
 
 export const revalidate = 300;
 

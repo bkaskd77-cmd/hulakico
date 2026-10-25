@@ -8,6 +8,7 @@ import { getLaneCopies } from "@/lib/data/lane-content";
 import { INTERNATIONAL_LANES, type ShippingLane } from "@/lib/domain/international-lanes";
 import { LaneBrief } from "@/app/services/international/[lane]/LaneBrief";
 import { LaneRail } from "@/app/services/international/[lane]/LaneRail";
+import { pageMeta } from "@/lib/seo/site";
 
 function asLane(copy: { slug: string; to: string; title: string; summary: string; image: string; defaultImage: string; transit: string; paperwork: string }): ShippingLane {
   return { slug: copy.slug, to: copy.to, title: copy.title, summary: copy.summary, image: copy.image || copy.defaultImage, transit: copy.transit, paperwork: copy.paperwork };
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lane: str
   const slug = (await params).lane;
   const lanes = (await getLaneCopies()).map(asLane);
   const lane = lanes.find((item) => item.slug === slug);
-  return lane ? { title: `${lane.title} · Hulakico`, description: lane.summary } : {};
+  return lane ? pageMeta(`/services/international/${lane.slug}`, `${lane.title} · Hulakico`, lane.summary, { image: lane.image, imageAlt: lane.title }) : {};
 }
 
 /** One international destination: a full lane brief beside the quote desk. */

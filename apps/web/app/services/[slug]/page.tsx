@@ -8,6 +8,7 @@ import { WhatsAppButton } from "@/app/home/WhatsAppButton";
 import { DomesticLayout } from "@/app/services/domestic/DomesticLayout";
 import { InternationalLayout } from "@/app/services/international/InternationalLayout";
 import { getServices } from "@/lib/data/services-content";
+import { pageMeta } from "@/lib/seo/site";
 
 export const dynamicParams = true;
 export const revalidate = 300;
@@ -20,7 +21,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const page = (await getServices()).find((item) => item.slug === slug);
-  return page ? { title: `${page.title} · Hulakico`, description: page.summary } : {};
+  return page ? pageMeta(`/services/${page.slug}`, `${page.title} · Hulakico`, page.summary, { image: page.image, imageAlt: page.title }) : {};
 }
 
 const panelClass =
