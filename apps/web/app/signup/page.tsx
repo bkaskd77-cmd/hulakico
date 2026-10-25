@@ -44,7 +44,9 @@ export default function SignupPage() {
         setError(data.error || "Signup failed.");
         return;
       }
-      router.push("/signin?registered=1");
+      // Keep a same-site return path (e.g. /book) through sign-up and sign-in.
+      const next = new URLSearchParams(window.location.search).get("next") ?? "";
+      router.push(/^\/(?!\/)[\w\-/]*$/.test(next) ? `/signin?registered=1&next=${encodeURIComponent(next)}` : "/signin?registered=1");
     } catch (err) {
       console.error("[signup/page.tsx:onSubmit]", err);
       setError("Signup failed. Please try again.");
@@ -59,9 +61,9 @@ export default function SignupPage() {
         onSubmit={onSubmit}
         className="w-full max-w-md rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8"
       >
-        <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
           Create account
-        </p>
+        </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Individual or business — Hulakico middleman booking starts here.
         </p>

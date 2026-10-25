@@ -7,6 +7,11 @@ import { useRouter } from "next/navigation";
 const noSubscribe = () => () => {};
 const readRegistered = () =>
   new URLSearchParams(window.location.search).get("registered") === "1";
+// Only same-site paths, so a crafted link cannot send the customer to another website.
+const readNext = () => {
+  const next = new URLSearchParams(window.location.search).get("next") ?? "";
+  return /^\/(?!\/)[\w\-/]*$/.test(next) ? next : "/account";
+};
 
 export default function SigninPage() {
   const router = useRouter();
@@ -14,6 +19,7 @@ export default function SigninPage() {
   const [pending, setPending] = useState(false);
   // Read after hydration: the server snapshot is false, the browser reads the URL.
   const registered = useSyncExternalStore(noSubscribe, readRegistered, () => false);
+  const next = useSyncExternalStore(noSubscribe, readNext, () => "/account");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,7 +40,7 @@ export default function SigninPage() {
         setError(data.error || "Sign in failed.");
         return;
       }
-      router.push("/account");
+      router.push(next);
       router.refresh();
     } catch (err) {
       console.error("[signin/page.tsx:onSubmit]", err);
@@ -51,9 +57,9 @@ export default function SigninPage() {
         className="w-full max-w-md rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-8"
       >
         <div className="flex items-start justify-between gap-4">
-          <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
+          <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
             Sign in
-          </p>
+          </h1>
           <Link href="/" className="shrink-0 text-sm text-[var(--muted)] underline hover:text-[var(--off-white)]">
             Cancel
           </Link>
@@ -107,7 +113,7 @@ export default function SigninPage() {
         </button>
         <p className="mt-4 text-center text-sm text-[var(--muted)]">
           New here?{" "}
-          <Link href="/signup" className="text-[var(--teal)] underline">
+          <Link href={next === "/account" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`} className="text-[var(--teal)] underline">
             Create account
           </Link>
         </p>
