@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { COMPANY_CONTACT } from "@/lib/data/info-pages";
+import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
 import { getSql } from "@/lib/sql";
 
 const SLUG = "company-contact";
@@ -16,6 +17,10 @@ export type ContactSettings = {
   whatsapp: string;
   address: string[];
   mapsUrl: string;
+  bankName: string; // bank / QR details customers pay into until wallets are live (optional)
+  bankAccountName: string;
+  bankAccountNumber: string;
+  paymentQr: string;
 };
 
 /** What the public site renders. Same shape as the old COMPANY_CONTACT constant. */
@@ -44,6 +49,10 @@ function seedSettings(): ContactSettings {
     whatsapp: `+${digits(COMPANY_CONTACT.whatsappHref)}`,
     address: [...COMPANY_CONTACT.address],
     mapsUrl: COMPANY_CONTACT.mapsHref,
+    bankName: "",
+    bankAccountName: "",
+    bankAccountNumber: "",
+    paymentQr: "",
   };
 }
 
@@ -66,6 +75,10 @@ export function normalizeContact(data: unknown): ContactSettings {
     whatsapp: text(row.whatsapp, LIMITS.number),
     address,
     mapsUrl: text(row.mapsUrl, LIMITS.url),
+    bankName: text(row.bankName, LIMITS.name),
+    bankAccountName: text(row.bankAccountName, LIMITS.name),
+    bankAccountNumber: text(row.bankAccountNumber, 40),
+    paymentQr: text(row.paymentQr, LIMITS.url),
   };
 }
 
@@ -87,6 +100,10 @@ export function validateContact(c: ContactSettings): string | null {
   if (digits(c.whatsapp).length < 7 || digits(c.whatsapp).length > 15) return "The WhatsApp number needs 7 to 15 digits, with the country code.";
   if (c.address.length === 0) return "Add at least one address line.";
   if (!mapsUrlOk(c.mapsUrl)) return "The map link must be an https Google Maps or OpenStreetMap link.";
+  const bankFilled = [c.bankName, c.bankAccountName, c.bankAccountNumber].filter(Boolean).length;
+  if (bankFilled > 0 && bankFilled < 3) return "For bank payments, fill in the bank name, account name, and account number.";
+  if (c.bankAccountNumber && !/^[0-9A-Za-z -]{6,40}$/.test(c.bankAccountNumber)) return "The account number may use only letters, numbers, spaces, and dashes.";
+  if (c.paymentQr && !isAllowedImageUrl(c.paymentQr)) return "The payment QR must be an uploaded image.";
   return null;
 }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { FIELD, Field, LABEL } from "@/app/admin/(staff)/homepage/AdminFields";
+import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
 import type { ContactPhone, ContactSettings } from "@/lib/data/company-contact-content";
 
 type SaveAction = (input: ContactSettings) => Promise<{ ok: true } | { error: string }>;
@@ -87,6 +88,19 @@ export function ContactEditor({ initial, saveAction }: { initial: ContactSetting
         />
         <div className="mt-4">
           <Field label="Map link (Google Maps or OpenStreetMap)" value={form.mapsUrl} onChange={(mapsUrl) => change({ mapsUrl })} placeholder="https://www.google.com/maps/search/?api=1&query=…" />
+        </div>
+      </section>
+
+      <section className={CARD}>
+        <span className={LABEL}>Bank / QR payment (shown at checkout)</span>
+        <p className="mt-1 text-xs text-[var(--muted)]">Customers pay here and type their transaction reference. Confirm each one in Admin → Payments.</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-3">
+          <Field label="Bank" value={form.bankName} onChange={(bankName) => change({ bankName })} placeholder="e.g. Nabil Bank" />
+          <Field label="Account name" value={form.bankAccountName} onChange={(bankAccountName) => change({ bankAccountName })} />
+          <Field label="Account number" value={form.bankAccountNumber} onChange={(bankAccountNumber) => change({ bankAccountNumber })} />
+        </div>
+        <div className="mt-4">
+          <ImageField label="Payment QR (Fonepay or bank QR)" value={form.paymentQr} defaultValue="" onChange={(paymentQr) => change({ paymentQr })} />
         </div>
       </section>
 

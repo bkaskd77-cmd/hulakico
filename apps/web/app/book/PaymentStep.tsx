@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WALLET_PROVIDERS, type WalletProviderId } from "@/lib/payments/providers";
+import { TransferPay, type TransferDetails } from "./TransferPay";
 
 type QuoteSummary = {
   amount: number;
@@ -9,7 +10,7 @@ type QuoteSummary = {
   quoteOptionId: string;
 };
 
-/** Payment step: COD confirm or stub Nepal wallet checkout. */
+/** Payment step: COD, bank transfer / QR (until wallets are live), or wallet checkout. `onBookCod` books the shipment. */
 export function PaymentStep({
   shipmentId,
   wantsCod,
@@ -29,6 +30,14 @@ export function PaymentStep({
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const isCod = wantsCod && lane === "DOMESTIC";
+  const [transfer, setTransfer] = useState<TransferDetails | null>(null);
+
+  useEffect(() => {
+    fetch("/api/payments/transfer-details")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setTransfer(data as TransferDetails | null))
+      .catch((err) => console.error("[PaymentStep.tsx:transferDetails]", err));
+  }, []);
 
   async function startWalletPay() {
     setError(null);
@@ -85,6 +94,8 @@ export function PaymentStep({
             {pending ? "Booking…" : "Book the shipment"}
           </button>
         </div>
+      ) : transfer?.mode === "transfer" ? (
+        <TransferPay shipmentId={shipmentId} details={transfer} amountText={quote ? `${quote.currency} ${quote.amount.toFixed(2)}` : ""} onReported={onBookCod} pending={pending} />
       ) : (
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-wide text-[var(--teal)]">Pay with</p>

@@ -8,7 +8,12 @@ export const WALLET_PROVIDERS = [
 
 export type WalletProviderId = (typeof WALLET_PROVIDERS)[number]["id"];
 
-export type PayProviderMode = "stub" | "live" | "off";
+/**
+ * stub: simulated wallet checkout (local testing only).
+ * transfer: customer pays by bank transfer / QR and types the reference; Ops confirms.
+ * live: real wallet merchant APIs (Phase 12). off: no payments.
+ */
+export type PayProviderMode = "stub" | "transfer" | "live" | "off";
 
 export function isWalletProvider(value: string): value is WalletProviderId {
   return WALLET_PROVIDERS.some((p) => p.id === value);
@@ -27,7 +32,9 @@ export function payProviderMode(): PayProviderMode {
   const mode = (process.env.PAY_PROVIDER || "stub").trim().toLowerCase();
   if (mode === "off") return "off";
   if (mode === "live") return "live";
-  return "stub";
+  if (mode === "transfer") return "transfer";
+  // A simulated checkout must never take real bookings: production falls back to transfer.
+  return process.env.NODE_ENV === "production" ? "transfer" : "stub";
 }
 
 /** True when the named wallet has merchant env present (never log secret values). */

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getSql } from "@/lib/sql";
 import { createWalletPaymentIntent } from "@/lib/data/payment-wallet";
-import { isWalletProvider } from "@/lib/payments/providers";
+import { recordCustomerTransfer } from "@/lib/data/payment-transfer";
+import { isWalletProvider, payProviderMode } from "@/lib/payments/providers";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
@@ -32,7 +33,18 @@ export async function POST(
       );
     }
 
-    const body = (await request.json()) as { provider?: string };
+    const body = (await request.json()) as { provider?: string; reference?: unknown };
+    if (payProviderMode() === "transfer") {
+      const recorded = await recordCustomerTransfer(id, typeof body.reference === "string" ? body.reference : "");
+      if ("error" in recorded) return NextResponse.json({ error: recorded.error }, { status: 400 });
+      return NextResponse.json({
+        intentId: recorded.intent.id,
+        amount: recorded.intent.amount,
+        currency: recorded.intent.currency,
+        provider: "bank",
+        awaitingVerification: true,
+      });
+    }
     if (!body.provider || !isWalletProvider(body.provider)) {
       return NextResponse.json(
         { error: "provider must be esewa, khalti, or connect_ips." },

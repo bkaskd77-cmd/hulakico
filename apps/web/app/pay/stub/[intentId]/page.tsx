@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getPaymentIntent } from "@/lib/data/payments";
 import { markPaymentPaid } from "@/lib/data/payment-wallet";
-import { walletLabel } from "@/lib/payments/providers";
+import { payProviderMode, walletLabel } from "@/lib/payments/providers";
 
 export const runtime = "nodejs";
 
 async function paySuccessAction(formData: FormData) {
   "use server";
+  // The simulated checkout only exists in stub mode (local testing); never in production.
+  if (payProviderMode() !== "stub") notFound();
   const intentId = String(formData.get("intentId") || "");
   const result = await markPaymentPaid(intentId);
   if ("error" in result) {
@@ -18,6 +20,7 @@ async function paySuccessAction(formData: FormData) {
 
 async function payCancelAction(formData: FormData) {
   "use server";
+  if (payProviderMode() !== "stub") notFound();
   const intentId = String(formData.get("intentId") || "");
   const intent = await getPaymentIntent(intentId);
   if (!intent) notFound();
@@ -31,6 +34,7 @@ export default async function StubCheckoutPage({
   params: Promise<{ intentId: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  if (payProviderMode() !== "stub") notFound();
   const { intentId } = await params;
   const { error } = await searchParams;
   const intent = await getPaymentIntent(intentId);

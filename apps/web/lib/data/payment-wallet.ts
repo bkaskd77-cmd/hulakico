@@ -127,13 +127,15 @@ export async function canConfirmBooking(shipmentId: string): Promise<boolean> {
     if (!row) return false;
     if (row.wants_cod === 1 && row.lane === "DOMESTIC") return true;
     await ensurePaymentsTable();
-    const paid = await db
+    // Paid, or a bank/QR transfer the customer reported: the booking goes ahead while Ops
+    // checks the bank, and pickup stays blocked until it is marked PAID (isFreightSettled).
+    const settledOrReported = await db
       .prepare(
         `SELECT 1 FROM payment_intents
-         WHERE shipment_id = ? AND status = 'PAID' LIMIT 1`,
+         WHERE shipment_id = ? AND (status = 'PAID' OR (status = 'AWAITING_PAYMENT' AND provider = 'bank')) LIMIT 1`,
       )
       .get(shipmentId);
-    return Boolean(paid);
+    return Boolean(settledOrReported);
   } catch (error) {
     console.error(
       "[payment-wallet.ts:canConfirmBooking]",

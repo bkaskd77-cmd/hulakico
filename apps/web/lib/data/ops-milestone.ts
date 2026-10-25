@@ -1,6 +1,7 @@
 import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { logCustomerNotification } from "@/lib/data/notifications";
+import { isFreightSettled } from "@/lib/data/payment-transfer";
 
 const MILESTONES = ["HANDOVER_PENDING", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"] as const;
 
@@ -70,6 +71,11 @@ export async function postOpsMilestone(
     const transitAgain = milestone === "IN_TRANSIT" && row.status === "IN_TRANSIT";
     if (next <= current && !transitAgain) {
       return { error: `Already at ${row.status.replaceAll("_", " ").toLowerCase()}. Pick a later step.` };
+    }
+
+    // Nothing leaves the desk unpaid: a reported bank transfer must be confirmed first.
+    if (milestone === "HANDOVER_PENDING" && !(await isFreightSettled(shipmentId))) {
+      return { error: "Payment is not confirmed yet. Mark it paid in Admin → Payments before pickup." };
     }
 
     const lastEvent = (await db

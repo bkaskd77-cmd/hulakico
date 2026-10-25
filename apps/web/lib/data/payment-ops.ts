@@ -10,6 +10,8 @@ export type AwaitingTransferPayment = {
   hulakicoAwb: string | null;
   route: string;
   createdAt: string;
+  /** The bank/QR transaction reference the customer typed, when they reported one. */
+  customerReference: string | null;
 };
 
 export async function listAwaitingTransferPayments(): Promise<AwaitingTransferPayment[]> {
@@ -17,7 +19,7 @@ export async function listAwaitingTransferPayments(): Promise<AwaitingTransferPa
     await ensurePaymentsTable();
     const rows = (await (await getSql())
       .prepare(
-        `SELECT p.id, p.shipment_id, p.amount, p.currency, p.created_at,
+        `SELECT p.id, p.shipment_id, p.amount, p.currency, p.created_at, p.instructions,
                 s.hulakico_awb, s.origin_city, s.destination_city
          FROM payment_intents p
          JOIN shipments s ON s.id = p.shipment_id
@@ -30,6 +32,7 @@ export async function listAwaitingTransferPayments(): Promise<AwaitingTransferPa
       amount: number;
       currency: string;
       created_at: string;
+      instructions: string;
       hulakico_awb: string | null;
       origin_city: string;
       destination_city: string;
@@ -43,6 +46,7 @@ export async function listAwaitingTransferPayments(): Promise<AwaitingTransferPa
       hulakicoAwb: row.hulakico_awb,
       route: `${row.origin_city} → ${row.destination_city}`,
       createdAt: row.created_at,
+      customerReference: /Customer reference: (.+)$/.exec(row.instructions ?? "")?.[1] ?? null,
     }));
   } catch (error) {
     console.error(

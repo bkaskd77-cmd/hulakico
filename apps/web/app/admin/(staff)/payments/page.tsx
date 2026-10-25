@@ -25,7 +25,7 @@ export default async function AdminPaymentsPage() {
         Transfer payments
       </h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Awaiting bank-transfer freight payments (stub provider).{" "}
+        Bank / QR payments customers reported. Match each reference on the bank statement, then mark it paid; pickup is blocked until then.{" "}
         Cash collected by the courier on delivery is on the{" "}
         <Link href="/admin/cod" className="font-semibold text-[var(--teal)] underline-offset-2 hover:underline">COD ledger</Link>.
       </p>
@@ -40,6 +40,11 @@ export default async function AdminPaymentsPage() {
             <p className="text-xs text-[var(--muted)]">
               {item.hulakicoAwb ?? "No AWB"} · {item.currency}{" "}
               {item.amount.toFixed(2)} · awaiting
+            </p>
+            <p className="mt-1 text-sm text-[var(--off-white)]">
+              {item.customerReference
+                ? <>Customer reference: <span className="font-semibold">{item.customerReference}</span> — check it on the bank statement before marking paid.</>
+                : "No reference from the customer yet."}
             </p>
             <MarkPaidForm paymentId={item.id} />
           </li>
