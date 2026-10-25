@@ -6,7 +6,7 @@ import {
   shipmentHubWhere,
   type HubFilterKey,
 } from "@/lib/data/my-shipments-filters";
-import { purgeExpiredFinishedShipments } from "@/lib/data/shipment-purge";
+import { purgeAbandonedDrafts } from "@/lib/data/shipment-purge";
 import { getSettleSummary, settleShortLabel } from "@/lib/data/settle";
 import { runAtMostEvery } from "@/lib/sql/once";
 
@@ -63,7 +63,7 @@ export async function listMyShipments(
     filter, q, filterCounts: emptyCounts,
   };
   try {
-    await runAtMostEvery("purge_finished_shipments", 10 * 60 * 1000, purgeExpiredFinishedShipments);
+    await runAtMostEvery("purge_abandoned_drafts", 10 * 60 * 1000, purgeAbandonedDrafts);
     const db = await getSql();
     const filterCounts = { ...emptyCounts };
     const retention = retentionWhere();

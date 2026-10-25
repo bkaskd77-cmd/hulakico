@@ -8,7 +8,7 @@ import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { listAttentionItems } from "@/lib/data/shipment-attention";
 import { listMyShipments } from "@/lib/data/my-shipments";
 import { readSessionToken } from "@/lib/http/session-cookie";
-import { statusLabel } from "@/lib/domain/shipment-labels";
+import { codeLabel, statusLabel } from "@/lib/domain/shipment-labels";
 
 export const runtime = "nodejs";
 
@@ -30,6 +30,8 @@ export default async function AccountPage({
   ]);
   const latest = list.rows[0] ?? null;
   const recent = list.rows.slice(0, 3);
+  // Only the newest unfinished draft is offered; older ones stay under All shipments.
+  const draft = list.rows.find((row) => row.status === "DRAFT" || row.status === "QUOTED") ?? null;
   const panel =
     "rounded-lg border border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] bg-[var(--navy-elevated)] p-5";
 
@@ -77,9 +79,21 @@ export default async function AccountPage({
           <div className={panel}>
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Profile</p>
             <p className="mt-2 break-all text-sm font-semibold text-[var(--off-white)]">{user.email}</p>
-            <p className="mt-1 text-sm uppercase tracking-wide text-[var(--muted)]">{user.accountType}</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">{codeLabel(user.accountType)} account</p>
           </div>
         </div>
+
+        {draft ? (
+          <Link href={`/book/draft/${draft.id}`}
+            className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--gold)] bg-[color-mix(in_srgb,var(--gold)_10%,transparent)] px-5 py-4 transition hover:bg-[color-mix(in_srgb,var(--gold)_18%,transparent)]">
+            <span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Continue where you left off</span>
+              <span className="mt-1 block font-semibold text-[var(--off-white)]">{draft.originCity} → {draft.destinationCity}</span>
+              <span className="block text-xs text-[var(--muted)]">Unfinished drafts are removed after 30 days without changes.</span>
+            </span>
+            <span className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]">Finish booking</span>
+          </Link>
+        ) : null}
 
         <NeedsAttentionStrip items={attention} />
 
@@ -108,7 +122,7 @@ export default async function AccountPage({
                     <div>
                       <p className="font-semibold text-[var(--off-white)]">{row.originCity} → {row.destinationCity}</p>
                       <p className="text-xs text-[var(--muted)]">
-                        {row.hulakicoAwb ?? "Draft"} · {statusLabel(row.status)}
+                        {row.hulakicoAwb ?? "No AWB yet"} · {statusLabel(row.status)}
                       </p>
                     </div>
                     <span className="text-xs font-semibold text-[var(--teal)]">Open</span>
