@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { resolveStaffAccess } from "@/lib/data/admin-guard";
 import { writeAudit } from "@/lib/data/audit-log";
+import { ActivityLog, isActivityGroup } from "@/app/admin/(staff)/team/ActivityLog";
 import { ASSIGNABLE_ROLES, changeStaffRole, isAssignableRole, listTeam, removeStaffAccess } from "@/lib/data/staff-team";
 import { canAccess, ROLE_HINTS, ROLE_LABELS, STAFF_LIMITS } from "@/lib/domain/staff-permissions";
 import { requireStaffPage } from "@/lib/http/require-staff";
@@ -77,7 +78,8 @@ async function removeAccessAction(formData: FormData): Promise<void> {
 
 export default async function AdminTeamPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const access = await requireStaffPage("team");
-  const notice = NOTICES[String((await searchParams).notice ?? "")];
+  const params = await searchParams;
+  const notice = NOTICES[String(params.notice ?? "")];
   const team = await listTeam();
 
   return (
@@ -131,6 +133,8 @@ export default async function AdminTeamPage({ searchParams }: { searchParams: Pr
           );
         })}
       </ul>
+
+      <ActivityLog group={isActivityGroup(params.log) ? params.log : "all"} />
     </>
   );
 }
