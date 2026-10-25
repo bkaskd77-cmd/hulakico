@@ -24,6 +24,10 @@ export function SavedAddressControls({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [label, setLabel] = useState("");
+  const [savedAs, setSavedAs] = useState<string | null>(null);
+  const keys = PARTY_KEYS[side];
+  // Offer saving only once there is a real address to keep.
+  const ready = [form[keys.contactName], form[keys.line1], form[keys.city]].every((value) => String(value ?? "").trim().length >= 2);
 
   async function saveCurrent() {
     setError(null);
@@ -60,6 +64,7 @@ export function SavedAddressControls({
         createdAt: new Date().toISOString(),
       });
       setLabel("");
+      setSavedAs(useLabel);
     } catch (err) {
       console.error("[SavedAddressControls.tsx:saveCurrent]", err);
       setError("Could not save address.");
@@ -70,6 +75,7 @@ export function SavedAddressControls({
 
   return (
     <div className="mb-3 space-y-2">
+      {addresses.length > 0 ? (
       <label className="block text-sm text-[var(--muted)]">
         Saved address
         <select
@@ -89,7 +95,10 @@ export function SavedAddressControls({
           ))}
         </select>
       </label>
-      <div className="flex flex-wrap gap-2">
+      ) : null}
+      {savedAs ? <p role="status" className="text-xs font-semibold text-[var(--teal)]">Saved to your address book as “{savedAs}”.</p> : null}
+      {ready && !savedAs ? (
+      <div className="flex flex-wrap items-center gap-2">
         <input
           className={`${field} mt-0 max-w-[12rem]`}
           value={label}
@@ -105,6 +114,7 @@ export function SavedAddressControls({
           {pending ? "Saving…" : "Save to address book"}
         </button>
       </div>
+      ) : null}
       {error ? <p className="text-xs text-[var(--danger)]">{error}</p> : null}
     </div>
   );

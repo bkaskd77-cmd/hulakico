@@ -101,7 +101,7 @@ export function PlaceSuggestControls({
   return (
     <div className="relative sm:col-span-2">
       <label className="text-sm text-[var(--muted)]">
-        Address line 1
+        Address line 1<span className="text-[var(--danger)]" aria-hidden> *</span>
         <input
           className={field}
           value={value}

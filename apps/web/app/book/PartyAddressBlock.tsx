@@ -54,7 +54,7 @@ export function PartyAddressBlock({
       <SavedAddressControls side={side} form={form} addresses={bookAddresses} field={field} onPick={onPick} onSaved={onSaved} />
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <label className="text-sm text-[var(--muted)]">
-          Contact name
+          Contact name<span className="text-[var(--danger)]" aria-hidden> *</span>
           <input className={field} value={form[k.contactName]} onChange={(e) => update(k.contactName, e.target.value)} onBlur={blur(k.contactName)} required minLength={2} />
           {hint(k.contactName) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.contactName)}</p> : null}
         </label>
@@ -63,7 +63,7 @@ export function PartyAddressBlock({
           <input className={field} value={form[k.company]} onChange={(e) => update(k.company, e.target.value)} />
         </label>
         <label className="text-sm text-[var(--muted)]">
-          Phone
+          Phone<span className="text-[var(--danger)]" aria-hidden> *</span>
           <input className={field} value={form[k.phone]} onChange={(e) => update(k.phone, e.target.value)} onBlur={() => { update(k.phone, normalizePhone(form[k.phone], form[k.country])); blur(k.phone)(); }} placeholder={phonePlaceholder(form[k.country])} required minLength={7} inputMode="tel" autoComplete="tel" />
           {hint(k.phone) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.phone)}</p> : null}
         </label>
@@ -73,7 +73,7 @@ export function PartyAddressBlock({
           {hint(k.email) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.email)}</p> : null}
         </label>
         <label className="text-sm text-[var(--muted)]">
-          Country
+          Country<span className="text-[var(--danger)]" aria-hidden> *</span>
           {countryChoices.length === 1 ? (
             <>
               <input className={field} value={countryChoices[0].name} readOnly aria-readonly />
@@ -98,7 +98,7 @@ export function PartyAddressBlock({
           )}
         </label>
         <label className="text-sm text-[var(--muted)]">
-          City
+          City<span className="text-[var(--danger)]" aria-hidden> *</span>
           <input
             className={field}
             value={form[k.city]}
