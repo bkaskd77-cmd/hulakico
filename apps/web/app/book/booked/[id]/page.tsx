@@ -62,6 +62,9 @@ export default async function BookedPage({
           >
             Open tracking
           </Link>
+          <Link href={`/label/${shipment.id}`} className="rounded-md border border-[var(--teal)] px-4 py-2 text-sm font-semibold text-[var(--teal)]">
+            Print label
+          </Link>
           <Link href="/book" className="text-sm text-[var(--teal)] underline">
             Book another
           </Link>

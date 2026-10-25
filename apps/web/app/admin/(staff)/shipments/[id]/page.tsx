@@ -65,6 +65,11 @@ export default async function AdminShipmentDetailPage({
             Public track
           </Link>
         ) : null}
+        {s.hulakicoAwb ? (
+          <Link href={`/label/${s.id}`} className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_40%,transparent)] px-3 py-1.5 text-sm font-semibold text-[var(--off-white)]">
+            Print label
+          </Link>
+        ) : null}
       </div>
 
       <header className="mt-6">

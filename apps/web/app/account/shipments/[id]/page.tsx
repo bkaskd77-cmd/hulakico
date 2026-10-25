@@ -51,6 +51,11 @@ export default async function OpenShipmentPage({
                 Track
               </Link>
             ) : null}
+            {s.hulakicoAwb ? (
+              <Link href={`/label/${s.id}`} className="rounded-md border border-[color-mix(in_srgb,var(--off-white)_20%,transparent)] bg-[var(--navy-elevated)] px-3 py-1.5 font-semibold text-[var(--off-white)]">
+                Print label
+              </Link>
+            ) : null}
             {s.lane === "INTERNATIONAL" ? (
               <Link href={`/book/invoice/${s.id}`} className="rounded-md bg-[var(--gold)] px-3 py-1.5 font-semibold text-[var(--navy)]">
                 Invoice
