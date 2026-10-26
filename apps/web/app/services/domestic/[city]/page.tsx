@@ -47,13 +47,13 @@ export default async function DomesticCityPage({ params }: { params: Promise<{ c
           <span className="text-[var(--off-white)]">{city.title}</span>
         </nav>
         <div className="mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <LaneBrief lane={city} loadCopy={getCityCopy} kicker="City run from Kathmandu" />
+          <LaneBrief lane={city} loadCopy={getCityCopy} kicker="Delivery from Kathmandu" />
           <LaneRail
             lane={city}
             others={others}
             hrefBase="/services/domestic"
             fromLabel="Kathmandu"
-            blurb="Share the ward, the weight, and the contents. The desk quotes in NPR and confirms a window before you book."
+            blurb="Tell us the ward, the weight, and what is inside. We quote in NPR and confirm the delivery date before you book."
             listTitle="Other cities"
           />
         </div>

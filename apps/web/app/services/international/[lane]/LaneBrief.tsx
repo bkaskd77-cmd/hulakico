@@ -7,11 +7,11 @@ function lines(value: string): string[] {
   return value.split("\n").map((line) => line.trim()).filter(Boolean);
 }
 
-/** Lane page chrome, with the writing loaded from the staff editor. */
+/** Destination page layout, with the writing loaded from the staff editor. */
 export async function LaneBrief({
   lane,
   loadCopy = getLaneCopy,
-  kicker = "Lane from Kathmandu",
+  kicker = "Shipping from Nepal",
   captionFrom = "Kathmandu",
 }: {
   lane: ShippingLane;
@@ -44,7 +44,7 @@ export async function LaneBrief({
       </div>
 
       <aside className="mt-8 border-l-4 border-[var(--gold)] bg-[var(--navy-elevated)] px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--teal)]">Lane brief</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--teal)]">In short</p>
         <p className={`mt-2 text-base text-[var(--off-white)] ${prose}`}>{summary}</p>
       </aside>
 
@@ -60,7 +60,7 @@ export async function LaneBrief({
 
       {points.length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How this lane moves</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">Delivery time and route</h2>
           <ul className="mt-4 space-y-3">
             {points.map((point, index) => (
               <li key={`${index}-${point.slice(0, 24)}`} className="flex gap-3 text-sm leading-relaxed text-[var(--off-white)]/85">
@@ -74,7 +74,7 @@ export async function LaneBrief({
 
       {facts.length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">Lane facts</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">Good to know</h2>
           <dl className="mt-4 border-y border-[color-mix(in_srgb,var(--off-white)_14%,transparent)]">
             {facts.map((fact, index) => (
               <div key={`${fact.label}-${index}`} className="grid gap-1 border-b border-[color-mix(in_srgb,var(--off-white)_10%,transparent)] py-3 last:border-b-0 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-6">
@@ -101,7 +101,7 @@ export async function LaneBrief({
 
       {steps.length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How to send on this lane</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">How to send</h2>
           <ol className="mt-4 space-y-4">
             {steps.map((step, index) => (
               <li key={`${index}-${step.slice(0, 24)}`} className="flex gap-4">
@@ -117,7 +117,7 @@ export async function LaneBrief({
 
       {story ? (
         <section className="mt-10">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">On this lane</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">More about this route</h2>
           <div className={`mt-4 ${prose}`}>{story}</div>
         </section>
       ) : null}

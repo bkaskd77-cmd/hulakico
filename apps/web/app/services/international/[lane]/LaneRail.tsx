@@ -12,8 +12,8 @@ export async function LaneRail({
   others,
   hrefBase = "/services/international",
   fromLabel = "Nepal",
-  blurb = "Share the city, the weight, and the contents. The desk compares partners and confirms a window before you book.",
-  listTitle = "Other lanes",
+  blurb = "Tell us the city, the weight, and what is inside. We compare partners and confirm the price and delivery date before you book.",
+  listTitle = "Other countries",
 }: {
   lane: ShippingLane;
   others: ShippingLane[];
@@ -28,9 +28,9 @@ export async function LaneRail({
   return (
     <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
       <div className="rounded-xl border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] bg-[var(--navy-elevated)] p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--gold)]">Lane desk</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--gold)]">Ask our desk</p>
         <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--off-white)]">
-          Quote {lane.to}
+          Send to {lane.to}
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-[var(--off-white)]/85">{blurb}</p>
         <div className="mt-5 grid grid-cols-3 gap-2">
