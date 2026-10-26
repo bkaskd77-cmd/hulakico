@@ -30,7 +30,7 @@ export default async function OpsNotificationsPage() {
       <div className="mx-auto max-w-4xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Ops control tower</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--teal)]">Operations</p>
             <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)]">
               Notifications
             </h1>
