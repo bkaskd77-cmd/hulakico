@@ -136,6 +136,6 @@ export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
       "[admin-tower.ts:listAdminTowerShipments]",
       error instanceof Error ? error.message : error,
     );
-    throw new Error("Could not load Admin control tower.");
+    throw new Error("Could not load the Admin dashboard.");
   }
 }
