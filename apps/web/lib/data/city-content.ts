@@ -8,7 +8,7 @@ import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
 
 const SLUG = "domestic-cities";
 const MAX = 100_000;
-const STEPS = "Send the receiving address, the weight, and whether the box is documents or goods.\nThe desk quotes in NPR and shows the delivery window before you book.\nBook, then hand the box over in Kathmandu, or ask for a pickup on the quote.\nFollow one Hulakico timeline. Cash on delivery is paid back to you only when the quote included it.";
+const STEPS = "Send the receiving address, the weight, and whether the box is documents or goods.\nWe give you the price in NPR and the delivery date before you book.\nPay, then hand the box over in Kathmandu, or ask for a pickup.\nTrack it on one Hulakico tracking page. Cash on delivery is paid back to you when your booking included it.";
 
 function clean(value: unknown, fallback: string): string {
   const text = typeof value === "string" ? value.replace(/\u0000/g, "") : fallback;
@@ -30,18 +30,18 @@ function factsOf(value: unknown, fallback: LaneFact[]): LaneFact[] {
 function seed(city: ShippingLane, address: string): Omit<LaneCopy, "slug" | "title" | "to"> {
   return {
     summary: city.summary,
-    transit: `${city.transit}\nName the ward when you quote. The window on that quote is the one to trust.`,
+    transit: city.transit,
     paperwork: city.paperwork,
     steps: STEPS,
     story: "",
-    handover: `${address}\n\nBring the box to the desk, or ask for a pickup when you request the quote.`,
+    handover: `${address}\n\nBring the box to our desk, or request a pickup when you ask for a price.`,
     image: city.image,
     defaultImage: city.image,
     facts: [
       { label: "Route", value: `Kathmandu → ${city.to}` },
-      { label: "Rate", value: "NPR. No fixed fare. The quote uses the higher of actual weight and volumetric weight (length × width × height in cm ÷ 6000)." },
+      { label: "Rate", value: "In NPR. No fixed fare. The price uses the higher of actual weight and volumetric weight (length × width × height in cm ÷ 6000)." },
       { label: "Record", value: "One Hulakico air waybill (AWB) for the whole journey." },
-      { label: "COD", value: "Cash on delivery is offered only when that quote includes it." },
+      { label: "COD", value: "Available on some routes. It shows at booking when it is offered." },
     ],
   };
 }
@@ -78,7 +78,7 @@ function customBase(slug: string, raw: unknown): ShippingLane | null {
   if (to.length < 2) return null;
   const stored = row && typeof row.title === "string" ? row.title.trim() : "";
   const title = stored ? stored.slice(0, 120) : `Kathmandu to ${to}`;
-  return { slug, to, title, summary: `Parcels from Kathmandu to ${to}.`, image: "/home/service-domestic.jpg", transit: "Road through domestic partners. The quote shows the window before you book.", paperwork: `Receiver name, phone, and a full address in ${to}.` };
+  return { slug, to, title, summary: `Parcels from Kathmandu to ${to}.`, image: "/home/service-domestic.jpg", transit: "By road with a domestic courier partner. The price shows the delivery date before you book.", paperwork: `Receiver name, phone, and a full address in ${to}.` };
 }
 
 async function loadCopies(): Promise<LaneCopy[]> {
