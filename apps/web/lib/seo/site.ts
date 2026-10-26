@@ -9,7 +9,7 @@ export const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://hulakic
 export const SITE_NAME = "Hulakico Logistics";
 export const SITE_TAGLINE = "Hulakico Logistics — Moving Trust. Delivering More.";
 export const SITE_DESCRIPTION =
-  "AI logistics control tower for Nepal — domestic and international shipping through one booking brain.";
+  "Courier and cargo from Kathmandu: parcels and documents across Nepal and abroad, with the price before you book, customs help, and one tracking page.";
 
 const SHARE_IMAGE = { url: "/home/hero-handover.jpg", alt: "Courier handing a parcel at the door" };
 

@@ -65,7 +65,7 @@ export default function SignupPage() {
           Create account
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Individual or business — Hulakico middleman booking starts here.
+          Free for individuals and businesses. Book, pay, and track every shipment in one place.
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-2">

@@ -46,7 +46,7 @@ export default async function ContactPage() {
         <div className="relative z-10 mx-auto max-w-[78rem] px-6 pb-10 pt-8 sm:px-12 sm:pb-14 sm:pt-10">
           <p className="shell-rise text-xs font-semibold uppercase tracking-[0.28em] text-[var(--teal)]">Contact</p>
           <h1 className="shell-rise mt-3 max-w-2xl font-[family-name:var(--font-display)] text-3xl font-extrabold text-[var(--off-white)] sm:text-5xl">
-            Talk to the tower.
+            Talk to our desk.
           </h1>
           <p className="shell-rise-delay mt-3 max-w-xl text-sm leading-relaxed sm:mt-4 sm:text-base text-[var(--off-white)]/90">
             Bookings, a shipment on the move, a business account, or a partnership — call, email, visit us in Thamel, or send a message below.

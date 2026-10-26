@@ -6,7 +6,7 @@ import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
 
 const SLUG = "international-lanes";
 const MAX = 100_000;
-const STEPS = "Send the destination city, the weight, and whether the box is documents or goods.\nThe desk ranks partner options on price, speed, and the chance of a hold.\nBook, complete the invoice, and hand the box over in Kathmandu.\nFollow one Hulakico timeline. A customs question shows on that same page.";
+const STEPS = "Send the destination city, the weight, and whether the box is documents or goods.\nWe choose the partner that fits your price and date, and check the customs invoice with you.\nBook, complete the invoice, and hand the box over in Kathmandu.\nFollow one Hulakico timeline. A customs question shows on that same page.";
 
 export type LaneFact = { label: string; value: string };
 
@@ -55,7 +55,7 @@ function seed(lane: ShippingLane, address: string): Omit<LaneCopy, "slug" | "tit
     facts: [
       { label: "Route", value: `Kathmandu, Nepal → ${lane.to}` },
       { label: "Rate", value: "No fixed fare. The quote uses the higher of actual weight and volumetric weight (length × width × height in cm ÷ 5000)." },
-      { label: "Record", value: "One Hulakico airway bill. A partner bill is added after pickup." },
+      { label: "Record", value: "One Hulakico air waybill (AWB). The partner's AWB is added after handover." },
     ],
   };
 }

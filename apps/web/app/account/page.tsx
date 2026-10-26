@@ -40,7 +40,7 @@ export default async function AccountPage({
       <div className="mx-auto max-w-4xl">
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[color-mix(in_srgb,var(--off-white)_14%,transparent)] pb-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">Your control tower</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal)]">Your account</p>
             <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-[var(--off-white)] sm:text-4xl">
               Welcome, {user.name}
             </h1>

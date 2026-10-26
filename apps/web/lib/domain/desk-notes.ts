@@ -36,7 +36,7 @@ export const DESK_NOTES: DeskNote[] = [
     lead: "An international booking should not surprise you at the counter. The lane page lists the papers before you pay, so a missing invoice is caught while the box is still in Kathmandu.",
     sections: [
       { heading: "Read the lane first", body: "Each country page carries the summary, the usual transit, the facts we can stand behind, the handover, and the paperwork. If a document is on that list, the freight partner can refuse the box without it." },
-      { heading: "Keep the papers with the shipment", body: "Once you book, that list stays on the same air waybill as the tracking. Ops and the sender are looking at one story, not a chat thread and a separate folder." },
+      { heading: "Keep the papers with the shipment", body: "Once you book, that list stays on the same air waybill as the tracking. You and our desk see the same record, not a chat thread and a separate folder." },
     ],
     points: ["Match the name on the invoice to the name on the booking.", "Describe the goods in plain language.", "Do not seal a document pouch you still need to show."],
   },

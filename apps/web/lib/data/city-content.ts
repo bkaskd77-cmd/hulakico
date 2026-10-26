@@ -8,7 +8,7 @@ import { isAllowedImageUrl } from "@/lib/domain/homepage-rules";
 
 const SLUG = "domestic-cities";
 const MAX = 100_000;
-const STEPS = "Send the receiving address, the weight, and whether the box is documents or goods.\nThe desk quotes in NPR and shows the delivery window before you book.\nBook, then hand the box over in Kathmandu, or ask for a pickup on the quote.\nFollow one Hulakico timeline. Cash on delivery settles back to you only when the quote included it.";
+const STEPS = "Send the receiving address, the weight, and whether the box is documents or goods.\nThe desk quotes in NPR and shows the delivery window before you book.\nBook, then hand the box over in Kathmandu, or ask for a pickup on the quote.\nFollow one Hulakico timeline. Cash on delivery is paid back to you only when the quote included it.";
 
 function clean(value: unknown, fallback: string): string {
   const text = typeof value === "string" ? value.replace(/\u0000/g, "") : fallback;
@@ -40,7 +40,7 @@ function seed(city: ShippingLane, address: string): Omit<LaneCopy, "slug" | "tit
     facts: [
       { label: "Route", value: `Kathmandu → ${city.to}` },
       { label: "Rate", value: "NPR. No fixed fare. The quote uses the higher of actual weight and volumetric weight (length × width × height in cm ÷ 6000)." },
-      { label: "Record", value: "One Hulakico airway bill for the whole run." },
+      { label: "Record", value: "One Hulakico air waybill (AWB) for the whole journey." },
       { label: "COD", value: "Cash on delivery is offered only when that quote includes it." },
     ],
   };
