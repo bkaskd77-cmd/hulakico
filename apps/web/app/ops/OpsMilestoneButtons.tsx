@@ -40,6 +40,8 @@ export function OpsMilestoneButtons({ shipmentId, currentStatus, onError }: { sh
   const [step, setStep] = useState<string | null>(null);
   const [place, setPlace] = useState("");
   const [note, setNote] = useState("");
+  const [receivedBy, setReceivedBy] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
   const currentRank = RANK[currentStatus] ?? 0;
 
@@ -67,10 +69,17 @@ export function OpsMilestoneButtons({ shipmentId, currentStatus, onError }: { sh
       const response = await fetch(`/api/ops/shipments/${shipmentId}/milestone`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: step, location: place, note }),
+        body: JSON.stringify({ status: step, location: place, note, receivedBy }),
       });
       const data = await response.json();
       if (!response.ok) return onError(data.error || "Could not update Hulakico status.");
+      // Proof-of-delivery photo goes up after the Delivered step is saved.
+      if (step === "DELIVERED" && photo) {
+        const form = new FormData();
+        form.append("photo", photo);
+        const uploaded = await fetch(`/api/shipments/${shipmentId}/delivery-photo`, { method: "POST", body: form });
+        if (!uploaded.ok) onError(((await uploaded.json()) as { error?: string }).error || "Delivered was saved, but the photo did not upload.");
+      }
       setStep(null);
       router.refresh();
     } catch (err) {
@@ -117,6 +126,17 @@ export function OpsMilestoneButtons({ shipmentId, currentStatus, onError }: { sh
               className="mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_22%,transparent)] bg-[var(--navy)] px-2.5 py-1.5 text-sm text-[var(--off-white)]" />
           </label>
           <button type="button" onClick={post} disabled={pending} className="rounded-md bg-[#ffcc00] px-3 py-1.5 text-xs font-semibold text-[#191919] disabled:opacity-60">{pending ? "Posting…" : "Post update"}</button>
+          {step === "DELIVERED" ? (
+            <div className="grid gap-2 sm:col-span-3 sm:grid-cols-2">
+              <label className="text-xs text-[var(--muted)]">Received by (name)<span className="text-[var(--danger)]" aria-hidden> *</span>
+                <input value={receivedBy} onChange={(e) => setReceivedBy(e.target.value)} maxLength={80} required placeholder="Who signed for it"
+                  className="mt-1 w-full rounded-md border border-[color-mix(in_srgb,var(--off-white)_22%,transparent)] bg-[var(--navy)] px-2.5 py-1.5 text-sm text-[var(--off-white)]" />
+              </label>
+              <label className="text-xs text-[var(--muted)]">Delivery photo or partner POD (optional, JPG/PNG, 3 MB)
+                <input type="file" accept="image/jpeg,image/png" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} className="mt-1 block w-full text-xs text-[var(--off-white)]" />
+              </label>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-1.5 sm:col-span-3">
             {(NOTES[step] ?? []).map((preset) => (
               <button key={preset} type="button" onClick={() => setNote(preset)} className="rounded border border-[color-mix(in_srgb,var(--teal)_45%,transparent)] px-2 py-0.5 text-[10px] text-[var(--teal)]">{preset}</button>

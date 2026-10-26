@@ -1,28 +1,21 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { getSql } from "@/lib/sql";
 import { runOnce } from "@/lib/sql/once";
+import { detectFileKind, FILE_KINDS, privateUploadDir, shipmentFilePath, type FileKind } from "@/lib/storage/file-kind";
 
 export const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
 /** Uploaded invoices are removed this long after the shipment is delivered, cancelled, or returned. */
 const KEEP_DAYS = 90;
 
-const KINDS = {
-  pdf: { type: "application/pdf", magic: [0x25, 0x50, 0x44, 0x46] },
-  jpg: { type: "image/jpeg", magic: [0xff, 0xd8, 0xff] },
-  png: { type: "image/png", magic: [0x89, 0x50, 0x4e, 0x47] },
-} as const;
-
-type Kind = keyof typeof KINDS;
+type Kind = FileKind;
 export type InvoiceUpload = { fileName: string; kind: Kind; bytes: number; uploadedAt: string };
 
 function uploadDir(): string {
-  return process.env.UPLOAD_DIR?.trim() || path.join(process.cwd(), "data", "uploads");
+  return privateUploadDir();
 }
 
 function filePath(shipmentId: string, kind: Kind): string {
-  if (!/^[A-Za-z0-9_]+$/.test(shipmentId)) throw new Error("Bad shipment id.");
-  return path.join(uploadDir(), `invoice-${shipmentId}.${kind}`);
+  return shipmentFilePath("invoice", shipmentId, kind);
 }
 
 async function ensureTable(): Promise<void> {
@@ -35,14 +28,6 @@ async function ensureTable(): Promise<void> {
       uploaded_at TEXT NOT NULL
     );
   `));
-}
-
-/** The file type from its first bytes; the name and browser-sent type are never trusted. */
-function detectKind(data: Uint8Array): Kind | null {
-  for (const [kind, info] of Object.entries(KINDS) as Array<[Kind, (typeof KINDS)[Kind]]>) {
-    if (info.magic.every((byte, index) => data[index] === byte)) return kind;
-  }
-  return null;
 }
 
 export async function getInvoiceUpload(shipmentId: string): Promise<InvoiceUpload | null> {
@@ -62,7 +47,7 @@ export async function saveInvoiceUpload(shipmentId: string, file: File): Promise
   try {
     if (file.size > MAX_UPLOAD_BYTES) return { error: "The file is larger than 3 MB. Save a smaller PDF or photo." };
     const data = new Uint8Array(await file.arrayBuffer());
-    const kind = detectKind(data);
+    const kind = detectFileKind(data);
     if (!kind) return { error: "Upload a PDF, JPG, or PNG file." };
     await ensureTable();
     const previous = await getInvoiceUpload(shipmentId);
@@ -88,7 +73,7 @@ export async function readInvoiceUpload(shipmentId: string): Promise<{ data: Uin
   const upload = await getInvoiceUpload(shipmentId);
   if (!upload) return null;
   try {
-    return { data: new Uint8Array(await readFile(filePath(shipmentId, upload.kind))), type: KINDS[upload.kind].type, upload };
+    return { data: new Uint8Array(await readFile(filePath(shipmentId, upload.kind))), type: FILE_KINDS[upload.kind].type, upload };
   } catch (error) {
     console.error("[invoice-uploads.ts:readInvoiceUpload]", error instanceof Error ? error.message : error);
     return null;

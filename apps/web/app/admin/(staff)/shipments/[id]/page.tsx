@@ -8,6 +8,7 @@ import { requireStaffPage } from "@/lib/http/require-staff";
 import { laneLabel } from "@/lib/domain/shipment-labels";
 import { StatusPill } from "@/app/StatusPill";
 import { AiCustomsPanel } from "@/app/admin/(staff)/shipments/[id]/AiCustomsPanel";
+import { DeliveryProofPanel } from "@/app/account/DeliveryProofPanel";
 
 export const runtime = "nodejs";
 
@@ -111,6 +112,7 @@ export default async function AdminShipmentDetailPage({
 
       {s.lane === "INTERNATIONAL" ? <AiCustomsPanel shipmentId={s.id} /> : null}
 
+      <DeliveryProofPanel shipmentId={s.id} />
       <ShipmentDetailPanels s={s} />
     </>
   );

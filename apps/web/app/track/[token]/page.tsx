@@ -9,6 +9,7 @@ import { getTrackingByToken } from "@/lib/data/tracking";
 import { nextStepFor } from "@/lib/data/tracking-timeline";
 import { effectivePartnerTrackUrl } from "@/lib/domain/partner-track-url";
 import { customerPartnerAwb } from "@/lib/domain/shipment-labels";
+import { getDeliveryProof, initials } from "@/lib/data/delivery-proof";
 
 export const runtime = "nodejs";
 // Tracking links are private to the sender and receiver: never in search results.
@@ -33,6 +34,8 @@ export default async function PublicTrackPage({
   const carrierDisplay =
     tracking.partnerLabel ?? tracking.carrierName ?? "Pending";
   const latest = tracking.events[tracking.events.length - 1];
+  // Public page: initials only. Name and photo are for the signed-in sender and staff.
+  const proof = tracking.status === "DELIVERED" ? await getDeliveryProof(tracking.shipmentId) : null;
 
   return (
     <div className="shell-sky min-h-dvh">
@@ -60,6 +63,7 @@ export default async function PublicTrackPage({
             {trackStatusLabel(tracking.status)}
           </p>
           <p className="mt-2 text-lg font-semibold text-[var(--off-white)]">{tracking.statusNote}</p>
+          {proof ? <p className="mt-1 text-sm text-[var(--teal)]">Received by {initials(proof.receivedBy)}</p> : null}
           <p className="mt-2 text-sm text-[var(--muted)]">
             <span className="font-semibold text-[var(--off-white)]">Next step: </span>
             {tracking.holdInfo ? tracking.holdInfo.contactHint : nextStepFor(tracking.status)}

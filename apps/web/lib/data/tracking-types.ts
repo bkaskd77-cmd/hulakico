@@ -7,6 +7,7 @@ export type TrackEvent = {
 };
 
 export type PublicTrackingView = {
+  shipmentId: string;
   hulakicoAwb: string;
   externalAwb: string | null;
   status: string;

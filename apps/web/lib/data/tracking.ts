@@ -85,6 +85,7 @@ export async function getTrackingByToken(
     const holdReason = openHold?.reason?.trim() || null;
 
     return {
+      shipmentId: shipment.id,
       hulakicoAwb: shipment.hulakico_awb,
       externalAwb: shipment.external_awb,
       status: shipment.status,

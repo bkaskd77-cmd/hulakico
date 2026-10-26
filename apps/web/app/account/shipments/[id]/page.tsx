@@ -6,6 +6,7 @@ import { getUserBySessionToken } from "@/lib/data/auth-store";
 import { getMyShipmentSummary } from "@/lib/data/shipment-summary";
 import { readSessionToken } from "@/lib/http/session-cookie";
 import { laneLabel, statusLabel } from "@/lib/domain/shipment-labels";
+import { DeliveryProofPanel } from "@/app/account/DeliveryProofPanel";
 
 export const runtime = "nodejs";
 
@@ -75,6 +76,7 @@ export default async function OpenShipmentPage({
           </p>
         </header>
 
+        <DeliveryProofPanel shipmentId={s.id} />
         <ShipmentDetailPanels s={s} />
       </div>
     </div>
