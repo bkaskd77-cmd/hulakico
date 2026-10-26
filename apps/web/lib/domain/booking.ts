@@ -68,7 +68,7 @@ export const draftBookingSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["wantsCod"],
-        message: "COD is only available on domestic Nepal lanes.",
+        message: "Cash on delivery is only available for shipments within Nepal.",
       });
     }
   });

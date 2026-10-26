@@ -30,7 +30,7 @@ export async function GET(
     if ("error" in owned) return owned.error;
     if (owned.shipment.lane !== "INTERNATIONAL") {
       return NextResponse.json(
-        { error: "Commercial invoices are for international lanes only." },
+        { error: "A customs invoice is only needed for international shipments." },
         { status: 400 },
       );
     }
@@ -54,7 +54,7 @@ export async function POST(
     if ("error" in owned) return owned.error;
     if (owned.shipment.lane !== "INTERNATIONAL") {
       return NextResponse.json(
-        { error: "Commercial invoices are for international lanes only." },
+        { error: "A customs invoice is only needed for international shipments." },
         { status: 400 },
       );
     }

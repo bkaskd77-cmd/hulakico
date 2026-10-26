@@ -19,12 +19,12 @@ export function applyCountryDefaults(prev: FormState): FormState {
 
 export function currencyCue(lane: string): string {
   return lane === "DOMESTIC"
-    ? "Default NPR for Nepal domestic. You can switch to USD if needed."
-    : "Default USD for international. COD is not available on this lane.";
+    ? "Prices within Nepal default to NPR. You can switch to USD if needed."
+    : "International prices default to USD. Cash on delivery is not available abroad.";
 }
 
 export function codCue(lane: string): string {
   return lane === "DOMESTIC"
-    ? "COD is available when both ends are Nepal."
-    : "COD is Nepal-domestic only — disabled for international.";
+    ? "Cash on delivery is available for shipments within Nepal."
+    : "Cash on delivery is not available for international shipments.";
 }
