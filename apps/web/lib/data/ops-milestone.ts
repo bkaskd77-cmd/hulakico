@@ -2,6 +2,7 @@ import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { logCustomerNotification } from "@/lib/data/notifications";
 import { isFreightSettled } from "@/lib/data/payment-transfer";
+import { notifyByPhone } from "@/lib/data/phone-notify";
 
 const MILESTONES = ["HANDOVER_PENDING", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"] as const;
 
@@ -89,6 +90,10 @@ export async function postOpsMilestone(
     await db.prepare(
       `INSERT INTO tracking_events (id, shipment_id, status, description, location, occurred_at) VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(newId("evt"), shipmentId, milestone, description, location, now);
+
+    // The receiver hears by phone when it is on the way to them and when it arrives.
+    if (milestone === "OUT_FOR_DELIVERY") await notifyByPhone(shipmentId, "RECEIVER_OUT_FOR_DELIVERY");
+    if (milestone === "DELIVERED") await notifyByPhone(shipmentId, "RECEIVER_DELIVERED");
 
     // Only delivery is emailed; pickup and transit scans show on the tracking page.
     if (milestone === "DELIVERED") {

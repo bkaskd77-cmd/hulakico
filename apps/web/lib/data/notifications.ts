@@ -2,6 +2,8 @@ import { getSql } from "@/lib/sql";
 import { runOnce } from "@/lib/sql/once";
 import { newId } from "@/lib/domain/auth";
 import { composeCustomerEmail, customerEmailEnabled, noticeSubject, sendCustomerEmail } from "@/lib/data/customer-mail";
+import { notifyByPhone } from "@/lib/data/phone-notify";
+import { SENDER_EVENTS, type PhoneEvent } from "@/lib/notify/phone-messages";
 
 export type NotifyKind =
   | "BOOKED"
@@ -25,7 +27,7 @@ export type NotificationRow = {
   createdAt: string;
 };
 
-async function ensureNotificationsTable(): Promise<void> {
+export async function ensureNotificationsTable(): Promise<void> {
   await runOnce("outbound_notifications", async () => (await getSql()).exec(`
     CREATE TABLE IF NOT EXISTS outbound_notifications (
       id TEXT PRIMARY KEY,
@@ -85,6 +87,8 @@ export async function logCustomerNotification(input: {
         .run("error" in sent ? "FAILED" : "SENT", subject, text, id);
       if ("error" in sent) console.error("[notifications.ts:logCustomerNotification]", input.kind, input.shipmentId, sent.error);
     }
+    // The same moment by WhatsApp or SMS to the sender, when a phone channel is set up.
+    if (SENDER_EVENTS.has(input.kind)) await notifyByPhone(input.shipmentId, input.kind as PhoneEvent);
     return { ok: true, id };
   } catch (error) {
     console.error(
