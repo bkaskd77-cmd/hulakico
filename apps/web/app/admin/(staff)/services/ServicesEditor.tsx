@@ -6,6 +6,7 @@ import { DestinationPages } from "@/app/admin/(staff)/services/DestinationPages"
 import { ServiceEditForm } from "@/app/admin/(staff)/services/ServiceEditForm";
 import { ServicesCardGrid } from "@/app/admin/(staff)/services/ServicesCardGrid";
 import { removeCityAction, saveCityAction } from "@/app/admin/(staff)/services/city-action";
+import { removeLaneAction } from "@/app/admin/(staff)/services/lane-action";
 import type { LaneCopy } from "@/lib/data/lane-content";
 import { blankService, type ServiceItem } from "@/lib/domain/service-catalogue";
 
@@ -106,7 +107,7 @@ export function ServicesEditor({
             }}
           />
           {current.slug === "international" ? (
-            <DestinationPages lanes={lanes} initialSlug={initialLane} saved={laneSaved} saveAction={saveLaneAction} />
+            <DestinationPages lanes={lanes} initialSlug={initialLane} saved={laneSaved} saveAction={saveLaneAction} removeAction={removeLaneAction} />
           ) : null}
           {current.slug === "domestic" ? (
             <DestinationPages
