@@ -73,7 +73,7 @@ export function ReviewSummary({ form, lane, active }: { form: FormState; lane: s
   return (
     <div className="mt-6 space-y-4 text-sm">
       <div>
-        <p className={HEAD}>Lane</p>
+        <p className={HEAD}>Shipment</p>
         <p className="text-[var(--off-white)]">{lane === "DOMESTIC" ? "Nepal domestic" : "International"}</p>
       </div>
       <Party title="From" form={form} side="origin" />

@@ -71,13 +71,13 @@ export function HomeTaskHub({ bookHref, labels }: Props) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "No shipment matched.");
+        setError(data.error || "No shipment found for that number.");
         return;
       }
       router.push(`/track/${data.token}`);
     } catch (err) {
       console.error("[HomeTaskHub.tsx:onTrack]", err);
-      setError("Tracking lookup failed.");
+      setError("Could not look up tracking. Please try again.");
     } finally {
       setPending(false);
     }
@@ -119,7 +119,7 @@ export function HomeTaskHub({ bookHref, labels }: Props) {
             />
             {error ? <p className="mt-3 text-sm text-[var(--danger)]">{error}</p> : null}
             <button type="submit" disabled={pending} className="mt-4 w-full rounded-md bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-[var(--navy)] disabled:opacity-60">
-              {pending ? "Scanning lanes…" : "Track"}
+              {pending ? "Searching…" : "Track"}
             </button>
           </form>
         ) : null}

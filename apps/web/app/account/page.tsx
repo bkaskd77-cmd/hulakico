@@ -44,7 +44,7 @@ export default async function AccountPage({
             <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-[var(--off-white)] sm:text-4xl">
               Welcome, {user.name}
             </h1>
-            <p className="mt-1 text-sm text-[var(--muted)]">Book, track, and settle from one Hulakico account.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">Book, pay, and track your shipments in one place.</p>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
             <Link href="/" className="font-semibold text-[var(--off-white)] underline-offset-2 hover:underline">Home</Link>
@@ -57,7 +57,7 @@ export default async function AccountPage({
         {verified ? null : <VerifyEmailBanner email={user.email} />}
 
         {params.ops === "denied" || params.admin === "denied" ? (
-          <p className="mt-4 text-sm text-[var(--danger)]">Staff tools live at /admin — use a staff account there.</p>
+          <p className="mt-4 text-sm text-[var(--danger)]">This page is for customers. Staff sign in at /admin.</p>
         ) : null}
         {params.copy && params.copy !== "missing" ? (
           <p className="mt-4 text-sm text-[var(--danger)]">{decodeURIComponent(params.copy)}</p>
@@ -67,13 +67,13 @@ export default async function AccountPage({
           <Link href="/book" className={`${panel} transition hover:border-[var(--gold)]`}>
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Book</p>
             <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">New shipment</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">Start a domestic or international send.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">Send within Nepal or abroad.</p>
           </Link>
           <Link href="/account/shipments" className={`${panel} transition hover:border-[var(--teal)]`}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Hub</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--teal)]">Shipments</p>
             <p className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold text-[var(--off-white)]">All shipments</p>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              {list.total > 0 ? `${list.total} in your tower` : "No shipments yet"}
+              {list.total > 0 ? `${list.total} ${list.total === 1 ? "shipment" : "shipments"}` : "No shipments yet"}
             </p>
           </Link>
           <div className={panel}>
@@ -108,7 +108,7 @@ export default async function AccountPage({
           </div>
           {recent.length === 0 ? (
             <div className={`mt-4 ${panel} border-dashed text-center`}>
-              <p className="text-sm text-[var(--muted)]">No shipments yet — book your first send.</p>
+              <p className="text-sm text-[var(--muted)]">No shipments yet. Book your first one.</p>
               <Link href="/book" className="mt-4 inline-block rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)]">
                 Book a shipment
               </Link>
