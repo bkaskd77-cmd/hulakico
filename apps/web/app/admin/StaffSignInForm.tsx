@@ -115,7 +115,7 @@ export function StaffSignInForm({ denied = false }: { denied?: boolean }) {
         disabled={pending}
         className="mt-6 w-full rounded-md bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-[var(--navy)] disabled:opacity-60"
       >
-        {pending ? "Signing in…" : "Enter control tower"}
+        {pending ? "Signing in…" : "Sign in"}
       </button>
       <p className="mt-4 text-center text-sm text-[var(--muted)]">
         New staff?{" "}

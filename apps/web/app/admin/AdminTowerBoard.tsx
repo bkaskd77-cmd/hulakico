@@ -74,14 +74,14 @@ export async function AdminTowerBoard() {
     rows = await listAdminTowerShipments();
   } catch (err) {
     console.error("[AdminTowerBoard.tsx:AdminTowerBoard]", err instanceof Error ? err.message : err);
-    error = "Could not load control tower shipments.";
+    error = "Could not load the dashboard shipments.";
   }
   const etaOffline = !error && rows.length > 0 && rows.every((row) => row.etaLevel === "UNKNOWN");
   const moving = rows.filter((row) => row.status === "IN_TRANSIT" || row.status === "OUT_FOR_DELIVERY").length;
 
   return (
     <>
-      <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)] sm:text-4xl">AI control tower</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--off-white)] sm:text-4xl">Dashboard</h1>
       <p className="mt-1 max-w-xl text-sm text-[color-mix(in_srgb,var(--off-white)_78%,transparent)]">
         Every active shipment, most urgent first: delay risk, open exceptions, and unconfirmed payments.
       </p>
