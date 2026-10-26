@@ -5,6 +5,8 @@ import { useState, useTransition, type FormEvent } from "react";
 import { CountryAdd } from "@/app/admin/(staff)/services/CountryAdd";
 import { ImageField } from "@/app/admin/(staff)/homepage/ImageField";
 import type { LaneCopy, LaneFact } from "@/lib/data/lane-content";
+import { DOMESTIC_CITIES } from "@/lib/domain/domestic-cities";
+import { INTERNATIONAL_LANES } from "@/lib/domain/international-lanes";
 
 const box =
   "mt-1.5 w-full resize-y rounded-md border border-[color-mix(in_srgb,var(--off-white)_22%,transparent)] bg-[color-mix(in_srgb,var(--navy)_70%,transparent)] px-3 py-2.5 text-sm text-[var(--off-white)] outline-none focus:border-[var(--gold)]";
@@ -12,15 +14,18 @@ const label = "block text-[11px] font-semibold uppercase tracking-[0.18em] text-
 
 type SaveResult = { ok: true } | { error: string };
 
+/** Built-in pages keep their fixed title; only staff-added pages can be renamed. */
+const BUILT_IN = new Set([...DOMESTIC_CITIES, ...INTERNATIONAL_LANES].map((item) => item.slug));
+
 /** Destination writing, shown inside International Shipping or Domestic Courier. */
 export function DestinationPages({
   lanes,
   initialSlug,
   saveAction,
   heading = "Destination pages",
-  intro = "Pick a lane and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters.",
+  intro = "Pick a country and write as much as you need. Delivery time and steps are one point per line. Each box holds up to 100,000 characters.",
   kind = "country",
-  savedNotice = "Saved. The public lane page now uses this writing.",
+  savedNotice = "Saved. The public country page now uses this writing.",
   removeAction,
 }: {
   lanes: LaneCopy[];
@@ -107,11 +112,14 @@ function LaneDraft({
       ) : (
         <p className="text-xs text-[var(--muted)]">No photo on the public page until you upload one.</p>
       )}
-      <label className={label}>Lane brief<textarea name="summary" rows={5} defaultValue={lane.summary} className={box} /></label>
-      <label className={label}>How this lane moves — one point per line<textarea name="transit" rows={6} defaultValue={lane.transit} className={box} /></label>
+      {BUILT_IN.has(lane.slug) ? null : (
+        <label className={label}>Page title<input name="title" defaultValue={lane.title} maxLength={120} className={box} /></label>
+      )}
+      <label className={label}>In short<textarea name="summary" rows={5} defaultValue={lane.summary} className={box} /></label>
+      <label className={label}>Delivery time and route, one point per line<textarea name="transit" rows={6} defaultValue={lane.transit} className={box} /></label>
       <div>
         <div className="flex items-center justify-between gap-3">
-          <span className={label}>Lane facts</span>
+          <span className={label}>Good to know</span>
           <button type="button" className="text-xs font-semibold text-[var(--gold)]" onClick={() => setFacts([...facts, { label: "", value: "" }])}>
             Add a fact
           </button>
@@ -129,7 +137,7 @@ function LaneDraft({
       <label className={label}>Handover<textarea name="handover" rows={5} defaultValue={lane.handover} className={box} /></label>
       <label className={label}>Receiver<textarea name="paperwork" rows={5} defaultValue={lane.paperwork} className={box} /></label>
       <label className={label}>Steps, one per line<textarea name="steps" rows={5} defaultValue={lane.steps} className={box} /></label>
-      <label className={label}>Long article<textarea name="story" rows={8} defaultValue={lane.story} className={box} /></label>
+      <label className={label}>More about this route<textarea name="story" rows={8} defaultValue={lane.story} className={box} /></label>
       <div id="destination-save" className="flex flex-wrap items-center gap-4">
         <button type="submit" disabled={pending} className="rounded-md bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[var(--navy)] disabled:opacity-60">
           {pending ? "Saving…" : `Save ${lane.to}`}

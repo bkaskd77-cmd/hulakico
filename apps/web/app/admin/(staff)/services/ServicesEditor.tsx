@@ -116,7 +116,7 @@ export function ServicesEditor({
               saveAction={saveCityAction}
               removeAction={removeCityAction}
               heading="City pages"
-              intro="Pick a city and write as much as you need. Movement and steps are one point per line. Each box holds up to 100,000 characters."
+              intro="Pick a city and write as much as you need. Delivery time and steps are one point per line. Each box holds up to 100,000 characters."
               kind="city"
               savedNotice="Saved. The public city page now uses this writing."
             />
