@@ -404,8 +404,9 @@ Next when ready: Phase 4 Step 5 polish **or** ops/partner tracking refinements.
 Goal: live, explainable delay risk that learns from delivered shipments; ML-ready features.
 
 - [x] I1.1 Intelligence service: `risk_signals.py` (time in status, ETA progress, open exceptions, festival season, Beta-Binomial route on-time rate) wired into `eta_risk.py` (model `rules-v2`, backward compatible).
-- [ ] I1.2 Web: compute live features per active shipment (hours in status, hours since booking, promised ETA max, open exceptions) and send them in the batch call; batch route accepts the new fields.
-- [ ] I1.3 Route history: on-time vs delivered per route + partner from delivered shipments; feed risk and replace the name-based partner trust in `ranker.py`.
+- [x] I1.2 Web: compute live features per active shipment (hours in status, hours since booking, promised ETA max, open exceptions) and send them in the batch call; batch route accepts the new fields.
+- [x] I1.3 Route history: on-time vs delivered per route + partner (`route-performance.ts`), fed to delay risk.
+- [x] I1.3b Partner choice at quote time (`partner-choice.ts`): only partners within 10% of the cheapest compete; weighed by learned on-time rate (0.5), price within the band (0.35), speed (0.15). Replaces cheapest-only.
 - [ ] I1.4 Dashboard: sort by risk, show score and top reasons per shipment.
 
 Later (I2, needs data): fit a logistic model on delivered outcomes to replace hand-set weights; ETA prediction per route.

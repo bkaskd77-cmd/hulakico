@@ -2,7 +2,9 @@ import { getSql } from "@/lib/sql";
 import { newId } from "@/lib/domain/auth";
 import { seedCarriers } from "@/lib/data/carriers";
 import { replaceShipmentQuotes } from "@/lib/data/quote-persist";
-import { billableKg, calculateQuoteAmount, lowestQuoteOption, pickRate } from "@/lib/domain/quoting";
+import { billableKg, calculateQuoteAmount, pickRate } from "@/lib/domain/quoting";
+import { choosePartner } from "@/lib/domain/partner-choice";
+import { loadRouteRecords, recordFor } from "@/lib/data/route-performance";
 import { loadServiceRates } from "@/lib/data/rate-cards";
 
 export type QuoteOptionView = {
@@ -110,7 +112,10 @@ export async function generateQuotesForShipment(
       });
     }
 
-    const chosen = lowestQuoteOption(options, shipment.lane);
+    const records = options.length > 1 ? await loadRouteRecords() : new Map();
+    const chosen = choosePartner(options, shipment.lane, (option) =>
+      recordFor(records, shipment.lane, shipment.destination_city, option.carrierId),
+    );
     if (!chosen) throw new Error("No rate is set for this city yet.");
     chosen.serviceName = shipment.service_class === "EXPRESS" ? "Express" : "Standard";
     const quoteId = newId("qte");
