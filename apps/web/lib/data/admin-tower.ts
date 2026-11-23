@@ -1,4 +1,5 @@
 import { assessEtaRiskBatch } from "@/lib/data/intelligence-batch";
+import { loadRouteRecords, recordFor } from "@/lib/data/route-performance";
 import { toRiskItem, towerSql, type TowerSqlRow } from "@/lib/data/tower-features";
 import { getSql } from "@/lib/sql";
 
@@ -59,12 +60,15 @@ function localEta(row: {
 export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
   try {
     const placeholders = ACTIVE.map(() => "?").join(",");
-    const rows = (await (await getSql())
-      .prepare(towerSql(placeholders))
-      .all(...ACTIVE)) as TowerSqlRow[];
+    const [rows, records] = await Promise.all([
+      (await getSql()).prepare(towerSql(placeholders)).all(...ACTIVE) as Promise<TowerSqlRow[]>,
+      loadRouteRecords(),
+    ]);
 
     const now = Date.now();
-    const remote = await assessEtaRiskBatch(rows.map((row) => toRiskItem(row, now)));
+    const remote = await assessEtaRiskBatch(
+      rows.map((row) => toRiskItem(row, now, recordFor(records, row.lane, row.destination_city, row.carrier_id))),
+    );
     const scored = new Map(remote.map((result) => [result.id, result]));
 
     const tower = rows.map((row) => {

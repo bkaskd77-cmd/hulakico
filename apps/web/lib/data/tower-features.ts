@@ -1,4 +1,5 @@
 import type { EtaRiskBatchItem } from "@/lib/data/intelligence-batch";
+import type { RouteRecord } from "@/lib/data/route-performance";
 
 /** Live delay features sent to the intelligence service with each active shipment. */
 export type RiskFeatureItem = EtaRiskBatchItem & {
@@ -7,6 +8,8 @@ export type RiskFeatureItem = EtaRiskBatchItem & {
   hoursSinceBooking: number | null;
   etaDaysMax: number | null;
   openExceptions: number;
+  routeOnTime: number | null;
+  routeDelivered: number | null;
 };
 
 export type TowerSqlRow = {
@@ -16,6 +19,7 @@ export type TowerSqlRow = {
   origin_city: string;
   destination_city: string;
   service_class: string;
+  carrier_id: string | null;
   hulakico_awb: string | null;
   email: string;
   open_exceptions: number;
@@ -29,7 +33,7 @@ export type TowerSqlRow = {
 /** Active shipments with the timestamps and promise needed for delay features. */
 export function towerSql(placeholders: string): string {
   return `SELECT s.id, s.status, s.lane, s.origin_city, s.destination_city,
-                 s.service_class, s.hulakico_awb, u.email,
+                 s.service_class, s.carrier_id, s.hulakico_awb, u.email,
                  (SELECT COUNT(*) FROM exception_cases e
                   WHERE e.shipment_id = s.id AND e.status = 'OPEN') as open_exceptions,
                  (SELECT te.status FROM tracking_events te
@@ -57,8 +61,8 @@ export function hoursSince(iso: string | null, now: number): number | null {
   return Math.max(0, Math.round((now - at) / 36e5));
 }
 
-/** Maps one SQL row to the payload the risk model scores. */
-export function toRiskItem(row: TowerSqlRow, now: number): RiskFeatureItem {
+/** Maps one SQL row, plus its route on-time record, to the payload the risk model scores. */
+export function toRiskItem(row: TowerSqlRow, now: number, record: RouteRecord | null): RiskFeatureItem {
   return {
     id: row.id,
     lane: row.lane,
@@ -69,5 +73,7 @@ export function toRiskItem(row: TowerSqlRow, now: number): RiskFeatureItem {
     hoursSinceBooking: hoursSince(row.booked_at, now),
     etaDaysMax: row.eta_days_max ?? null,
     openExceptions: Number(row.open_exceptions) || 0,
+    routeOnTime: record?.onTime ?? null,
+    routeDelivered: record?.delivered ?? null,
   };
 }
