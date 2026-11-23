@@ -5,6 +5,7 @@ import type { SavedAddress } from "@/lib/data/addresses";
 import type { PlaceSuggestion } from "@/lib/data/intelligence-client";
 import { countryFitsSide, countryOptionsFor, normalizePhone, phonePlaceholder } from "./countries";
 import { cityChoices, PARTY_KEYS } from "./party-keys";
+import { CityCheckNote } from "./CityCheckNote";
 import { PlaceSuggestControls } from "./PlaceSuggestControls";
 import { SavedAddressControls } from "./SavedAddressControls";
 import type { FormState, FormUpdate } from "./form-types";
@@ -107,7 +108,7 @@ export function PartyAddressBlock({
             required
             placeholder={lane === "DOMESTIC" ? "e.g. Kathmandu" : "City or town"}
           />
-          {hint(k.city) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.city)}</p> : null}
+          {hint(k.city) ? <p className="mt-1 text-xs text-[var(--danger)]">{hint(k.city)}</p> : <CityCheckNote city={form[k.city]} country={form[k.country]} />}
           {cityChoices(form[k.country]).length ? (
             <div className="mt-1 flex flex-wrap gap-1.5">
               {cityChoices(form[k.country]).map((city) => (
