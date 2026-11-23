@@ -35,6 +35,12 @@ export async function POST(request: Request) {
     }
 
     const result = await checkPlace(city, country);
+    if (result.verdict === "WRONG_COUNTRY" && country !== "NP") {
+      return NextResponse.json({
+        verdict: "UNKNOWN",
+        message: `We could not confirm "${city}" in ${regionName(country)}. Please check the spelling; you can still continue.`,
+      });
+    }
     if (result.verdict === "WRONG_COUNTRY") {
       const found = result.foundCountry || regionName(result.foundCountryCode);
       return NextResponse.json({

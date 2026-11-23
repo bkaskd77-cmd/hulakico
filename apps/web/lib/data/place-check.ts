@@ -48,6 +48,9 @@ export async function wrongCountryMessage(
   city: string,
   country: string,
 ): Promise<string | null> {
+  // Only Nepal addresses are blocked: the map lookup is reliable there with the built-in city list.
+  // Abroad it has missed real cities (London, UK), so the form shows a soft note instead.
+  if (country.trim().toUpperCase() !== "NP") return null;
   const result = await checkPlace(city, country);
   if (result.verdict !== "WRONG_COUNTRY") return null;
   const found = result.foundCountry || countryName(result.foundCountryCode);
