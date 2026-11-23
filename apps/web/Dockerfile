@@ -17,6 +17,8 @@ COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs instrumen
 RUN --mount=type=secret,id=env,target=/app/.env.production npm run build
 
 FROM node:24.22.3-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
+# Pull Debian security fixes released after the base image was built.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 # The server runs `node server.js` only. Removing npm, npx, and corepack drops
 # their bundled packages (and any advisories in them) from the production image.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
