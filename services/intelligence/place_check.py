@@ -37,9 +37,12 @@ def _search(city: str, country: str = "") -> list[dict] | None:
         print("[place_check.py:_search] GEOAPIFY_API_KEY is not set.")
         return None
     try:
-        params = {"text": city[:100], "type": "city", "format": "json", "limit": "5", "lang": "en", "apiKey": key}
+        params = {"text": city[:100], "format": "json", "limit": "5", "lang": "en", "apiKey": key}
         if country:
+            # Inside one country any place type counts: London, UK is listed as a region, not a city.
             params["filter"] = f"countrycode:{country.lower()}"
+        else:
+            params["type"] = "city"
         request = urllib.request.Request(
             f"{ENDPOINT}?{urllib.parse.urlencode(params)}",
             headers={"Accept": "application/json", "User-Agent": "HulakicoIntelligence/0.1"},
@@ -53,7 +56,7 @@ def _search(city: str, country: str = "") -> list[dict] | None:
 
 
 def _names(item: dict) -> set[str]:
-    return {_norm(str(item.get(field) or "")) for field in ("city", "name", "town", "village")} - {""}
+    return {_norm(str(item.get(field) or "")) for field in ("city", "name", "town", "village", "county", "state", "state_district")} - {""}
 
 
 def wanted_in(city: str, item: dict) -> bool:
