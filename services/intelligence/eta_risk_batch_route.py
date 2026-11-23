@@ -1,4 +1,4 @@
-"""Batch ETA risk route for Admin control tower."""
+"""Batch ETA risk route for the Admin dashboard (live delay features optional)."""
 
 from __future__ import annotations
 
@@ -17,6 +17,13 @@ class EtaRiskBatchItem(BaseModel):
     lane: str
     destinationCity: str
     serviceClass: str
+    status: str | None = None
+    hoursInStatus: float | None = Field(default=None, ge=0, le=100_000)
+    hoursSinceBooking: float | None = Field(default=None, ge=0, le=100_000)
+    etaDaysMax: float | None = Field(default=None, ge=0, le=365)
+    openExceptions: int | None = Field(default=None, ge=0, le=1000)
+    routeOnTime: int | None = Field(default=None, ge=0)
+    routeDelivered: int | None = Field(default=None, ge=0)
 
 
 class EtaRiskBatchRequest(BaseModel):

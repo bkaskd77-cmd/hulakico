@@ -1,3 +1,5 @@
+import { assessEtaRiskBatch } from "@/lib/data/intelligence-batch";
+import { toRiskItem, towerSql, type TowerSqlRow } from "@/lib/data/tower-features";
 import { getSql } from "@/lib/sql";
 
 export type AdminTowerRow = {
@@ -53,60 +55,28 @@ function localEta(row: {
   };
 }
 
-/** Active shipments ranked by urgency — SQLite only, no remote wait. */
+/** Active shipments ranked by urgency, scored by the intelligence service with a local fallback. */
 export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
   try {
     const placeholders = ACTIVE.map(() => "?").join(",");
     const rows = (await (await getSql())
-      .prepare(
-        `SELECT s.id, s.status, s.lane, s.origin_city, s.destination_city,
-                s.service_class, s.hulakico_awb, u.email,
-                (
-                  SELECT e.id FROM exception_cases e
-                  WHERE e.shipment_id = s.id AND e.status = 'OPEN'
-                  ORDER BY e.created_at DESC LIMIT 1
-                ) as open_exception_id,
-                (
-                  SELECT te.status FROM tracking_events te
-                  WHERE te.shipment_id = s.id
-                  ORDER BY te.occurred_at DESC LIMIT 1
-                ) as latest_track_status,
-                EXISTS (
-                  SELECT 1 FROM payment_intents p
-                  WHERE p.shipment_id = s.id AND p.status = 'AWAITING_PAYMENT'
-                ) as pay_pending
-         FROM shipments s
-         JOIN users u ON u.id = s.user_id
-         WHERE s.status IN (${placeholders})
-         ORDER BY s.updated_at DESC
-         LIMIT 40`,
-      )
-      .all(...ACTIVE)) as Array<{
-      id: string;
-      status: string;
-      lane: string;
-      origin_city: string;
-      destination_city: string;
-      service_class: string;
-      hulakico_awb: string | null;
-      email: string;
-      open_exception_id: string | null;
-      latest_track_status: string | null;
-      pay_pending: number;
-    }>;
+      .prepare(towerSql(placeholders))
+      .all(...ACTIVE)) as TowerSqlRow[];
+
+    const now = Date.now();
+    const remote = await assessEtaRiskBatch(rows.map((row) => toRiskItem(row, now)));
+    const scored = new Map(remote.map((result) => [result.id, result]));
 
     const tower = rows.map((row) => {
       const onHold =
         row.status === "EXCEPTION" ||
-        Boolean(row.open_exception_id) ||
+        Number(row.open_exceptions) > 0 ||
         row.latest_track_status === "HOLD";
-      const payPending = row.pay_pending === 1;
-      const eta = localEta({
-        status: row.status,
-        lane: row.lane,
-        service_class: row.service_class,
-        onHold,
-      });
+      const payPending = Number(row.pay_pending) === 1;
+      const live = scored.get(row.id);
+      const eta = live
+        ? { etaLevel: live.level, etaScore: live.score, etaFactors: live.factors }
+        : localEta({ status: row.status, lane: row.lane, service_class: row.service_class, onHold });
       let urgency = eta.etaScore;
       if (onHold) urgency += 0.25;
       if (payPending) urgency += 0.15;
