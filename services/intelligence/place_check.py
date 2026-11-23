@@ -30,14 +30,16 @@ def _norm(name: str) -> str:
     return NP_SUFFIX.sub("", re.sub(r"\s+", " ", name or "").strip()).casefold()
 
 
-def _search(city: str) -> list[dict] | None:
-    """Up to 5 city matches worldwide; None when the key is missing or the call fails."""
+def _search(city: str, country: str = "") -> list[dict] | None:
+    """Up to 5 city matches (worldwide, or inside one country); None when the call fails."""
     key = (os.getenv("GEOAPIFY_API_KEY") or "").strip()
     if not key:
         print("[place_check.py:_search] GEOAPIFY_API_KEY is not set.")
         return None
     try:
         params = {"text": city[:100], "type": "city", "format": "json", "limit": "5", "lang": "en", "apiKey": key}
+        if country:
+            params["filter"] = f"countrycode:{country.lower()}"
         request = urllib.request.Request(
             f"{ENDPOINT}?{urllib.parse.urlencode(params)}",
             headers={"Accept": "application/json", "User-Agent": "HulakicoIntelligence/0.1"},
@@ -52,6 +54,11 @@ def _search(city: str) -> list[dict] | None:
 
 def _names(item: dict) -> set[str]:
     return {_norm(str(item.get(field) or "")) for field in ("city", "name", "town", "village")} - {""}
+
+
+def wanted_in(city: str, item: dict) -> bool:
+    """True when the geocoder result carries this city name."""
+    return _norm(city) in _names(item)
 
 
 def _confidence(item: dict) -> float:
@@ -94,6 +101,14 @@ def check_place(city: str, country: str) -> dict:
         if results is None:
             return {"verdict": "UNKNOWN"}
         result = verdict_from(name, code, results)
+        if result["verdict"] == "WRONG_COUNTRY":
+            # The worldwide top 5 can miss the right place (London, UK lost to London, Canada).
+            # Search inside the chosen country before blocking anything.
+            local = _search(name, code)
+            if local is None:
+                return {"verdict": "UNKNOWN"}
+            if any(wanted_in(name, item) for item in local):
+                result = {"verdict": "OK"}
         if len(_cache) >= CACHE_MAX:
             _cache.pop(next(iter(_cache)))
         _cache[key] = result
