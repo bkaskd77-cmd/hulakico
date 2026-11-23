@@ -13,6 +13,7 @@ from doc_qc import run_document_qc
 from eta_risk import assess_eta_risk
 from eta_risk_batch_route import router as eta_risk_batch_router
 from main_auth import require_service_token
+from place_check_route import router as place_check_router
 from places_provider import get_places_provider
 from ranker import rank_quote_options
 
@@ -24,6 +25,7 @@ app = FastAPI(
     version="0.1.0",
 )
 app.include_router(eta_risk_batch_router)
+app.include_router(place_check_router)
 
 
 class RankOptionIn(BaseModel):
