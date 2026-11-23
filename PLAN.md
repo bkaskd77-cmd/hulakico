@@ -410,3 +410,9 @@ Goal: live, explainable delay risk that learns from delivered shipments; ML-read
 - [ ] I1.4 Dashboard: sort by risk, show score and top reasons per shipment.
 
 Later (I2, needs data): fit a logistic model on delivered outcomes to replace hand-set weights; ETA prediction per route.
+
+## Phase I1 add-on — Address check (city in country)
+
+- [x] Intelligence `/v1/place-check` (`place_check.py`): OK / WRONG_COUNTRY / UNKNOWN via Geoapify, cached; built-in list for common Nepal cities.
+- [x] Booking draft blocks WRONG_COUNTRY for sender and receiver with a clear message; UNKNOWN and service outages never block.
+- [ ] Booking form: soft warning on UNKNOWN ("We could not find this city on the map").

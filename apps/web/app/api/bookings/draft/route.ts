@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { draftBookingSchema } from "@/lib/domain/booking";
 import { createDraftShipment } from "@/lib/data/shipments";
 import { getUserBySessionToken } from "@/lib/data/auth-store";
+import { wrongCountryMessage } from "@/lib/data/place-check";
 import { readSessionToken } from "@/lib/http/session-cookie";
 
 export const runtime = "nodejs";
@@ -21,6 +22,16 @@ export async function POST(request: Request) {
         { error: "Invalid booking details.", details: parsed.error.flatten() },
         { status: 400 },
       );
+    }
+
+    // A city that clearly belongs to another country is a typo or a wrong country pick: stop it here.
+    const [originProblem, destinationProblem] = await Promise.all([
+      wrongCountryMessage("sender", parsed.data.originCity, parsed.data.originCountry),
+      wrongCountryMessage("receiver", parsed.data.destinationCity, parsed.data.destinationCountry),
+    ]);
+    const placeProblem = originProblem ?? destinationProblem;
+    if (placeProblem) {
+      return NextResponse.json({ error: placeProblem }, { status: 400 });
     }
 
     const draft = await createDraftShipment(
