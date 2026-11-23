@@ -398,3 +398,14 @@ Customers track partner hops via the partner link; Ops updates Hulakico mileston
 
 Human: `/account` → **All shipments** → `/account/shipments` list (15/page, pages 1–10) · empty state books first send · open/track/copy work.  
 Next when ready: Phase 4 Step 5 polish **or** ops/partner tracking refinements.
+
+## Phase I1 — IN PROGRESS (Shipment intelligence: delay risk v2)
+
+Goal: live, explainable delay risk that learns from delivered shipments; ML-ready features.
+
+- [x] I1.1 Intelligence service: `risk_signals.py` (time in status, ETA progress, open exceptions, festival season, Beta-Binomial route on-time rate) wired into `eta_risk.py` (model `rules-v2`, backward compatible).
+- [ ] I1.2 Web: compute live features per active shipment (hours in status, hours since booking, promised ETA max, open exceptions) and send them in the batch call; batch route accepts the new fields.
+- [ ] I1.3 Route history: on-time vs delivered per route + partner from delivered shipments; feed risk and replace the name-based partner trust in `ranker.py`.
+- [ ] I1.4 Dashboard: sort by risk, show score and top reasons per shipment.
+
+Later (I2, needs data): fit a logistic model on delivered outcomes to replace hand-set weights; ETA prediction per route.

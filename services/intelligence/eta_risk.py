@@ -1,8 +1,16 @@
-"""Rule-based ETA delay risk for Nepal logistics lanes."""
+"""ETA delay risk for Nepal shipments: static route rules plus live signals when known."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
+
+from risk_signals import (
+    dwell_signal,
+    eta_progress_signal,
+    exception_signal,
+    festival_signal,
+    history_signal,
+)
 
 VALLEY = {"kathmandu", "lalitpur", "bhaktapur", "kirtipur", "madhyapur thimi"}
 MAJOR = {
@@ -25,7 +33,8 @@ def assess_eta_risk(payload: dict) -> dict:
         lane = str(payload.get("lane", "DOMESTIC")).upper()
         dest = str(payload.get("destinationCity", "")).strip().lower()
         service = str(payload.get("serviceClass", "ECONOMY")).upper()
-        month = datetime.now(timezone.utc).month
+        now = datetime.now(timezone.utc)
+        month = now.month
 
         score = 0.15
         factors: list[str] = []
@@ -54,6 +63,18 @@ def assess_eta_risk(payload: dict) -> dict:
             score += 0.02
             factors.append("Express service - tighter SLA")
 
+        live = [
+            dwell_signal(str(payload.get("status", "")).upper(), lane, payload.get("hoursInStatus")),
+            eta_progress_signal(payload.get("hoursSinceBooking"), payload.get("etaDaysMax")),
+            exception_signal(payload.get("openExceptions")),
+            history_signal(payload.get("routeOnTime"), payload.get("routeDelivered")),
+            festival_signal(now),
+        ]
+        for delta, factor in live:
+            score += delta
+            if factor:
+                factors.append(factor)
+
         score = max(0.0, min(1.0, score))
         if score >= 0.65:
             level = "HIGH"
@@ -66,6 +87,7 @@ def assess_eta_risk(payload: dict) -> dict:
             "level": level,
             "score": round(score, 3),
             "factors": factors,
+            "model": "rules-v2",
         }
     except Exception as exc:
         print(f"[eta_risk.py:assess_eta_risk] {type(exc).__name__}: {exc}")
