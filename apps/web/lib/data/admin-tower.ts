@@ -1,4 +1,5 @@
 import { assessEtaRiskBatch } from "@/lib/data/intelligence-batch";
+import { logPredictions } from "@/lib/data/prediction-log";
 import { loadRouteRecords, recordFor } from "@/lib/data/route-performance";
 import { toRiskItem, towerSql, type TowerSqlRow } from "@/lib/data/tower-features";
 import { getSql } from "@/lib/sql";
@@ -66,10 +67,16 @@ export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
     ]);
 
     const now = Date.now();
-    const remote = await assessEtaRiskBatch(
-      rows.map((row) => toRiskItem(row, now, recordFor(records, row.lane, row.destination_city, row.carrier_id))),
-    );
+    const items = rows.map((row) => toRiskItem(row, now, recordFor(records, row.lane, row.destination_city, row.carrier_id)));
+    const remote = await assessEtaRiskBatch(items);
     const scored = new Map(remote.map((result) => [result.id, result]));
+    // Only real model scores become training data, never the local fallback.
+    await logPredictions(
+      items.flatMap((features) => {
+        const live = scored.get(features.id);
+        return live ? [{ features, score: live.score, level: live.level, model: "rules-v2" }] : [];
+      }),
+    );
 
     const tower = rows.map((row) => {
       const onHold =

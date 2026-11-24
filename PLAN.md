@@ -416,3 +416,10 @@ Later (I2, needs data): fit a logistic model on delivered outcomes to replace ha
 - [x] Intelligence `/v1/place-check` (`place_check.py`): OK / WRONG_COUNTRY / UNKNOWN via Geoapify, cached; built-in list for common Nepal cities.
 - [x] Booking draft blocks WRONG_COUNTRY for sender and receiver with a clear message; UNKNOWN and service outages never block.
 - [ ] Booking form: soft warning on UNKNOWN ("We could not find this city on the map").
+
+## Phase I2 — STARTED (ML training data)
+
+- [x] I2.1 `prediction_log`: every delay-risk score (model `rules-v2`) with the features known at that moment; at most one row per shipment per 6 h. Local fallback scores are not logged.
+- [ ] I2.2 Label outcomes: on DELIVERED mark ON_TIME / LATE against the promised days; CANCELLED marked as such.
+- [ ] I2.3 Admin "Model health" view: predictions vs outcomes (calibration, hit rate) once labels exist.
+- [ ] I2.4 Fit logistic model on labelled rows (needs a few hundred); shadow-run beside rules-v2 before switching.

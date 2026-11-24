@@ -248,6 +248,26 @@ export function ensureSchema(database: DatabaseSync): void {
   ensureSiteContentTable(database);
   ensureContactMessagesTable(database);
   ensureRateLimitTable(database);
+  ensurePredictionLog(database);
+}
+
+/** Every delay-risk score with the features known at that moment; the outcome is added on delivery. Training data for I2. */
+function ensurePredictionLog(database: DatabaseSync): void {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS prediction_log (
+      id TEXT PRIMARY KEY,
+      shipment_id TEXT NOT NULL,
+      model TEXT NOT NULL,
+      scored_at TEXT NOT NULL,
+      features_json TEXT NOT NULL,
+      score REAL NOT NULL,
+      level TEXT NOT NULL,
+      outcome TEXT CHECK (outcome IS NULL OR outcome IN ('ON_TIME', 'LATE', 'CANCELLED')),
+      outcome_at TEXT,
+      FOREIGN KEY (shipment_id) REFERENCES shipments(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_prediction_log_shipment ON prediction_log(shipment_id, scored_at);
+  `);
 }
 
 function ensureRateLimitTable(database: DatabaseSync): void {
