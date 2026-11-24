@@ -420,6 +420,6 @@ Later (I2, needs data): fit a logistic model on delivered outcomes to replace ha
 ## Phase I2 — STARTED (ML training data)
 
 - [x] I2.1 `prediction_log`: every delay-risk score (model `rules-v2`) with the features known at that moment; at most one row per shipment per 6 h. Local fallback scores are not logged.
-- [ ] I2.2 Label outcomes: on DELIVERED mark ON_TIME / LATE against the promised days; CANCELLED marked as such.
+- [x] I2.2 Label outcomes (`labelOutcomes`, run from the Dashboard at most every 10 min): DELIVERED → ON_TIME / LATE vs promised days (+0.5 day grace); RTO → LATE; CANCELLED → CANCELLED.
 - [ ] I2.3 Admin "Model health" view: predictions vs outcomes (calibration, hit rate) once labels exist.
 - [ ] I2.4 Fit logistic model on labelled rows (needs a few hundred); shadow-run beside rules-v2 before switching.

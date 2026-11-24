@@ -1,5 +1,6 @@
 import { assessEtaRiskBatch } from "@/lib/data/intelligence-batch";
-import { logPredictions } from "@/lib/data/prediction-log";
+import { labelOutcomes, logPredictions } from "@/lib/data/prediction-log";
+import { runAtMostEvery } from "@/lib/sql/once";
 import { loadRouteRecords, recordFor } from "@/lib/data/route-performance";
 import { toRiskItem, towerSql, type TowerSqlRow } from "@/lib/data/tower-features";
 import { getSql } from "@/lib/sql";
@@ -61,6 +62,8 @@ function localEta(row: {
 export async function listAdminTowerShipments(): Promise<AdminTowerRow[]> {
   try {
     const placeholders = ACTIVE.map(() => "?").join(",");
+    // Finished shipments get their real outcome attached (training labels), at most every 10 minutes.
+    await runAtMostEvery("label_prediction_outcomes", 10 * 60 * 1000, labelOutcomes);
     const [rows, records] = await Promise.all([
       (await getSql()).prepare(towerSql(placeholders)).all(...ACTIVE) as Promise<TowerSqlRow[]>,
       loadRouteRecords(),
