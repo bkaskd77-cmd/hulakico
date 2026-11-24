@@ -19,6 +19,7 @@ const GROUPS: ReadonlyArray<{ label: string; links: ReadonlyArray<NavLink> }> = 
       { href: "/admin/cod", label: "COD", area: "operations" },
       { href: "/admin/messages", label: "Messages", area: "operations" },
       { href: "/admin/notifications", label: "Notifications", area: "operations" },
+      { href: "/admin/model", label: "Model health", area: "operations" },
     ],
   },
   { label: "Pricing", links: [{ href: "/admin/carriers", label: "Rate card", area: "carriers" }] },
