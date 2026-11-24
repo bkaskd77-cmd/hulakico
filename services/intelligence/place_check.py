@@ -56,7 +56,11 @@ def _search(city: str, country: str = "") -> list[dict] | None:
 
 
 def _names(item: dict) -> set[str]:
-    return {_norm(str(item.get(field) or "")) for field in ("city", "name", "town", "village", "county", "state", "state_district")} - {""}
+    fields = ("city", "name", "town", "village", "county", "state", "state_district", "address_line1")
+    names = {_norm(str(item.get(field) or "")) for field in fields}
+    # Some big cities carry their name only in the label: "London, ENG, United Kingdom" (city = "Greater London").
+    names.add(_norm(str(item.get("formatted") or "").split(",")[0]))
+    return names - {""}
 
 
 def wanted_in(city: str, item: dict) -> bool:
