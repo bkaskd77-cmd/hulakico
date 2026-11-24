@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { InvoiceUpload as Upload } from "@/lib/data/invoice-uploads";
 
 const kb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 /** Optional: attach the customer's own invoice (PDF or photo) alongside the Hulakico invoice. */
-export function InvoiceUpload({ shipmentId }: { shipmentId: string }) {
+/** `autofill` is shown once a file is attached (the AI reads that file). */
+export function InvoiceUpload({ shipmentId, autofill }: { shipmentId: string; autofill?: ReactNode }) {
   const [upload, setUpload] = useState<Upload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -55,7 +56,7 @@ export function InvoiceUpload({ shipmentId }: { shipmentId: string }) {
   return (
     <div className="rounded-md border border-dashed border-[color-mix(in_srgb,var(--off-white)_28%,transparent)] p-3">
       <p className="text-sm font-semibold text-[var(--off-white)]">Your own invoice <span className="font-normal text-[var(--muted)]">(optional)</span></p>
-      <p className="mt-0.5 text-xs text-[var(--muted)]">Already have a commercial invoice for these goods? Attach it as a PDF or photo (up to 3 MB). It travels with the Hulakico invoice above; please still list the items.</p>
+      <p className="mt-0.5 text-xs text-[var(--muted)]">Already have a commercial invoice for these goods? Attach it as a PDF or photo (up to 3 MB). It travels with your Hulakico invoice, and our AI can fill the items below from it.</p>
       {upload ? (
         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
           <a href={url} target="_blank" rel="noopener" className="font-semibold text-[var(--teal)] underline">{upload.fileName}</a>
@@ -72,6 +73,7 @@ export function InvoiceUpload({ shipmentId }: { shipmentId: string }) {
       <input ref={input} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden"
         onChange={(e) => { const file = e.target.files?.[0]; if (file) void send(file); }} />
       {error ? <p role="alert" className="mt-2 text-xs text-[var(--danger)]">{error}</p> : null}
+      {upload ? autofill : null}
     </div>
   );
 }

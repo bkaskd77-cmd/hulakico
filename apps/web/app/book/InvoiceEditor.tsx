@@ -8,8 +8,10 @@ import {
   invoiceTotalWeightKg,
   type CommercialInvoice,
 } from "@/lib/domain/invoice";
-import { emptyInvoiceLine, invoiceLineIncomplete, InvoiceLineFields, type LineDraft } from "./InvoiceLineFields";
+import { emptyInvoiceLine, invoiceLineIncomplete, InvoiceLineFields, type LineDraft } from "./InvoiceLineFields";
+
 import { AiCustomsCheck } from "./AiCustomsCheck";
+import { InvoiceAutofill } from "./InvoiceAutofill";
 import { InvoiceUpload } from "./InvoiceUpload";
 import { InvoiceTermsFields, type InvoiceTerms } from "./InvoiceTermsFields";
 import { purposeLabel } from "@/lib/domain/invoice-terms";
@@ -104,6 +106,10 @@ export function InvoiceEditor({
       <Link href={`/book/invoice/${shipmentId}`} className="inline-block text-xs font-semibold text-[var(--teal)] underline-offset-2 hover:underline">
         Open digital invoice document
       </Link>
+      <InvoiceUpload shipmentId={shipmentId} autofill={
+        <InvoiceAutofill shipmentId={shipmentId} currency={currency}
+          hasItems={lines.some((line) => line.description.trim().length > 0)} onFill={setLines} />
+      } />
       {lines.map((line, index) => (
         <InvoiceLineFields key={index} line={line} index={index} currency={currency} field={FIELD}
           onChange={(patch) => updateLine(index, patch)}
@@ -124,7 +130,6 @@ export function InvoiceEditor({
       </div>
       <InvoiceTermsFields terms={terms} currency={currency} field={FIELD} signedOnSave={terms.agreed}
         onChange={(patch) => setTerms((prev) => ({ ...prev, ...patch }))} />
-      <InvoiceUpload shipmentId={shipmentId} />
       <label className="block text-sm text-[var(--muted)]">
         Notes
         <input className={FIELD} value={notes} onChange={(e) => setNotes(e.target.value)} />
