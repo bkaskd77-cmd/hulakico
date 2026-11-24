@@ -16,20 +16,29 @@ function Barcode({ value }: { value: string }) {
 
 function Party({ title, party, large }: { title: string; party: ShipmentParty; large?: boolean }) {
   return (
-    <div className="border-b-2 border-black p-2">
-      <p className="text-[10px] font-bold uppercase tracking-wide">{title}</p>
-      <p className={`${large ? "text-lg" : "text-sm"} font-bold leading-tight`}>{party.contactName || "—"}</p>
-      {party.company && party.company !== party.contactName ? <p className="text-xs leading-tight">{party.company}</p> : null}
-      <p className={`${large ? "text-sm" : "text-xs"} leading-tight`}>{[party.line1, party.line2].filter(Boolean).join(", ")}</p>
-      <p className={`${large ? "text-base font-bold" : "text-xs font-semibold"} leading-tight`}>
-        {[party.city, party.postalCode].filter(Boolean).join(" ")} · {countryName(party.country)}
-      </p>
-      {party.phone ? <p className="text-xs leading-tight">Tel {party.phone}</p> : null}
+    <div className={`flex items-start justify-between gap-2 border-b-2 border-black ${large ? "p-2.5" : "p-2"}`}>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wide">{title}</p>
+        <p className={`${large ? "text-xl" : "text-sm"} font-bold leading-tight`}>{party.contactName || "—"}</p>
+        {party.company && party.company !== party.contactName ? <p className="text-xs leading-tight">{party.company}</p> : null}
+        <p className={`${large ? "text-base" : "text-xs"} leading-tight`}>{[party.line1, party.line2].filter(Boolean).join(", ")}</p>
+        <p className={`${large ? "text-lg font-bold" : "text-xs font-semibold"} leading-tight`}>
+          {[party.city, party.postalCode].filter(Boolean).join(" ")} · {countryName(party.country)}
+        </p>
+        {party.phone ? <p className="text-xs leading-tight">Tel {party.phone}</p> : null}
+      </div>
+      {/* Sorting staff read the destination country from across the room. */}
+      {large ? <p className="shrink-0 border-2 border-black px-2 text-3xl font-black leading-tight">{party.country}</p> : null}
     </div>
   );
 }
 
-/** 4×6 inch Hulakico parcel label: AWB barcode, sender, receiver, service, and what the desk must act on. */
+/** Actual weight and box size: what the courier weighs and measures, not the billing weight. */
+function sizeText(s: ShipmentSummary): string {
+  return s.lengthCm && s.widthCm && s.heightCm ? `${s.lengthCm}×${s.widthCm}×${s.heightCm} cm` : "Envelope";
+}
+
+/** 4×6 inch Hulakico parcel label in carrier order: sender (small), receiver (largest), box facts, AWB barcode, then what the desk must act on. */
 export function LabelSheet({ s }: { s: ShipmentSummary }) {
   const awb = s.hulakicoAwb ?? s.id;
   const partnerAwb = customerPartnerAwb(s.externalAwb);
@@ -48,16 +57,17 @@ export function LabelSheet({ s }: { s: ShipmentSummary }) {
           <p className="text-[10px] font-semibold">{laneLabel(s.lane)}</p>
         </div>
       </header>
+      <Party title="From" party={s.origin} />
+      <Party title="Ship to" party={s.destination} large />
+      <div className="grid grid-cols-4 border-b-2 border-black text-center text-xs">
+        <div className="border-r-2 border-black p-1.5"><p className="text-[10px] uppercase">Weight</p><p className="font-bold">{s.weightKg} kg</p></div>
+        <div className="border-r-2 border-black p-1.5"><p className="text-[10px] uppercase">Size</p><p className="font-bold">{sizeText(s)}</p></div>
+        <div className="border-r-2 border-black p-1.5"><p className="text-[10px] uppercase">Pieces</p><p className="font-bold">1 of 1</p></div>
+        <div className="p-1.5"><p className="text-[10px] uppercase">Date</p><p className="font-bold">{nepalDate(s.createdAt)}</p></div>
+      </div>
       <div className="border-b-2 border-black px-2 pb-1 pt-2">
         <Barcode value={awb} />
         <p className="text-center font-mono text-base font-bold tracking-wider">{awb}</p>
-      </div>
-      <Party title="Ship to" party={s.destination} large />
-      <Party title="From" party={s.origin} />
-      <div className="grid grid-cols-3 border-b-2 border-black text-center text-xs">
-        <div className="border-r-2 border-black p-1.5"><p className="text-[10px] uppercase">Weight</p><p className="font-bold">{s.chargeableKg} kg</p></div>
-        <div className="border-r-2 border-black p-1.5"><p className="text-[10px] uppercase">Pieces</p><p className="font-bold">1 of 1</p></div>
-        <div className="p-1.5"><p className="text-[10px] uppercase">Date</p><p className="font-bold">{nepalDate(s.createdAt)}</p></div>
       </div>
       {codDue ? (
         <div className="border-b-2 border-black bg-black p-2 text-center text-white">
