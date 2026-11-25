@@ -115,7 +115,7 @@ export async function SiteFooter() {
               rel="noopener noreferrer"
               className="underline-offset-2 hover:underline"
             >
-              Softtero
+              Softtero Technologies
             </a>
           </p>
         </div>
